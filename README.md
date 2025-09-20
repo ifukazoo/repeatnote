@@ -67,3 +67,25 @@ export default tseslint.config([
   },
 ])
 ```
+
+## 備忘録
+
+### Cloudflare Workers設定について
+
+#### wrangler.jsonc - SPAルーティング設定
+```jsonc
+"assets": {
+    "not_found_handling": "single-page-application"
+}
+```
+
+**この設定の意味:**
+- 静的ファイルが見つからない場合（404エラー）に、`index.html`を返す
+- React等のSPAでクライアントサイドルーティングを使用する際に必要
+- `/api/`で始まるパス → Workerが処理
+- その他のパス → React SPAの`index.html`を返してクライアントサイドでルーティング
+
+**動作例:**
+1. ユーザーが`/about`にアクセス
+2. 実際のファイルは存在しないが、この設定により`index.html`を返す
+3. Reactアプリがロードされてクライアントサイドでルーティング処理
