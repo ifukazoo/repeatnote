@@ -89,3 +89,38 @@ export default tseslint.config([
 1. ユーザーが`/about`にアクセス
 2. 実際のファイルは存在しないが、この設定により`index.html`を返す
 3. Reactアプリがロードされてクライアントサイドでルーティング処理
+
+### プロジェクト構造
+
+#### ルートディレクトリのファイル
+
+**設定ファイル**
+- `package.json` - プロジェクトの依存関係とスクリプト定義
+- `vite.config.ts` - Vite（ビルドツール）の設定
+- `eslint.config.js` - ESLintのコード品質チェック設定
+- `wrangler.jsonc` - Cloudflare Workersのデプロイ設定
+- `tsconfig.*.json` - TypeScript設定（用途別に分割）
+- `worker-configuration.d.ts` - Cloudflare Workers用の型定義
+
+**プロジェクトファイル**
+- `index.html` - SPAのエントリポイント
+- `CLAUDE.md` - Claude Code用の開発ガイド
+
+#### ディレクトリ構成
+
+**`src/` - Reactアプリケーション**
+- `main.tsx` - React アプリのエントリポイント
+- `App.tsx` - メインコンポーネント
+- `assets/` - 画像ファイル（ロゴなど）
+
+**`worker/` - Cloudflare Worker**
+- `index.ts` - API処理を行うWorkerコード
+
+**`dist/` - ビルド成果物**
+- `client/` - Reactアプリのビルド結果
+- `repeatnote/` - Cloudflare Worker用のビルド結果
+
+**その他**
+- `public/` - 静的ファイル
+- `.vscode/` - VS Code設定
+- `.wrangler/` - Wranglerの作業ディレクトリ
