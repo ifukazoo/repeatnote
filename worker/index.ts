@@ -50,7 +50,13 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
     if (pathname.match(/^\/api\/items\/\d+\/review$/) && method === 'PUT') {
       // PUT /api/items/:id/review - 復習処理を行い次回復習日を更新
       const idMatch = pathname.match(/^\/api\/items\/(\d+)\/review$/);
-      const itemId = parseInt(idMatch![1]);
+      if (!idMatch) {
+        return new Response(JSON.stringify({ error: 'Invalid URL format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      const itemId = parseInt(idMatch[1]);
 
       const body = await request.json() as ReviewResult;
 
@@ -78,7 +84,13 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
     if (pathname.match(/^\/api\/items\/\d+$/) && method === 'DELETE') {
       // DELETE /api/items/:id - アイテムを削除
       const idMatch = pathname.match(/^\/api\/items\/(\d+)$/);
-      const itemId = parseInt(idMatch![1]);
+      if (!idMatch) {
+        return new Response(JSON.stringify({ error: 'Invalid URL format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      const itemId = parseInt(idMatch[1]);
 
       const deleted = await deleteItem(env.DB, itemId);
 
