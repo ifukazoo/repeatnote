@@ -124,3 +124,42 @@ export default tseslint.config([
 - `public/` - 静的ファイル
 - `.vscode/` - VS Code設定
 - `.wrangler/` - Wranglerの作業ディレクトリ
+
+### ローカル開発環境の設定
+
+#### D1データベースローカル開発設定
+
+**wrangler.jsonc - preview_database_id設定**
+```jsonc
+"d1_databases": [
+  {
+    "binding": "DB",
+    "database_name": "repeatnote-db",
+    "database_id": "placeholder-id-will-be-replaced-after-creation",
+    "preview_database_id": "local-repeatnote-db"
+  }
+]
+```
+
+**この設定の意味:**
+- `database_id`: プロダクション用データベースID（実際のCloudflare D1作成後に設定）
+- `preview_database_id`: ローカル開発用の識別子
+- ローカルD1は `.wrangler/state/v3/d1` に SQLite ファイルとして保存
+
+#### ローカル開発手順
+1. **スキーマ適用**: `npx wrangler d1 execute repeatnote-db --local --file=schema.sql`
+2. **開発サーバー起動**: `npm run dev`
+3. **型定義生成**: `npm run cf-typegen` (D1設定変更後)
+
+#### ローカルD1データベース操作
+```bash
+# スキーマ適用
+npx wrangler d1 execute repeatnote-db --local --file=schema.sql
+
+# 直接SQLコマンド実行
+npx wrangler d1 execute repeatnote-db --local --command="SELECT * FROM items"
+
+# データベースリセット（開発時）
+rm -rf .wrangler/state/v3/d1
+npx wrangler d1 execute repeatnote-db --local --file=schema.sql
+```

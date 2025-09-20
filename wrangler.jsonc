@@ -17,7 +17,8 @@
 		{
 			"binding": "DB",
 			"database_name": "repeatnote-db",
-			"database_id": "placeholder-id-will-be-replaced-after-creation"
+			"database_id": "placeholder-id-will-be-replaced-after-creation",
+			"preview_database_id": "local-repeatnote-db"
 		}
 	]
 	/**
