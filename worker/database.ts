@@ -69,10 +69,7 @@ export async function deleteItem(db: D1Database, id: number): Promise<boolean> {
 // アイテムの復習を処理（SM-2アルゴリズムで次回復習日を計算）
 export async function reviewItem(db: D1Database, id: number, quality: number): Promise<Item | null> {
     // まず現在のアイテム情報を取得
-    const currentItem = await db
-        .prepare('SELECT * FROM items WHERE id = ?')
-        .bind(id)
-        .first<Item>();
+    const currentItem = await db.prepare('SELECT * FROM items WHERE id = ?').bind(id).first<Item>();
 
     if (!currentItem) {
         return null;
