@@ -11,31 +11,55 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run deploy` - Build and deploy to Cloudflare Workers
 - `npm run cf-typegen` - Generate TypeScript types for Cloudflare Workers
 
-## Architecture
+## Local D1 Database Development
 
-This is a React + TypeScript + Vite application deployed on Cloudflare Workers with the following structure:
+```bash
+# Apply database schema locally
+npx wrangler d1 execute repeatnote-db --local --file=schema.sql
 
-### Frontend (React SPA)
-- **Entry Point**: `src/main.tsx` - React app entry point
-- **Main Component**: `src/App.tsx` - Main React component with state management
-- **Assets**: `src/assets/` - Static assets (logos, images)
-- **Styling**: `src/App.css` and `src/index.css` - Component and global styles
+# Execute direct SQL commands
+npx wrangler d1 execute repeatnote-db --local --command="SELECT * FROM items"
 
-### Backend (Cloudflare Worker)
-- **Worker Entry**: `worker/index.ts` - Cloudflare Worker that handles API requests
-- **API Pattern**: Routes starting with `/api/` are handled by the worker
-- **Static Assets**: All other routes serve the React SPA (configured via `assets.not_found_handling`)
+# Reset local database (development only)
+rm -rf .wrangler/state/v3/d1
+npx wrangler d1 execute repeatnote-db --local --file=schema.sql
+```
+
+## Application Architecture
+
+**RepeatNote** is a spaced repetition learning application implementing the SM-2 algorithm for optimal memory retention. Built with React + TypeScript + Vite frontend and Cloudflare Workers + D1 database backend.
+
+### Core Functionality
+- **Spaced Repetition**: SM-2 algorithm calculates optimal review intervals based on recall quality (0-5 scale)
+- **Learning Items**: Create, edit, and delete study items with 750-character limit
+- **Review System**: Quality-based evaluation with visual feedback (😵 忘れた, 🤔 曖昧, 💡 思い出した, ✨ 完璧)
+- **Smart Filtering**: Default view shows only items needing review; toggle to show all items
+
+### Frontend Architecture (`src/`)
+- **`App.tsx`**: Main component (~300 lines) handling all state management, API calls, and UI logic
+- **`api.ts`**: Centralized API communication with error handling via ApiError class
+- **`types.ts`**: TypeScript interfaces for Item, CreateItemData, UpdateItemData, and API responses
+- **State Management**: Local React state for items, editing, filtering, and form data
+- **UI Features**: Character counters with visual warnings, inline editing, responsive design
+
+### Backend Architecture (`worker/`)
+- **`index.ts`**: RESTful API router handling CORS, request validation, and response formatting
+- **`database.ts`**: D1 database operations and SM-2 algorithm implementation
+- **API Endpoints**:
+  - `GET /api/items` - Retrieve all items
+  - `POST /api/items` - Create new item (750 char limit)
+  - `PUT /api/items/:id` - Update item content
+  - `PUT /api/items/:id/review` - Process review with quality score
+  - `DELETE /api/items/:id` - Delete item
+
+### Database Schema (`schema.sql`)
+Items table with fields for SM-2 algorithm: `interval_days`, `ease_factor`, `review_count`, `next_review`
 
 ### Key Integration Points
-- **API Communication**: Frontend fetches from `/api/` endpoints which are handled by the Cloudflare Worker
-- **Build Process**: Vite builds the frontend, Wrangler handles worker deployment
-- **Development**: Vite dev server for frontend, worker logic can be tested via preview/deploy
+- **API Communication**: Frontend fetches from `/api/` endpoints handled by Cloudflare Worker
+- **SPA Routing**: `wrangler.jsonc` configured with `"not_found_handling": "single-page-application"`
+- **Local Development**: `preview_database_id` in wrangler.jsonc enables local D1 database
+- **Build Process**: Vite builds frontend, Wrangler handles worker deployment
 
-### Configuration Files
-- **wrangler.jsonc**: Cloudflare Workers configuration with SPA asset handling
-- **vite.config.ts**: Vite configuration with React SWC and Cloudflare plugin
-- **eslint.config.js**: ESLint configuration with TypeScript and React rules
-- **tsconfig.*.json**: TypeScript configurations for different build targets
-
-### Deployment
-The application is deployed as a Cloudflare Worker with static assets, combining both the React frontend and API backend in a single deployment unit.
+### Current Status
+Main features complete. Remaining tasks in `TODO.md`: delete button UX improvements, component refactoring, production CORS configuration.
