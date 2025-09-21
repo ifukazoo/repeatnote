@@ -8,7 +8,6 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>('')
   const [newItemContent, setNewItemContent] = useState('')
-  const [reviewingItem, setReviewingItem] = useState<number | null>(null)
 
   // アイテム一覧を取得
   const loadItems = async () => {
@@ -50,7 +49,6 @@ function App() {
       setError('')
       const updatedItem = await reviewItem(id, quality)
       setItems(prev => prev.map(item => item.id === id ? updatedItem : item))
-      setReviewingItem(null)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '復習処理に失敗しました')
     }
@@ -133,43 +131,53 @@ function App() {
 
                 <div className="item-actions">
                   {needsReview(item) ? (
-                    reviewingItem === item.id ? (
-                      <div className="review-buttons">
-                        <p>復習の品質を選択:</p>
-                        <div className="quality-buttons">
-                          {[0, 1, 2, 3, 4, 5].map(quality => (
-                            <button
-                              key={quality}
-                              onClick={() => handleReview(item.id, quality)}
-                              className={`quality-${quality}`}
-                              title={quality >= 3 ? '正解' : '不正解'}
-                            >
-                              {quality}
-                            </button>
-                          ))}
-                        </div>
-                        <button onClick={() => setReviewingItem(null)} className="cancel">
-                          キャンセル
+                    <div className="action-buttons">
+                        <button
+                          onClick={() => handleReview(item.id, 0)}
+                          className="quality-0"
+                          title="まったく覚えていない"
+                        >
+                          😵 忘れた
+                        </button>
+                        <button
+                          onClick={() => handleReview(item.id, 2)}
+                          className="quality-2"
+                          title="少し思い出せた"
+                        >
+                          🤔 曖昧
+                        </button>
+                        <button
+                          onClick={() => handleReview(item.id, 3)}
+                          className="quality-3"
+                          title="なんとか思い出せた"
+                        >
+                          💡 思い出した
+                        </button>
+                        <button
+                          onClick={() => handleReview(item.id, 5)}
+                          className="quality-5"
+                          title="完璧に覚えている"
+                        >
+                          ✨ 完璧
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="delete"
+                        >
+                          🗑️ 削除
                         </button>
                       </div>
-                    ) : (
-                      <button
-                        onClick={() => setReviewingItem(item.id)}
-                        className="review"
-                      >
-                        🔄 復習する
-                      </button>
-                    )
                   ) : (
-                    <span className="waiting-text">⏰ 復習待ち</span>
+                    <div className="action-buttons">
+                      <span className="waiting-text">⏰ 復習待ち</span>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="delete"
+                      >
+                        🗑️ 削除
+                      </button>
+                    </div>
                   )}
-
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="delete"
-                  >
-                    🗑️ 削除
-                  </button>
                 </div>
               </div>
             ))}
