@@ -88,9 +88,46 @@ header p {
 }
 
 /* アイテム一覧 */
-.items h2 {
-  color: #1e293b;
+.items-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.items-header h2 {
+  color: #1e293b;
+  margin: 0;
+}
+
+.view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.toggle-button {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.toggle-button:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+.review-count {
+  color: #f59e0b;
+  font-weight: 500;
+  font-size: 0.875rem;
 }
 
 .loading, .empty {
@@ -278,5 +315,14 @@ header p {
 
   .action-buttons {
     justify-content: center;
+  }
+
+  .items-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .view-toggle {
+    flex-wrap: wrap;
   }
 }

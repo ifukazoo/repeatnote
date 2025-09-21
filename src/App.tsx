@@ -8,6 +8,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>('')
   const [newItemContent, setNewItemContent] = useState('')
+  const [showAllItems, setShowAllItems] = useState(false)
 
   // アイテム一覧を取得
   const loadItems = async () => {
@@ -73,6 +74,10 @@ function App() {
     return new Date(item.next_review) <= new Date()
   }
 
+  // 表示するアイテムを決定
+  const displayItems = showAllItems ? items : items.filter(item => needsReview(item))
+  const reviewItemsCount = items.filter(item => needsReview(item)).length
+
   return (
     <div className="app">
       <header>
@@ -105,7 +110,20 @@ function App() {
 
       {/* アイテム一覧 */}
       <section className="items">
-        <h2>学習項目一覧</h2>
+        <div className="items-header">
+          <h2>{showAllItems ? '学習項目一覧' : '復習が必要な項目'}</h2>
+          <div className="view-toggle">
+            <button
+              onClick={() => setShowAllItems(!showAllItems)}
+              className="toggle-button"
+            >
+              {showAllItems ? '復習項目のみ表示' : `全項目表示 (${items.length})`}
+            </button>
+            {!showAllItems && reviewItemsCount > 0 && (
+              <span className="review-count">復習項目: {reviewItemsCount}件</span>
+            )}
+          </div>
+        </div>
 
         {loading ? (
           <div className="loading">⏳ 読み込み中...</div>
@@ -113,9 +131,13 @@ function App() {
           <div className="empty">
             📝 まだ学習項目がありません。上記フォームから追加してください。
           </div>
+        ) : displayItems.length === 0 ? (
+          <div className="empty">
+            🎉 復習が必要な項目はありません！お疲れ様でした。
+          </div>
         ) : (
           <div className="items-list">
-            {items.map((item) => (
+            {displayItems.map((item) => (
               <div key={item.id} className={`item ${needsReview(item) ? 'needs-review' : 'waiting'}`}>
                 <div className="item-content">
                   <strong>{item.content}</strong>
