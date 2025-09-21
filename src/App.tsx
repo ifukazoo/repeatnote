@@ -124,13 +124,18 @@ function App() {
       <section className="add-item">
         <h2>新しい学習項目を追加</h2>
         <form onSubmit={handleCreateItem}>
-          <input
-            type="text"
-            value={newItemContent}
-            onChange={(e) => setNewItemContent(e.target.value)}
-            placeholder="学習内容を入力してください"
-            maxLength={500}
-          />
+          <div className="input-wrapper">
+            <input
+              type="text"
+              value={newItemContent}
+              onChange={(e) => setNewItemContent(e.target.value)}
+              placeholder="学習内容を入力してください"
+              maxLength={750}
+            />
+            <div className={`char-counter ${newItemContent.length > 650 ? 'warning' : ''} ${newItemContent.length >= 750 ? 'danger' : ''}`}>
+              {newItemContent.length}/750
+            </div>
+          </div>
           <button type="submit" disabled={!newItemContent.trim()}>
             ➕ 追加
           </button>
@@ -171,14 +176,19 @@ function App() {
                 <div className="item-content">
                   {editingItem === item.id ? (
                     <div className="edit-form">
-                      <input
-                        type="text"
-                        value={editContent}
-                        onChange={(e) => setEditContent(e.target.value)}
-                        maxLength={500}
-                        className="edit-input"
-                        autoFocus
-                      />
+                      <div className="input-wrapper">
+                        <input
+                          type="text"
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.target.value)}
+                          maxLength={750}
+                          className="edit-input"
+                          autoFocus
+                        />
+                        <div className={`char-counter ${editContent.length > 650 ? 'warning' : ''} ${editContent.length >= 750 ? 'danger' : ''}`}>
+                          {editContent.length}/750
+                        </div>
+                      </div>
                       <div className="edit-actions">
                         <button
                           onClick={() => handleEditSave(item.id)}

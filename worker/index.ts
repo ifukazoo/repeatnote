@@ -40,6 +40,13 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
         });
       }
 
+      if (body.content.length > 750) {
+        return new Response(JSON.stringify({ error: 'Content too long (max 750 characters)' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
       const newItem = await createItem(env.DB, { content: body.content.trim() });
       return new Response(JSON.stringify({ item: newItem }), {
         status: 201,

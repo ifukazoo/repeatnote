@@ -53,12 +53,39 @@ header p {
   gap: 0.75rem;
 }
 
-.add-item input {
+.input-wrapper {
   flex: 1;
+  position: relative;
+}
+
+.add-item input {
+  width: 100%;
   padding: 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.char-counter {
+  position: absolute;
+  right: 0.5rem;
+  bottom: -1.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  background: white;
+  padding: 0 0.25rem;
+  transition: color 0.2s;
+}
+
+.char-counter.warning {
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.char-counter.danger {
+  color: #ef4444;
+  font-weight: bold;
 }
 
 .add-item input:focus {
@@ -207,15 +234,25 @@ header p {
   width: 100%;
 }
 
+.edit-form .input-wrapper {
+  position: relative;
+  margin-bottom: 0.75rem;
+}
+
 .edit-input {
   width: 100%;
   padding: 0.5rem;
   border: 2px solid #3b82f6;
   border-radius: 6px;
   font-size: 1rem;
-  margin-bottom: 0.75rem;
   outline: none;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-sizing: border-box;
+}
+
+.edit-form .char-counter {
+  bottom: -1.25rem;
+  font-size: 0.75rem;
 }
 
 .edit-actions {
@@ -388,6 +425,10 @@ header p {
 
   .add-item form {
     flex-direction: column;
+  }
+
+  .input-wrapper {
+    margin-bottom: 1.5rem;
   }
 
   .item-meta {
