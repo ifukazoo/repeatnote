@@ -1,72 +1,43 @@
-# React + TypeScript + Vite
+# RepeatNote
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**効率的な記憶定着を支援するスペースドリピティション学習アプリ**
 
-Currently, two official plugins are available:
+RepeatNoteは、SM-2アルゴリズムを実装した間隔反復学習システムです。学習効果を最大化するために、記憶の定着度に基づいて最適な復習タイミングを自動計算します。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 主な機能
 
-## Expanding the ESLint configuration
+- **スペースドリピティション**: SM-2アルゴリズムによる科学的な復習間隔計算
+- **学習項目管理**: 750文字以内の学習項目を作成・編集・削除
+- **品質評価システム**: 0-5段階の記憶品質評価（😵 忘れた、🤔 曖昧、💡 思い出した、✨ 完璧）
+- **スマートフィルタリング**: 復習が必要な項目のみを表示する集中学習モード
+- **インライン編集**: 項目内容をその場で素早く編集
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 技術スタック
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **フロントエンド**: React + TypeScript + Vite
+- **バックエンド**: Cloudflare Workers + D1 Database
+- **デプロイ**: Cloudflare Pages + Workers
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+## 開発環境のセットアップ
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# 依存関係のインストール
+npm install
+
+# ローカルD1データベースの初期化
+npx wrangler d1 execute repeatnote-db --local --file=schema.sql
+
+# 開発サーバーの起動
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 利用可能なコマンド
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- `npm run dev` - 開発サーバー起動（Vite HMR有効）
+- `npm run build` - プロダクションビルド
+- `npm run lint` - ESLintによるコード品質チェック
+- `npm run preview` - ビルド結果のプレビュー
+- `npm run deploy` - Cloudflare Workersへのデプロイ
 
 ## 備忘録
 
