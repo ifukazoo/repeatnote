@@ -170,11 +170,92 @@ header p {
   margin-bottom: 1rem;
 }
 
-.item-content strong {
-  display: block;
-  font-size: 1.1rem;
+/* 編集機能 */
+.content-with-edit {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
+}
+
+.content-with-edit strong {
+  flex: 1;
+  font-size: 1.1rem;
   color: #1e293b;
+  word-break: break-word;
+}
+
+.edit-button {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.edit-button:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+.edit-form {
+  width: 100%;
+}
+
+.edit-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 2px solid #3b82f6;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.save-button {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+}
+
+.save-button:hover:not(:disabled) {
+  background: #059669;
+}
+
+.save-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.cancel-button {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+}
+
+.cancel-button:hover {
+  background: #4b5563;
 }
 
 .item-meta {
@@ -324,5 +405,18 @@ header p {
 
   .view-toggle {
     flex-wrap: wrap;
+  }
+
+  .edit-actions {
+    flex-direction: column;
+  }
+
+  .content-with-edit {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .edit-button {
+    align-self: flex-end;
   }
 }

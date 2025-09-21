@@ -14,6 +14,10 @@ export interface CreateItemData {
   content: string;
 }
 
+export interface UpdateItemData {
+  content: string;
+}
+
 export interface ReviewResult {
   quality: number; // 0-5 の復習品質評価
 }

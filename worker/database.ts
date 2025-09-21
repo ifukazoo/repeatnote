@@ -60,6 +60,18 @@ export async function createItem(db: D1Database, data: CreateItemData): Promise<
     return result;
 }
 
+// アイテムを更新
+export async function updateItem(db: D1Database, id: number, content: string): Promise<Item | null> {
+    const result = await db.prepare('UPDATE items SET content = ? WHERE id = ?').bind(content, id).run();
+
+    if (!result.success || result.meta.changes === 0) {
+        return null;
+    }
+
+    // 更新されたアイテムを取得して返す
+    return await db.prepare('SELECT * FROM items WHERE id = ?').bind(id).first<Item>();
+}
+
 // アイテムを削除
 export async function deleteItem(db: D1Database, id: number): Promise<boolean> {
     const result = await db.prepare('DELETE FROM items WHERE id = ?').bind(id).run();

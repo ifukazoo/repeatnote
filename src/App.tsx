@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { Item } from './types'
-import { getItems, createItem, reviewItem, deleteItem, ApiError } from './api'
+import { getItems, createItem, updateItem, reviewItem, deleteItem, ApiError } from './api'
 import './App.css'
 
 function App() {
@@ -9,6 +9,8 @@ function App() {
   const [error, setError] = useState<string>('')
   const [newItemContent, setNewItemContent] = useState('')
   const [showAllItems, setShowAllItems] = useState(false)
+  const [editingItem, setEditingItem] = useState<number | null>(null)
+  const [editContent, setEditContent] = useState('')
 
   // アイテム一覧を取得
   const loadItems = async () => {
@@ -52,6 +54,33 @@ function App() {
       setItems(prev => prev.map(item => item.id === id ? updatedItem : item))
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '復習処理に失敗しました')
+    }
+  }
+
+  // アイテム編集開始
+  const handleEditStart = (item: Item) => {
+    setEditingItem(item.id)
+    setEditContent(item.content)
+  }
+
+  // アイテム編集キャンセル
+  const handleEditCancel = () => {
+    setEditingItem(null)
+    setEditContent('')
+  }
+
+  // アイテム編集保存
+  const handleEditSave = async (id: number) => {
+    if (!editContent.trim()) return
+
+    try {
+      setError('')
+      const updatedItem = await updateItem(id, { content: editContent.trim() })
+      setItems(prev => prev.map(item => item.id === id ? updatedItem : item))
+      setEditingItem(null)
+      setEditContent('')
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : '更新に失敗しました')
     }
   }
 
@@ -140,20 +169,60 @@ function App() {
             {displayItems.map((item) => (
               <div key={item.id} className={`item ${needsReview(item) ? 'needs-review' : 'waiting'}`}>
                 <div className="item-content">
-                  <strong>{item.content}</strong>
-                  <div className="item-meta">
-                    <span>復習回数: {item.review_count}</span>
-                    <span>間隔: {item.interval_days}日</span>
-                    <span>難易度: {item.ease_factor.toFixed(1)}</span>
-                    {item.next_review && (
-                      <span>次回復習: {new Date(item.next_review).toLocaleDateString('ja-JP')}</span>
-                    )}
-                  </div>
+                  {editingItem === item.id ? (
+                    <div className="edit-form">
+                      <input
+                        type="text"
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        maxLength={500}
+                        className="edit-input"
+                        autoFocus
+                      />
+                      <div className="edit-actions">
+                        <button
+                          onClick={() => handleEditSave(item.id)}
+                          className="save-button"
+                          disabled={!editContent.trim()}
+                        >
+                          💾 保存
+                        </button>
+                        <button
+                          onClick={handleEditCancel}
+                          className="cancel-button"
+                        >
+                          ❌ キャンセル
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="content-with-edit">
+                        <strong>{item.content}</strong>
+                        <button
+                          onClick={() => handleEditStart(item)}
+                          className="edit-button"
+                          title="編集"
+                        >
+                          ✏️
+                        </button>
+                      </div>
+                      <div className="item-meta">
+                        <span>復習回数: {item.review_count}</span>
+                        <span>間隔: {item.interval_days}日</span>
+                        <span>難易度: {item.ease_factor.toFixed(1)}</span>
+                        {item.next_review && (
+                          <span>次回復習: {new Date(item.next_review).toLocaleDateString('ja-JP')}</span>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
 
-                <div className="item-actions">
-                  {needsReview(item) ? (
-                    <div className="action-buttons">
+                {editingItem !== item.id && (
+                  <div className="item-actions">
+                    {needsReview(item) ? (
+                      <div className="action-buttons">
                         <button
                           onClick={() => handleReview(item.id, 0)}
                           className="quality-0"
@@ -200,7 +269,8 @@ function App() {
                       </button>
                     </div>
                   )}
-                </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

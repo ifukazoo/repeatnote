@@ -1,4 +1,4 @@
-import { getItems, createItem, deleteItem, reviewItem } from './database';
+import { getItems, createItem, updateItem, deleteItem, reviewItem } from './database';
 import type { CreateItemData, ReviewResult } from './database';
 
 // API ルーター関数
@@ -68,6 +68,56 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       }
 
       const updatedItem = await reviewItem(env.DB, itemId, body.quality);
+
+      if (!updatedItem) {
+        return new Response(JSON.stringify({ error: 'Item not found' }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      return new Response(JSON.stringify({ item: updatedItem }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (pathname.match(/^\/api\/items\/\d+$/) && method === 'PUT') {
+      // PUT /api/items/:id - アイテムを更新
+      const idMatch = pathname.match(/^\/api\/items\/(\d+)$/);
+      if (!idMatch) {
+        return new Response(JSON.stringify({ error: 'Invalid URL format' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      const itemId = parseInt(idMatch[1]);
+
+      let requestData;
+      try {
+        requestData = await request.json() as { content: string };
+      } catch (e) {
+        return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // バリデーション
+      if (!requestData.content || requestData.content.trim().length === 0) {
+        return new Response(JSON.stringify({ error: 'Content is required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      if (requestData.content.length > 750) {
+        return new Response(JSON.stringify({ error: 'Content too long (max 750 characters)' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const updatedItem = await updateItem(env.DB, itemId, requestData.content.trim());
 
       if (!updatedItem) {
         return new Response(JSON.stringify({ error: 'Item not found' }), {

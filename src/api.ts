@@ -1,5 +1,5 @@
 // API通信関数
-import type { Item, CreateItemData, ItemsResponse, ItemResponse, MessageResponse } from './types';
+import type { Item, CreateItemData, UpdateItemData, ItemsResponse, ItemResponse, MessageResponse } from './types';
 
 const API_BASE = '/api';
 
@@ -42,6 +42,15 @@ export async function getItems(): Promise<Item[]> {
 export async function createItem(data: CreateItemData): Promise<Item> {
     const response = await apiRequest<ItemResponse>('/items', {
         method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return response.item;
+}
+
+// アイテム更新
+export async function updateItem(id: number, data: UpdateItemData): Promise<Item> {
+    const response = await apiRequest<ItemResponse>(`/items/${id}`, {
+        method: 'PUT',
         body: JSON.stringify(data),
     });
     return response.item;
