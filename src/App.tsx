@@ -11,6 +11,7 @@ function App() {
   const [showAllItems, setShowAllItems] = useState(false)
   const [editingItem, setEditingItem] = useState<number | null>(null)
   const [editContent, setEditContent] = useState('')
+  const [dropdownOpen, setDropdownOpen] = useState<number | null>(null)
 
   // アイテム一覧を取得
   const loadItems = async () => {
@@ -30,6 +31,23 @@ function App() {
   useEffect(() => {
     loadItems()
   }, [])
+
+  // ドロップダウンの外部クリックで閉じる
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownOpen !== null) {
+        const target = event.target as Element
+        if (!target.closest('.dropdown-container')) {
+          setDropdownOpen(null)
+        }
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [dropdownOpen])
 
   // 新しいアイテムを追加
   const handleCreateItem = async (e: React.FormEvent) => {
@@ -86,7 +104,11 @@ function App() {
 
   // アイテム削除
   const handleDelete = async (id: number) => {
-    if (!confirm('このアイテムを削除しますか？')) return
+    const item = items.find(item => item.id === id)
+    const content = item?.content || ''
+    const preview = content.length > 30 ? content.substring(0, 30) + '...' : content
+
+    if (!confirm(`学習項目を削除しますか？\n\n「${preview}」\n\n※この操作は取り消せません。`)) return
 
     try {
       setError('')
@@ -208,15 +230,41 @@ function App() {
                     </div>
                   ) : (
                     <>
-                      <div className="content-with-edit">
+                      <div className="content-with-actions">
                         <div className="item-text">{item.content}</div>
-                        <button
-                          onClick={() => handleEditStart(item)}
-                          className="edit-button"
-                          title="編集"
-                        >
-                          ✏️
-                        </button>
+                        <div className="item-actions-menu">
+                          <div className="dropdown-container">
+                            <button
+                              onClick={() => setDropdownOpen(dropdownOpen === item.id ? null : item.id)}
+                              className="dropdown-toggle"
+                              title="アクション"
+                            >
+                              ⌄
+                            </button>
+                            {dropdownOpen === item.id && (
+                              <div className="dropdown-menu">
+                                <button
+                                  onClick={() => {
+                                    handleEditStart(item)
+                                    setDropdownOpen(null)
+                                  }}
+                                  className="dropdown-item"
+                                >
+                                  ✏️ 編集
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    handleDelete(item.id)
+                                    setDropdownOpen(null)
+                                  }}
+                                  className="dropdown-item delete-item"
+                                >
+                                  🗑️ 削除
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                       <div className="item-meta">
                         <span>復習回数: {item.review_count}</span>
@@ -262,22 +310,10 @@ function App() {
                         >
                           ✨ 完璧
                         </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="delete"
-                        >
-                          🗑️ 削除
-                        </button>
                       </div>
                   ) : (
                     <div className="action-buttons">
                       <span className="waiting-text">⏰ 復習待ち</span>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="delete"
-                      >
-                        🗑️ 削除
-                      </button>
                     </div>
                   )}
                   </div>
