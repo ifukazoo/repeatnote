@@ -125,12 +125,13 @@ function App() {
         <h2>新しい学習項目を追加</h2>
         <form onSubmit={handleCreateItem}>
           <div className="input-wrapper">
-            <input
-              type="text"
+            <textarea
               value={newItemContent}
               onChange={(e) => setNewItemContent(e.target.value)}
               placeholder="学習内容を入力してください"
               maxLength={750}
+              rows={1}
+              className="add-textarea"
             />
             <div className={`char-counter ${newItemContent.length > 650 ? 'warning' : ''} ${newItemContent.length >= 750 ? 'danger' : ''}`}>
               {newItemContent.length}/750
@@ -177,13 +178,13 @@ function App() {
                   {editingItem === item.id ? (
                     <div className="edit-form">
                       <div className="input-wrapper">
-                        <input
-                          type="text"
+                        <textarea
                           value={editContent}
                           onChange={(e) => setEditContent(e.target.value)}
                           maxLength={750}
-                          className="edit-input"
+                          className="edit-textarea"
                           autoFocus
+                          rows={6}
                         />
                         <div className={`char-counter ${editContent.length > 650 ? 'warning' : ''} ${editContent.length >= 750 ? 'danger' : ''}`}>
                           {editContent.length}/750
@@ -208,7 +209,7 @@ function App() {
                   ) : (
                     <>
                       <div className="content-with-edit">
-                        <strong>{item.content}</strong>
+                        <div className="item-text">{item.content}</div>
                         <button
                           onClick={() => handleEditStart(item)}
                           className="edit-button"
