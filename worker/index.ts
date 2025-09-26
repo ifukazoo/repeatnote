@@ -7,17 +7,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
   const method = request.method;
   const pathname = url.pathname;
 
-  // CORS ヘッダーを設定
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
-
-  // OPTIONS リクエスト（CORS プリフライト）への対応
-  if (method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  // Same-Origin配信のためCORS不要 (フロントエンドとAPIが同一Worker)
 
   try {
     // API エンドポイントのルーティング
@@ -25,7 +15,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       // GET /api/items - アイテム一覧を取得
       const items = await getItems(env.DB);
       return new Response(JSON.stringify({ items }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' }
       });
     }
 
@@ -36,21 +26,21 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       if (!body.content || body.content.trim() === '') {
         return new Response(JSON.stringify({ error: 'Content is required' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' }
         });
       }
 
       if (body.content.length > 750) {
         return new Response(JSON.stringify({ error: 'Content too long (max 750 characters)' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' }
         });
       }
 
       const newItem = await createItem(env.DB, { content: body.content.trim() });
       return new Response(JSON.stringify({ item: newItem }), {
         status: 201,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' }
       });
     }
 
@@ -60,7 +50,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       if (!idMatch) {
         return new Response(JSON.stringify({ error: 'Invalid URL format' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' }
         });
       }
       const itemId = parseInt(idMatch[1]);
@@ -70,7 +60,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       if (typeof body.quality !== 'number' || body.quality < 0 || body.quality > 5) {
         return new Response(JSON.stringify({ error: 'Quality must be a number between 0 and 5' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' }
         });
       }
 
@@ -79,12 +69,12 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       if (!updatedItem) {
         return new Response(JSON.stringify({ error: 'Item not found' }), {
           status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' }
         });
       }
 
       return new Response(JSON.stringify({ item: updatedItem }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' }
       });
     }
 
@@ -94,7 +84,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       if (!idMatch) {
         return new Response(JSON.stringify({ error: 'Invalid URL format' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' }
         });
       }
       const itemId = parseInt(idMatch[1]);
@@ -105,7 +95,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       } catch (e) {
         return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' }
         });
       }
 
@@ -113,14 +103,14 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       if (!requestData.content || requestData.content.trim().length === 0) {
         return new Response(JSON.stringify({ error: 'Content is required' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' }
         });
       }
 
       if (requestData.content.length > 750) {
         return new Response(JSON.stringify({ error: 'Content too long (max 750 characters)' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' }
         });
       }
 
@@ -129,12 +119,12 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       if (!updatedItem) {
         return new Response(JSON.stringify({ error: 'Item not found' }), {
           status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' }
         });
       }
 
       return new Response(JSON.stringify({ item: updatedItem }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' }
       });
     }
 
@@ -144,7 +134,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       if (!idMatch) {
         return new Response(JSON.stringify({ error: 'Invalid URL format' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' }
         });
       }
       const itemId = parseInt(idMatch[1]);
@@ -154,26 +144,26 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       if (!deleted) {
         return new Response(JSON.stringify({ error: 'Item not found' }), {
           status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' }
         });
       }
 
       return new Response(JSON.stringify({ message: 'Item deleted' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' }
       });
     }
 
     // 該当するAPIエンドポイントがない場合
     return new Response(JSON.stringify({ error: 'API endpoint not found' }), {
       status: 404,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' }
     });
 
   } catch (error) {
     // エラーハンドリング
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' }
     });
   }
 }
