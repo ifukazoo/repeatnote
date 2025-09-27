@@ -20,24 +20,99 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
     }
 
     if (pathname === '/api/items' && method === 'POST') {
-      // POST /api/items - 新しいアイテムを登録
-      const body = await request.json() as CreateItemData;
+      // POST /api/items - 新しいアイテムを登録（画像対応）
+      const contentType = request.headers.get('content-type') || '';
 
-      if (!body.content || body.content.trim() === '') {
-        return new Response(JSON.stringify({ error: 'Content is required' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        });
+      let itemData: CreateItemData;
+      let imageUrl: string | null = null;
+      let imageFilename: string | null = null;
+
+      if (contentType.includes('multipart/form-data')) {
+        // FormDataから画像とテキストを処理
+        const formData = await request.formData();
+        const content = formData.get('content') as string;
+        const imageFile = formData.get('image') as File | null;
+
+        if (!content || content.trim() === '') {
+          return new Response(JSON.stringify({ error: 'Content is required' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
+        if (content.length > 750) {
+          return new Response(JSON.stringify({ error: 'Content too long (max 750 characters)' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
+        // 画像アップロード処理
+        if (imageFile && imageFile.size > 0) {
+          // 画像サイズ制限 (5MB)
+          if (imageFile.size > 5 * 1024 * 1024) {
+            return new Response(JSON.stringify({ error: 'Image too large (max 5MB)' }), {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          }
+
+          // 画像形式チェック
+          const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+          if (!allowedTypes.includes(imageFile.type)) {
+            return new Response(JSON.stringify({ error: 'Invalid image format. Only JPEG, PNG, WebP, and GIF are allowed' }), {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          }
+
+          // 一意のファイル名を生成
+          const timestamp = Date.now();
+          const randomId = Math.random().toString(36).substring(2);
+          const extension = imageFile.name.split('.').pop() || 'jpg';
+          imageFilename = `${timestamp}-${randomId}.${extension}`;
+
+          try {
+            // R2に画像をアップロード
+            await env.IMAGES.put(imageFilename, imageFile.stream(), {
+              httpMetadata: {
+                contentType: imageFile.type,
+              }
+            });
+
+            // 画像のURLを生成 (同一ドメインでアクセス可能)
+            imageUrl = `/api/images/${imageFilename}`;
+          } catch (error) {
+            return new Response(JSON.stringify({ error: 'Failed to upload image' }), {
+              status: 500,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          }
+        }
+
+        itemData = { content: content.trim() };
+      } else {
+        // JSON形式（従来の処理）
+        const body = await request.json() as CreateItemData;
+
+        if (!body.content || body.content.trim() === '') {
+          return new Response(JSON.stringify({ error: 'Content is required' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
+        if (body.content.length > 750) {
+          return new Response(JSON.stringify({ error: 'Content too long (max 750 characters)' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
+        itemData = { content: body.content.trim() };
       }
 
-      if (body.content.length > 750) {
-        return new Response(JSON.stringify({ error: 'Content too long (max 750 characters)' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-
-      const newItem = await createItem(env.DB, { content: body.content.trim() });
+      const newItem = await createItem(env.DB, itemData, imageUrl, imageFilename);
       return new Response(JSON.stringify({ item: newItem }), {
         status: 201,
         headers: { 'Content-Type': 'application/json' }
@@ -129,7 +204,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
     }
 
     if (pathname.match(/^\/api\/items\/\d+$/) && method === 'DELETE') {
-      // DELETE /api/items/:id - アイテムを削除
+      // DELETE /api/items/:id - アイテムを削除（画像も含む）
       const idMatch = pathname.match(/^\/api\/items\/(\d+)$/);
       if (!idMatch) {
         return new Response(JSON.stringify({ error: 'Invalid URL format' }), {
@@ -139,18 +214,53 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       }
       const itemId = parseInt(idMatch[1]);
 
-      const deleted = await deleteItem(env.DB, itemId);
+      const deleteResult = await deleteItem(env.DB, itemId);
 
-      if (!deleted) {
+      if (!deleteResult.success) {
         return new Response(JSON.stringify({ error: 'Item not found' }), {
           status: 404,
           headers: { 'Content-Type': 'application/json' }
         });
       }
 
+      // R2から画像を削除
+      if (deleteResult.imageFilename) {
+        try {
+          await env.IMAGES.delete(deleteResult.imageFilename);
+        } catch (error) {
+          console.error('Failed to delete image from R2:', error);
+          // 画像削除に失敗してもアイテム削除は成功として扱う
+        }
+      }
+
       return new Response(JSON.stringify({ message: 'Item deleted' }), {
         headers: { 'Content-Type': 'application/json' }
       });
+    }
+
+    if (pathname.match(/^\/api\/images\/[^\/]+$/) && method === 'GET') {
+      // GET /api/images/:filename - 画像を取得
+      const filenameMatch = pathname.match(/^\/api\/images\/([^\/]+)$/);
+      if (!filenameMatch) {
+        return new Response('Invalid filename', { status: 400 });
+      }
+      const filename = filenameMatch[1];
+
+      try {
+        const object = await env.IMAGES.get(filename);
+        if (!object) {
+          return new Response('Image not found', { status: 404 });
+        }
+
+        const headers = new Headers();
+        object.writeHttpMetadata(headers);
+        headers.set('etag', object.httpEtag);
+        headers.set('cache-control', 'public, max-age=31536000'); // 1年キャッシュ
+
+        return new Response(object.body, { headers });
+      } catch (error) {
+        return new Response('Failed to retrieve image', { status: 500 });
+      }
     }
 
     // 該当するAPIエンドポイントがない場合

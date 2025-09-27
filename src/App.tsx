@@ -8,6 +8,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>('')
   const [newItemContent, setNewItemContent] = useState('')
+  const [newItemImage, setNewItemImage] = useState<File | null>(null)
   const [showAllItems, setShowAllItems] = useState(false)
   const [editingItem, setEditingItem] = useState<number | null>(null)
   const [editContent, setEditContent] = useState('')
@@ -49,6 +50,28 @@ function App() {
     }
   }, [dropdownOpen])
 
+  // 画像ファイル選択
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // 画像形式チェック
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+      if (!allowedTypes.includes(file.type)) {
+        setError('JPEG、PNG、WebP、GIF形式の画像のみアップロード可能です')
+        return
+      }
+
+      // サイズチェック (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('画像サイズは5MB以下にしてください')
+        return
+      }
+
+      setNewItemImage(file)
+      setError('')
+    }
+  }
+
   // 新しいアイテムを追加
   const handleCreateItem = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,9 +79,16 @@ function App() {
 
     try {
       setError('')
-      const newItem = await createItem({ content: newItemContent.trim() })
+      const newItem = await createItem({
+        content: newItemContent.trim(),
+        image: newItemImage || undefined
+      })
       setItems(prev => [newItem, ...prev])
       setNewItemContent('')
+      setNewItemImage(null)
+      // ファイル入力をリセット
+      const fileInput = document.getElementById('image-upload') as HTMLInputElement
+      if (fileInput) fileInput.value = ''
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '作成に失敗しました')
     }
@@ -159,6 +189,37 @@ function App() {
               {newItemContent.length}/750
             </div>
           </div>
+
+          {/* 画像アップロード */}
+          <div className="image-upload-container">
+            <label htmlFor="image-upload" className="image-upload-label">
+              📷 画像を追加 (任意)
+            </label>
+            <input
+              type="file"
+              id="image-upload"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={handleImageChange}
+              className="image-upload-input"
+            />
+            {newItemImage && (
+              <div className="image-preview">
+                <span>選択済み: {newItemImage.name}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewItemImage(null)
+                    const fileInput = document.getElementById('image-upload') as HTMLInputElement
+                    if (fileInput) fileInput.value = ''
+                  }}
+                  className="remove-image-btn"
+                >
+                  ❌
+                </button>
+              </div>
+            )}
+          </div>
+
           <button type="submit" disabled={!newItemContent.trim()}>
             ➕ 追加
           </button>
@@ -230,6 +291,13 @@ function App() {
                     </div>
                   ) : (
                     <>
+                      {/* 画像表示 */}
+                      {item.image_url && (
+                        <div className="item-image">
+                          <img src={item.image_url} alt="学習項目の画像" loading="lazy" />
+                        </div>
+                      )}
+
                       <div className="content-with-actions">
                         <div className="item-text">{item.content}</div>
                         <div className="item-actions-menu">

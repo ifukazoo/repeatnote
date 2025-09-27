@@ -4,6 +4,8 @@
 export interface Item {
     id: number;
     content: string;
+    image_url: string | null;
+    image_filename: string | null;
     created_at: string;
     next_review: string | null;
     interval_days: number;
@@ -39,18 +41,23 @@ export async function getItemsDueForReview(db: D1Database): Promise<Item[]> {
 }
 
 // 新しいアイテムを作成
-export async function createItem(db: D1Database, data: CreateItemData): Promise<Item> {
+export async function createItem(
+    db: D1Database,
+    data: CreateItemData,
+    imageUrl?: string | null,
+    imageFilename?: string | null
+): Promise<Item> {
     const now = new Date().toISOString();
 
     const result = await db
         .prepare(
             `
-    INSERT INTO items (content, created_at, next_review, interval_days, ease_factor, review_count)
-    VALUES (?, ?, ?, 1, 2.5, 0)
+    INSERT INTO items (content, image_url, image_filename, created_at, next_review, interval_days, ease_factor, review_count)
+    VALUES (?, ?, ?, ?, ?, 1, 2.5, 0)
     RETURNING *
   `
         )
-        .bind(data.content, now, now)
+        .bind(data.content, imageUrl || null, imageFilename || null, now, now)
         .first<Item>();
 
     if (!result) {
@@ -73,9 +80,16 @@ export async function updateItem(db: D1Database, id: number, content: string): P
 }
 
 // アイテムを削除
-export async function deleteItem(db: D1Database, id: number): Promise<boolean> {
+export async function deleteItem(db: D1Database, id: number): Promise<{ success: boolean; imageFilename?: string }> {
+    // 削除前に画像ファイル名を取得
+    const item = await db.prepare('SELECT image_filename FROM items WHERE id = ?').bind(id).first<{ image_filename: string | null }>();
+
     const result = await db.prepare('DELETE FROM items WHERE id = ?').bind(id).run();
-    return result.success && result.meta.changes > 0;
+
+    return {
+        success: result.success && result.meta.changes > 0,
+        imageFilename: item?.image_filename || undefined
+    };
 }
 
 // アイテムの復習を処理（SM-2アルゴリズムで次回復習日を計算）
