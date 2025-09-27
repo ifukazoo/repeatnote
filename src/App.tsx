@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { Item } from './types'
 import { getItems, createItem, updateItem, reviewItem, deleteItem, ApiError } from './api'
 import './App.css'
@@ -13,6 +13,7 @@ function App() {
   const [editingItem, setEditingItem] = useState<number | null>(null)
   const [editContent, setEditContent] = useState('')
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // アイテム一覧を取得
   const loadItems = async () => {
@@ -87,8 +88,9 @@ function App() {
       setNewItemContent('')
       setNewItemImage(null)
       // ファイル入力をリセット
-      const fileInput = document.getElementById('image-upload') as HTMLInputElement
-      if (fileInput) fileInput.value = ''
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '作成に失敗しました')
     }
@@ -198,6 +200,7 @@ function App() {
             <input
               type="file"
               id="image-upload"
+              ref={fileInputRef}
               accept="image/jpeg,image/png,image/webp,image/gif"
               onChange={handleImageChange}
               className="image-upload-input"
@@ -209,8 +212,9 @@ function App() {
                   type="button"
                   onClick={() => {
                     setNewItemImage(null)
-                    const fileInput = document.getElementById('image-upload') as HTMLInputElement
-                    if (fileInput) fileInput.value = ''
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = ''
+                    }
                   }}
                   className="remove-image-btn"
                 >
