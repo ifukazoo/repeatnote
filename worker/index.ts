@@ -57,8 +57,16 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
             });
           }
 
+          // サポートする画像形式の定義
+          const SUPPORTED_IMAGE_TYPES = {
+            'image/jpeg': 'jpg',
+            'image/png': 'png',
+            'image/webp': 'webp',
+            'image/gif': 'gif'
+          } as const;
+
           // 画像形式チェック
-          const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+          const allowedTypes = Object.keys(SUPPORTED_IMAGE_TYPES);
           if (!allowedTypes.includes(imageFile.type)) {
             return new Response(JSON.stringify({ error: 'Invalid image format. Only JPEG, PNG, WebP, and GIF are allowed' }), {
               status: 400,
@@ -69,7 +77,9 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
           // 一意のファイル名を生成
           const timestamp = Date.now();
           const randomId = Math.random().toString(36).substring(2);
-          const extension = imageFile.name.split('.').pop() || 'jpg';
+
+          // MIMEタイプから安全な拡張子を決定
+          const extension = SUPPORTED_IMAGE_TYPES[imageFile.type as keyof typeof SUPPORTED_IMAGE_TYPES];
           imageFilename = `${timestamp}-${randomId}.${extension}`;
 
           try {
