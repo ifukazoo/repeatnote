@@ -182,7 +182,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
     }
 
     if (pathname.match(/^\/api\/items\/\d+$/) && method === 'PUT') {
-      // PUT /api/items/:id - アイテムを更新
+      // PUT /api/items/:id - アイテムを更新（画像対応）
       const idMatch = pathname.match(/^\/api\/items\/(\d+)$/);
       if (!idMatch) {
         return new Response(JSON.stringify({ error: 'Invalid URL format' }), {
@@ -192,41 +192,136 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       }
       const itemId = parseInt(idMatch[1]);
 
-      let requestData;
-      try {
-        requestData = await request.json() as { content: string };
-      } catch (e) {
-        return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        });
+      const contentType = request.headers.get('content-type') || '';
+      let content: string;
+      let newImageUrl: string | null = null;
+      let newImageFilename: string | null = null;
+      let shouldRemoveImage = false;
+
+      if (contentType.includes('multipart/form-data')) {
+        // FormData処理（画像編集対応）
+        const formData = await request.formData();
+
+        const contentEntry = formData.get('content');
+        if (typeof contentEntry !== 'string') {
+          return new Response(JSON.stringify({ error: 'Invalid content type' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
+        const imageEntry = formData.get('image');
+        if (imageEntry && !(imageEntry instanceof File)) {
+          return new Response(JSON.stringify({ error: 'Invalid image type' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
+        const removeImageEntry = formData.get('removeImage');
+        shouldRemoveImage = removeImageEntry === 'true';
+
+        content = contentEntry;
+        const imageFile = imageEntry as File | null;
+
+        // 新しい画像がアップロードされた場合
+        if (imageFile && imageFile.size > 0) {
+          // 画像サイズ制限 (5MB)
+          if (imageFile.size > 5 * 1024 * 1024) {
+            return new Response(JSON.stringify({ error: 'Image too large (max 5MB)' }), {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          }
+
+          // サポートする画像形式の定義
+          const SUPPORTED_IMAGE_TYPES = {
+            'image/jpeg': 'jpg',
+            'image/png': 'png',
+            'image/webp': 'webp',
+            'image/gif': 'gif'
+          } as const;
+
+          // 画像形式チェック
+          const allowedTypes = Object.keys(SUPPORTED_IMAGE_TYPES);
+          if (!allowedTypes.includes(imageFile.type)) {
+            return new Response(JSON.stringify({ error: 'Invalid image format. Only JPEG, PNG, WebP, and GIF are allowed' }), {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          }
+
+          // 一意のファイル名を生成
+          const timestamp = Date.now();
+          const randomId = crypto.randomUUID().replace(/-/g, '').substring(0, 12);
+          const extension = SUPPORTED_IMAGE_TYPES[imageFile.type as keyof typeof SUPPORTED_IMAGE_TYPES];
+          newImageFilename = `${timestamp}-${randomId}.${extension}`;
+
+          try {
+            // R2に画像をアップロード
+            await env.IMAGES.put(newImageFilename, imageFile.stream(), {
+              httpMetadata: {
+                contentType: imageFile.type,
+              }
+            });
+
+            newImageUrl = `/api/images/${newImageFilename}`;
+          } catch (error) {
+            return new Response(JSON.stringify({ error: 'Failed to upload image' }), {
+              status: 500,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          }
+        }
+      } else {
+        // JSON形式（従来の処理）
+        let requestData;
+        try {
+          requestData = await request.json() as { content: string };
+        } catch (e) {
+          return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        content = requestData.content;
       }
 
       // バリデーション
-      if (!requestData.content || requestData.content.trim().length === 0) {
+      if (!content || content.trim().length === 0) {
         return new Response(JSON.stringify({ error: 'Content is required' }), {
           status: 400,
           headers: { 'Content-Type': 'application/json' }
         });
       }
 
-      if (requestData.content.length > 750) {
+      if (content.length > 750) {
         return new Response(JSON.stringify({ error: 'Content too long (max 750 characters)' }), {
           status: 400,
           headers: { 'Content-Type': 'application/json' }
         });
       }
 
-      const updatedItem = await updateItem(env.DB, itemId, requestData.content.trim());
+      const updateResult = await updateItem(env.DB, itemId, content.trim(), newImageUrl, newImageFilename, shouldRemoveImage);
 
-      if (!updatedItem) {
+      if (!updateResult.item) {
         return new Response(JSON.stringify({ error: 'Item not found' }), {
           status: 404,
           headers: { 'Content-Type': 'application/json' }
         });
       }
 
-      return new Response(JSON.stringify({ item: updatedItem }), {
+      // 古い画像ファイルを削除（新しい画像がアップロードされた場合、または画像削除の場合）
+      if (updateResult.oldImageFilename && (newImageFilename || shouldRemoveImage)) {
+        try {
+          await env.IMAGES.delete(updateResult.oldImageFilename);
+        } catch (error) {
+          console.error('Failed to delete old image from R2:', error);
+          // 古い画像削除に失敗してもアイテム更新は成功として扱う
+        }
+      }
+
+      return new Response(JSON.stringify({ item: updateResult.item }), {
         headers: { 'Content-Type': 'application/json' }
       });
     }

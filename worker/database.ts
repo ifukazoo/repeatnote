@@ -68,15 +68,50 @@ export async function createItem(
 }
 
 // アイテムを更新
-export async function updateItem(db: D1Database, id: number, content: string): Promise<Item | null> {
-    const result = await db.prepare('UPDATE items SET content = ? WHERE id = ?').bind(content, id).run();
+export async function updateItem(
+    db: D1Database,
+    id: number,
+    content: string,
+    newImageUrl?: string | null,
+    newImageFilename?: string | null,
+    shouldRemoveImage: boolean = false
+): Promise<{ item: Item | null; oldImageFilename?: string }> {
+    // 現在のアイテム情報を取得（古い画像ファイル名のため）
+    const currentItem = await db.prepare('SELECT * FROM items WHERE id = ?').bind(id).first<Item>();
+    if (!currentItem) {
+        return { item: null };
+    }
+
+    let updateQuery: string;
+    let bindValues: any[];
+
+    if (shouldRemoveImage) {
+        // 画像削除
+        updateQuery = 'UPDATE items SET content = ?, image_url = NULL, image_filename = NULL WHERE id = ?';
+        bindValues = [content, id];
+    } else if (newImageUrl && newImageFilename) {
+        // 新しい画像に更新
+        updateQuery = 'UPDATE items SET content = ?, image_url = ?, image_filename = ? WHERE id = ?';
+        bindValues = [content, newImageUrl, newImageFilename, id];
+    } else {
+        // コンテンツのみ更新
+        updateQuery = 'UPDATE items SET content = ? WHERE id = ?';
+        bindValues = [content, id];
+    }
+
+    const result = await db.prepare(updateQuery).bind(...bindValues).run();
 
     if (!result.success || result.meta.changes === 0) {
-        return null;
+        return { item: null };
     }
 
     // 更新されたアイテムを取得して返す
-    return await db.prepare('SELECT * FROM items WHERE id = ?').bind(id).first<Item>();
+    const updatedItem = await db.prepare('SELECT * FROM items WHERE id = ?').bind(id).first<Item>();
+
+    return {
+        item: updatedItem,
+        oldImageFilename: currentItem.image_filename || undefined
+    };
 }
 
 // アイテムを削除

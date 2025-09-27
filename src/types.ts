@@ -20,6 +20,7 @@ export interface CreateItemData {
 export interface UpdateItemData {
   content: string;
   image?: File;
+  removeImage?: boolean;
 }
 
 export interface ReviewResult {

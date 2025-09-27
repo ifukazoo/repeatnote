@@ -33,9 +33,9 @@ async function apiRequest<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 // FormData用のfetch処理（Content-Typeヘッダーを自動設定）
-async function apiRequestFormData<T>(url: string, formData: FormData): Promise<T> {
+async function apiRequestFormData<T>(url: string, formData: FormData, method: string = 'POST'): Promise<T> {
     const response = await fetch(`${API_BASE}${url}`, {
-        method: 'POST',
+        method,
         body: formData,
     });
 
@@ -75,11 +75,29 @@ export async function createItem(data: CreateItemData): Promise<Item> {
 
 // アイテム更新
 export async function updateItem(id: number, data: UpdateItemData): Promise<Item> {
-    const response = await apiRequest<ItemResponse>(`/items/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-    });
-    return response.item;
+    if (data.image || data.removeImage) {
+        // 画像がある場合、または画像削除の場合はFormDataで送信
+        const formData = new FormData();
+        formData.append('content', data.content);
+
+        if (data.image) {
+            formData.append('image', data.image);
+        }
+
+        if (data.removeImage) {
+            formData.append('removeImage', 'true');
+        }
+
+        const response = await apiRequestFormData<ItemResponse>(`/items/${id}`, formData, 'PUT');
+        return response.item;
+    } else {
+        // 画像なしの場合は従来のJSON形式
+        const response = await apiRequest<ItemResponse>(`/items/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ content: data.content }),
+        });
+        return response.item;
+    }
 }
 
 // アイテム復習処理
