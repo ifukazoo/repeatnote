@@ -12,8 +12,11 @@ function App() {
   const [showAllItems, setShowAllItems] = useState(false)
   const [editingItem, setEditingItem] = useState<number | null>(null)
   const [editContent, setEditContent] = useState('')
+  const [editImage, setEditImage] = useState<File | null>(null)
+  const [removeEditImage, setRemoveEditImage] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const editFileInputRef = useRef<HTMLInputElement>(null)
 
   // アイテム一覧を取得
   const loadItems = async () => {
@@ -73,6 +76,29 @@ function App() {
     }
   }
 
+  // 編集時の画像ファイル選択
+  const handleEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // 画像形式チェック
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+      if (!allowedTypes.includes(file.type)) {
+        setError('JPEG、PNG、WebP、GIF形式の画像のみアップロード可能です')
+        return
+      }
+
+      // サイズチェック (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('画像サイズは5MB以下にしてください')
+        return
+      }
+
+      setEditImage(file)
+      setRemoveEditImage(false) // 新しい画像が選択されたら削除フラグを解除
+      setError('')
+    }
+  }
+
   // 新しいアイテムを追加
   const handleCreateItem = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -111,12 +137,24 @@ function App() {
   const handleEditStart = (item: Item) => {
     setEditingItem(item.id)
     setEditContent(item.content)
+    setEditImage(null)
+    setRemoveEditImage(false)
+    // ファイル入力をリセット
+    if (editFileInputRef.current) {
+      editFileInputRef.current.value = ''
+    }
   }
 
   // アイテム編集キャンセル
   const handleEditCancel = () => {
     setEditingItem(null)
     setEditContent('')
+    setEditImage(null)
+    setRemoveEditImage(false)
+    // ファイル入力をリセット
+    if (editFileInputRef.current) {
+      editFileInputRef.current.value = ''
+    }
   }
 
   // アイテム編集保存
@@ -125,10 +163,28 @@ function App() {
 
     try {
       setError('')
-      const updatedItem = await updateItem(id, { content: editContent.trim() })
+      const updateData: any = {
+        content: editContent.trim()
+      }
+
+      // 画像関連の処理
+      if (editImage) {
+        updateData.image = editImage
+      }
+      if (removeEditImage) {
+        updateData.removeImage = true
+      }
+
+      const updatedItem = await updateItem(id, updateData)
       setItems(prev => prev.map(item => item.id === id ? updatedItem : item))
       setEditingItem(null)
       setEditContent('')
+      setEditImage(null)
+      setRemoveEditImage(false)
+      // ファイル入力をリセット
+      if (editFileInputRef.current) {
+        editFileInputRef.current.value = ''
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '更新に失敗しました')
     }
@@ -277,6 +333,71 @@ function App() {
                           {editContent.length}/750
                         </div>
                       </div>
+
+                      {/* 編集時の画像操作 */}
+                      <div className="edit-image-container">
+                        {/* 現在の画像表示 */}
+                        {item.image_url && !removeEditImage && (
+                          <div className="current-image">
+                            <img src={item.image_url} alt="現在の画像" className="edit-current-image" />
+                            <button
+                              type="button"
+                              onClick={() => setRemoveEditImage(true)}
+                              className="remove-current-image-btn"
+                            >
+                              🗑️ 画像を削除
+                            </button>
+                          </div>
+                        )}
+
+                        {/* 画像削除状態の表示 */}
+                        {removeEditImage && (
+                          <div className="image-removed">
+                            <span>画像が削除されます</span>
+                            <button
+                              type="button"
+                              onClick={() => setRemoveEditImage(false)}
+                              className="undo-remove-btn"
+                            >
+                              ↶ 削除を取り消し
+                            </button>
+                          </div>
+                        )}
+
+                        {/* 新しい画像アップロード */}
+                        <div className="edit-image-upload">
+                          <label htmlFor="edit-image-upload" className="image-upload-label">
+                            📷 {item.image_url ? '画像を変更' : '画像を追加'} (任意)
+                          </label>
+                          <input
+                            type="file"
+                            id="edit-image-upload"
+                            ref={editFileInputRef}
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            onChange={handleEditImageChange}
+                            className="image-upload-input"
+                          />
+                          {editImage && (
+                            <div className="image-preview">
+                              <span>新しい画像: {editImage.name}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditImage(null)
+                                  setRemoveEditImage(false)
+                                  if (editFileInputRef.current) {
+                                    editFileInputRef.current.value = ''
+                                  }
+                                }}
+                                className="remove-image-btn"
+                              >
+                                ❌
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
                       <div className="edit-actions">
                         <button
                           onClick={() => handleEditSave(item.id)}
