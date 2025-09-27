@@ -94,7 +94,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
 
           // 一意のファイル名を生成
           const timestamp = Date.now();
-          const randomId = Math.random().toString(36).substring(2);
+          const randomId = crypto.randomUUID().replace(/-/g, '').substring(0, 12);
 
           // MIMEタイプから安全な拡張子を決定
           const extension = SUPPORTED_IMAGE_TYPES[imageFile.type as keyof typeof SUPPORTED_IMAGE_TYPES];
