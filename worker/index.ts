@@ -30,8 +30,26 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       if (contentType.includes('multipart/form-data')) {
         // FormDataから画像とテキストを処理
         const formData = await request.formData();
-        const content = formData.get('content') as string;
-        const imageFile = formData.get('image') as File | null;
+
+        // 型安全なFormData処理
+        const contentEntry = formData.get('content');
+        if (typeof contentEntry !== 'string') {
+          return new Response(JSON.stringify({ error: 'Invalid content type' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
+        const imageEntry = formData.get('image');
+        if (imageEntry && !(imageEntry instanceof File)) {
+          return new Response(JSON.stringify({ error: 'Invalid image type' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
+        const content = contentEntry;
+        const imageFile = imageEntry as File | null; // 型ガードで安全性確保済み
 
         if (!content || content.trim() === '') {
           return new Response(JSON.stringify({ error: 'Content is required' }), {
