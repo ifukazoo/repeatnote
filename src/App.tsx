@@ -54,20 +54,35 @@ function App() {
     }
   }, [dropdownOpen])
 
+  // 画像バリデーション共通関数
+  const validateImageFile = (file: File): { isValid: boolean; error?: string } => {
+    // 画像形式チェック
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    if (!allowedTypes.includes(file.type)) {
+      return {
+        isValid: false,
+        error: 'JPEG、PNG、WebP、GIF形式の画像のみアップロード可能です'
+      }
+    }
+
+    // サイズチェック (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      return {
+        isValid: false,
+        error: '画像サイズは5MB以下にしてください'
+      }
+    }
+
+    return { isValid: true }
+  }
+
   // 画像ファイル選択
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      // 画像形式チェック
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-      if (!allowedTypes.includes(file.type)) {
-        setError('JPEG、PNG、WebP、GIF形式の画像のみアップロード可能です')
-        return
-      }
-
-      // サイズチェック (5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setError('画像サイズは5MB以下にしてください')
+      const validation = validateImageFile(file)
+      if (!validation.isValid) {
+        setError(validation.error!)
         return
       }
 
@@ -80,16 +95,9 @@ function App() {
   const handleEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      // 画像形式チェック
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-      if (!allowedTypes.includes(file.type)) {
-        setError('JPEG、PNG、WebP、GIF形式の画像のみアップロード可能です')
-        return
-      }
-
-      // サイズチェック (5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setError('画像サイズは5MB以下にしてください')
+      const validation = validateImageFile(file)
+      if (!validation.isValid) {
+        setError(validation.error!)
         return
       }
 
