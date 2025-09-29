@@ -55,6 +55,13 @@ function App() {
     }
   }, [dropdownOpen])
 
+  // ファイル入力リセット共通関数
+  const resetFileInput = (ref: React.RefObject<HTMLInputElement | null>) => {
+    if (ref.current) {
+      ref.current.value = ''
+    }
+  }
+
   // 画像バリデーション共通関数
   const validateImageFile = (file: File): { isValid: boolean; error?: string } => {
     // 画像形式チェック
@@ -122,9 +129,7 @@ function App() {
       setNewItemContent('')
       setNewItemImage(null)
       // ファイル入力をリセット
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
+      resetFileInput(fileInputRef)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '作成に失敗しました')
     }
@@ -148,9 +153,7 @@ function App() {
     setEditImage(null)
     setRemoveEditImage(false)
     // ファイル入力をリセット
-    if (editFileInputRef.current) {
-      editFileInputRef.current.value = ''
-    }
+    resetFileInput(editFileInputRef)
   }
 
   // アイテム編集キャンセル
@@ -160,9 +163,7 @@ function App() {
     setEditImage(null)
     setRemoveEditImage(false)
     // ファイル入力をリセット
-    if (editFileInputRef.current) {
-      editFileInputRef.current.value = ''
-    }
+    resetFileInput(editFileInputRef)
   }
 
   // アイテム編集保存
@@ -190,9 +191,7 @@ function App() {
       setEditImage(null)
       setRemoveEditImage(false)
       // ファイル入力をリセット
-      if (editFileInputRef.current) {
-        editFileInputRef.current.value = ''
-      }
+      resetFileInput(editFileInputRef)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '更新に失敗しました')
     }
@@ -276,9 +275,7 @@ function App() {
                   type="button"
                   onClick={() => {
                     setNewItemImage(null)
-                    if (fileInputRef.current) {
-                      fileInputRef.current.value = ''
-                    }
+                    resetFileInput(fileInputRef)
                   }}
                   className="remove-image-btn"
                 >
@@ -393,9 +390,7 @@ function App() {
                                 onClick={() => {
                                   setEditImage(null)
                                   setRemoveEditImage(false)
-                                  if (editFileInputRef.current) {
-                                    editFileInputRef.current.value = ''
-                                  }
+                                  resetFileInput(editFileInputRef)
                                 }}
                                 className="remove-image-btn"
                               >
