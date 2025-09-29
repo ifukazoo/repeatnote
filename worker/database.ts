@@ -83,7 +83,7 @@ export async function updateItem(
     }
 
     let updateQuery: string;
-    let bindValues: any[];
+    let bindValues: (string | number | null)[];
 
     if (shouldRemoveImage) {
         // 画像削除

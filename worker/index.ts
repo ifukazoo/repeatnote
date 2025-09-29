@@ -105,7 +105,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
 
             // 画像のURLを生成 (同一ドメインでアクセス可能)
             imageUrl = `/api/images/${imageFilename}`;
-          } catch (error) {
+          } catch (_error) {
             return new Response(JSON.stringify({ error: 'Failed to upload image' }), {
               status: 500,
               headers: { 'Content-Type': 'application/json' }
@@ -255,7 +255,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
             });
 
             newImageUrl = `/api/images/${newImageFilename}`;
-          } catch (error) {
+          } catch (_error) {
             return new Response(JSON.stringify({ error: 'Failed to upload image' }), {
               status: 500,
               headers: { 'Content-Type': 'application/json' }
@@ -267,7 +267,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
         let requestData;
         try {
           requestData = await request.json() as { content: string };
-        } catch (e) {
+        } catch (_e) {
           return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
             status: 400,
             headers: { 'Content-Type': 'application/json' }
@@ -350,9 +350,9 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       });
     }
 
-    if (pathname.match(/^\/api\/images\/[^\/]+$/) && method === 'GET') {
+    if (pathname.match(/^\/api\/images\/[^/]+$/) && method === 'GET') {
       // GET /api/images/:filename - 画像を取得
-      const filenameMatch = pathname.match(/^\/api\/images\/([^\/]+)$/);
+      const filenameMatch = pathname.match(/^\/api\/images\/([^/]+)$/);
       if (!filenameMatch) {
         return new Response('Invalid filename', { status: 400 });
       }
@@ -370,7 +370,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
         headers.set('cache-control', 'public, max-age=31536000'); // 1年キャッシュ
 
         return new Response(object.body, { headers });
-      } catch (error) {
+      } catch (_error) {
         return new Response('Failed to retrieve image', { status: 500 });
       }
     }
@@ -381,7 +381,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       headers: { 'Content-Type': 'application/json' }
     });
 
-  } catch (error) {
+  } catch (_error) {
     // エラーハンドリング
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
