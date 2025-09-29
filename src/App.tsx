@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import type { Item, UpdateItemData } from './types'
 import { getItems, createItem, updateItem, reviewItem, deleteItem, ApiError } from './api'
 import { IMAGE_CONFIG } from './constants'
+import type { AllowedImageType } from './constants'
 import './App.css'
 
 function App() {
@@ -65,7 +66,7 @@ function App() {
   // 画像バリデーション共通関数
   const validateImageFile = (file: File): { isValid: boolean; error?: string } => {
     // 画像形式チェック
-    if (!IMAGE_CONFIG.ALLOWED_TYPES.includes(file.type as (typeof IMAGE_CONFIG.ALLOWED_TYPES)[number])) {
+    if (!IMAGE_CONFIG.ALLOWED_TYPES.includes(file.type as AllowedImageType)) {
       return {
         isValid: false,
         error: IMAGE_CONFIG.ERROR_MESSAGES.INVALID_TYPE

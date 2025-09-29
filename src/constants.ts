@@ -7,3 +7,6 @@ export const IMAGE_CONFIG = {
     FILE_TOO_LARGE: '画像サイズは5MB以下にしてください'
   }
 } as const
+
+// 型定義
+export type AllowedImageType = (typeof IMAGE_CONFIG.ALLOWED_TYPES)[number]
