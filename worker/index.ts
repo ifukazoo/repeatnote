@@ -1,5 +1,6 @@
 import { getItems, createItem, updateItem, deleteItem, reviewItem } from './database';
 import type { CreateItemData, ReviewResult } from './database';
+import { IMAGE_CONFIG } from './constants';
 
 // API ルーター関数
 async function handleApiRequest(request: Request, env: Env): Promise<Response> {
@@ -75,16 +76,10 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
             });
           }
 
-          // サポートする画像形式の定義
-          const SUPPORTED_IMAGE_TYPES = {
-            'image/jpeg': 'jpg',
-            'image/png': 'png',
-            'image/webp': 'webp',
-            'image/gif': 'gif'
-          } as const;
+          // 画像形式は共通定数を使用
 
           // 画像形式チェック
-          const allowedTypes = Object.keys(SUPPORTED_IMAGE_TYPES);
+          const allowedTypes = Object.keys(IMAGE_CONFIG.SUPPORTED_IMAGE_TYPES);
           if (!allowedTypes.includes(imageFile.type)) {
             return new Response(JSON.stringify({ error: 'Invalid image format. Only JPEG, PNG, WebP, and GIF are allowed' }), {
               status: 400,
@@ -97,7 +92,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
           const randomId = crypto.randomUUID().replace(/-/g, '').substring(0, 12);
 
           // MIMEタイプから安全な拡張子を決定
-          const extension = SUPPORTED_IMAGE_TYPES[imageFile.type as keyof typeof SUPPORTED_IMAGE_TYPES];
+          const extension = IMAGE_CONFIG.SUPPORTED_IMAGE_TYPES[imageFile.type as keyof typeof IMAGE_CONFIG.SUPPORTED_IMAGE_TYPES];
           imageFilename = `${timestamp}-${randomId}.${extension}`;
 
           try {
@@ -234,16 +229,10 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
             });
           }
 
-          // サポートする画像形式の定義
-          const SUPPORTED_IMAGE_TYPES = {
-            'image/jpeg': 'jpg',
-            'image/png': 'png',
-            'image/webp': 'webp',
-            'image/gif': 'gif'
-          } as const;
+          // 画像形式は共通定数を使用
 
           // 画像形式チェック
-          const allowedTypes = Object.keys(SUPPORTED_IMAGE_TYPES);
+          const allowedTypes = Object.keys(IMAGE_CONFIG.SUPPORTED_IMAGE_TYPES);
           if (!allowedTypes.includes(imageFile.type)) {
             return new Response(JSON.stringify({ error: 'Invalid image format. Only JPEG, PNG, WebP, and GIF are allowed' }), {
               status: 400,
@@ -254,7 +243,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
           // 一意のファイル名を生成
           const timestamp = Date.now();
           const randomId = crypto.randomUUID().replace(/-/g, '').substring(0, 12);
-          const extension = SUPPORTED_IMAGE_TYPES[imageFile.type as keyof typeof SUPPORTED_IMAGE_TYPES];
+          const extension = IMAGE_CONFIG.SUPPORTED_IMAGE_TYPES[imageFile.type as keyof typeof IMAGE_CONFIG.SUPPORTED_IMAGE_TYPES];
           newImageFilename = `${timestamp}-${randomId}.${extension}`;
 
           try {

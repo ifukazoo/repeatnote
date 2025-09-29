@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import type { Item } from './types'
+import type { Item, UpdateItemData } from './types'
 import { getItems, createItem, updateItem, reviewItem, deleteItem, ApiError } from './api'
+import { IMAGE_CONFIG } from './constants'
 import './App.css'
 
 function App() {
@@ -57,19 +58,18 @@ function App() {
   // 画像バリデーション共通関数
   const validateImageFile = (file: File): { isValid: boolean; error?: string } => {
     // 画像形式チェック
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-    if (!allowedTypes.includes(file.type)) {
+    if (!IMAGE_CONFIG.ALLOWED_TYPES.includes(file.type as (typeof IMAGE_CONFIG.ALLOWED_TYPES)[number])) {
       return {
         isValid: false,
-        error: 'JPEG、PNG、WebP、GIF形式の画像のみアップロード可能です'
+        error: IMAGE_CONFIG.ERROR_MESSAGES.INVALID_TYPE
       }
     }
 
-    // サイズチェック (5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // サイズチェック
+    if (file.size > IMAGE_CONFIG.MAX_SIZE) {
       return {
         isValid: false,
-        error: '画像サイズは5MB以下にしてください'
+        error: IMAGE_CONFIG.ERROR_MESSAGES.FILE_TOO_LARGE
       }
     }
 
@@ -171,7 +171,7 @@ function App() {
 
     try {
       setError('')
-      const updateData: any = {
+      const updateData: UpdateItemData = {
         content: editContent.trim()
       }
 
