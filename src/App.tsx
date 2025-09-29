@@ -11,10 +11,12 @@ function App() {
   const [error, setError] = useState<string>('')
   const [newItemContent, setNewItemContent] = useState('')
   const [newItemImage, setNewItemImage] = useState<File | null>(null)
+  const [newItemImagePreview, setNewItemImagePreview] = useState<string | null>(null)
   const [showAllItems, setShowAllItems] = useState(false)
   const [editingItem, setEditingItem] = useState<number | null>(null)
   const [editContent, setEditContent] = useState('')
   const [editImage, setEditImage] = useState<File | null>(null)
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null)
   const [removeEditImage, setRemoveEditImage] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -63,6 +65,13 @@ function App() {
     }
   }
 
+  // プレビューURLクリーンアップ関数
+  const cleanupImagePreview = (previewUrl: string | null) => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+    }
+  }
+
   // 画像バリデーション共通関数
   const validateImageFile = (file: File): { isValid: boolean; error?: string } => {
     // 画像形式チェック
@@ -94,7 +103,11 @@ function App() {
         return
       }
 
+      // 古いプレビューURLをクリーンアップ
+      cleanupImagePreview(newItemImagePreview)
+
       setNewItemImage(file)
+      setNewItemImagePreview(URL.createObjectURL(file))
       setError('')
     }
   }
@@ -109,7 +122,11 @@ function App() {
         return
       }
 
+      // 古いプレビューURLをクリーンアップ
+      cleanupImagePreview(editImagePreview)
+
       setEditImage(file)
+      setEditImagePreview(URL.createObjectURL(file))
       setRemoveEditImage(false) // 新しい画像が選択されたら削除フラグを解除
       setError('')
     }
@@ -129,6 +146,9 @@ function App() {
       setItems(prev => [newItem, ...prev])
       setNewItemContent('')
       setNewItemImage(null)
+      // プレビューURLをクリーンアップ
+      cleanupImagePreview(newItemImagePreview)
+      setNewItemImagePreview(null)
       // ファイル入力をリセット
       resetFileInput(fileInputRef)
     } catch (err) {
@@ -152,6 +172,9 @@ function App() {
     setEditingItem(item.id)
     setEditContent(item.content)
     setEditImage(null)
+    // プレビューURLをクリーンアップ
+    cleanupImagePreview(editImagePreview)
+    setEditImagePreview(null)
     setRemoveEditImage(false)
     // ファイル入力をリセット
     resetFileInput(editFileInputRef)
@@ -162,6 +185,9 @@ function App() {
     setEditingItem(null)
     setEditContent('')
     setEditImage(null)
+    // プレビューURLをクリーンアップ
+    cleanupImagePreview(editImagePreview)
+    setEditImagePreview(null)
     setRemoveEditImage(false)
     // ファイル入力をリセット
     resetFileInput(editFileInputRef)
@@ -190,6 +216,9 @@ function App() {
       setEditingItem(null)
       setEditContent('')
       setEditImage(null)
+      // プレビューURLをクリーンアップ
+      cleanupImagePreview(editImagePreview)
+      setEditImagePreview(null)
       setRemoveEditImage(false)
       // ファイル入力をリセット
       resetFileInput(editFileInputRef)
@@ -271,11 +300,18 @@ function App() {
             />
             {newItemImage && (
               <div className="image-preview">
+                <img
+                  src={newItemImagePreview!}
+                  alt="選択した画像"
+                  className="preview-thumbnail"
+                />
                 <span>選択済み: {newItemImage.name}</span>
                 <button
                   type="button"
                   onClick={() => {
                     setNewItemImage(null)
+                    cleanupImagePreview(newItemImagePreview)
+                    setNewItemImagePreview(null)
                     resetFileInput(fileInputRef)
                   }}
                   className="remove-image-btn"
@@ -385,11 +421,18 @@ function App() {
                           />
                           {editImage && (
                             <div className="image-preview">
+                              <img
+                                src={editImagePreview!}
+                                alt="選択した新しい画像"
+                                className="preview-thumbnail"
+                              />
                               <span>新しい画像: {editImage.name}</span>
                               <button
                                 type="button"
                                 onClick={() => {
                                   setEditImage(null)
+                                  cleanupImagePreview(editImagePreview)
+                                  setEditImagePreview(null)
                                   setRemoveEditImage(false)
                                   resetFileInput(editFileInputRef)
                                 }}

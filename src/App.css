@@ -668,6 +668,23 @@ header p {
   margin-top: 1rem;
 }
 
+/* プレビューサムネイル */
+.preview-thumbnail {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.image-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 /* 画像があるアイテムのレイアウト調整 */
 .item-card:has(.item-image) {
   padding: 1.5rem;
