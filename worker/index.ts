@@ -1,4 +1,10 @@
-import { getItems, createItem, updateItem, deleteItem, reviewItem } from './database';
+import {
+  getItems,
+  createItem,
+  updateItem,
+  deleteItem,
+  reviewItem,
+} from './database';
 import type { CreateItemData, ReviewResult } from './database';
 import { IMAGE_CONFIG } from './constants';
 
@@ -16,7 +22,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       // GET /api/items - アイテム一覧を取得
       const items = await getItems(env.DB);
       return new Response(JSON.stringify({ items }), {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
 
@@ -35,17 +41,20 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
         // 型安全なFormData処理
         const contentEntry = formData.get('content');
         if (typeof contentEntry !== 'string') {
-          return new Response(JSON.stringify({ error: 'Invalid content type' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' }
-          });
+          return new Response(
+            JSON.stringify({ error: 'Invalid content type' }),
+            {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          );
         }
 
         const imageEntry = formData.get('image');
         if (imageEntry && !(imageEntry instanceof File)) {
           return new Response(JSON.stringify({ error: 'Invalid image type' }), {
             status: 400,
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
           });
         }
 
@@ -53,27 +62,36 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
         const imageFile = imageEntry as File | null; // 型ガードで安全性確保済み
 
         if (!content || content.trim() === '') {
-          return new Response(JSON.stringify({ error: 'Content is required' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' }
-          });
+          return new Response(
+            JSON.stringify({ error: 'Content is required' }),
+            {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          );
         }
 
         if (content.length > 750) {
-          return new Response(JSON.stringify({ error: 'Content too long (max 750 characters)' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' }
-          });
+          return new Response(
+            JSON.stringify({ error: 'Content too long (max 750 characters)' }),
+            {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          );
         }
 
         // 画像アップロード処理
         if (imageFile && imageFile.size > 0) {
           // 画像サイズ制限 (5MB)
           if (imageFile.size > 5 * 1024 * 1024) {
-            return new Response(JSON.stringify({ error: 'Image too large (max 5MB)' }), {
-              status: 400,
-              headers: { 'Content-Type': 'application/json' }
-            });
+            return new Response(
+              JSON.stringify({ error: 'Image too large (max 5MB)' }),
+              {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+              },
+            );
           }
 
           // 画像形式は共通定数を使用
@@ -81,18 +99,30 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
           // 画像形式チェック
           const allowedTypes = Object.keys(IMAGE_CONFIG.SUPPORTED_IMAGE_TYPES);
           if (!allowedTypes.includes(imageFile.type)) {
-            return new Response(JSON.stringify({ error: 'Invalid image format. Only JPEG, PNG, WebP, and GIF are allowed' }), {
-              status: 400,
-              headers: { 'Content-Type': 'application/json' }
-            });
+            return new Response(
+              JSON.stringify({
+                error:
+                  'Invalid image format. Only JPEG, PNG, WebP, and GIF are allowed',
+              }),
+              {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+              },
+            );
           }
 
           // 一意のファイル名を生成
           const timestamp = Date.now();
-          const randomId = crypto.randomUUID().replace(/-/g, '').substring(0, 12);
+          const randomId = crypto
+            .randomUUID()
+            .replace(/-/g, '')
+            .substring(0, 12);
 
           // MIMEタイプから安全な拡張子を決定
-          const extension = IMAGE_CONFIG.SUPPORTED_IMAGE_TYPES[imageFile.type as keyof typeof IMAGE_CONFIG.SUPPORTED_IMAGE_TYPES];
+          const extension =
+            IMAGE_CONFIG.SUPPORTED_IMAGE_TYPES[
+              imageFile.type as keyof typeof IMAGE_CONFIG.SUPPORTED_IMAGE_TYPES
+            ];
           imageFilename = `${timestamp}-${randomId}.${extension}`;
 
           try {
@@ -100,45 +130,59 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
             await env.IMAGES.put(imageFilename, imageFile.stream(), {
               httpMetadata: {
                 contentType: imageFile.type,
-              }
+              },
             });
 
             // 画像のURLを生成 (同一ドメインでアクセス可能)
             imageUrl = `/api/images/${imageFilename}`;
           } catch (_error) {
-            return new Response(JSON.stringify({ error: 'Failed to upload image' }), {
-              status: 500,
-              headers: { 'Content-Type': 'application/json' }
-            });
+            return new Response(
+              JSON.stringify({ error: 'Failed to upload image' }),
+              {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+              },
+            );
           }
         }
 
         itemData = { content: content.trim() };
       } else {
         // JSON形式（従来の処理）
-        const body = await request.json() as CreateItemData;
+        const body = (await request.json()) as CreateItemData;
 
         if (!body.content || body.content.trim() === '') {
-          return new Response(JSON.stringify({ error: 'Content is required' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' }
-          });
+          return new Response(
+            JSON.stringify({ error: 'Content is required' }),
+            {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          );
         }
 
         if (body.content.length > 750) {
-          return new Response(JSON.stringify({ error: 'Content too long (max 750 characters)' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' }
-          });
+          return new Response(
+            JSON.stringify({ error: 'Content too long (max 750 characters)' }),
+            {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          );
         }
 
         itemData = { content: body.content.trim() };
       }
 
-      const newItem = await createItem(env.DB, itemData, imageUrl, imageFilename);
+      const newItem = await createItem(
+        env.DB,
+        itemData,
+        imageUrl,
+        imageFilename,
+      );
       return new Response(JSON.stringify({ item: newItem }), {
         status: 201,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
 
@@ -148,18 +192,25 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       if (!idMatch) {
         return new Response(JSON.stringify({ error: 'Invalid URL format' }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         });
       }
       const itemId = parseInt(idMatch[1]);
 
-      const body = await request.json() as ReviewResult;
+      const body = (await request.json()) as ReviewResult;
 
-      if (typeof body.quality !== 'number' || body.quality < 0 || body.quality > 5) {
-        return new Response(JSON.stringify({ error: 'Quality must be a number between 0 and 5' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        });
+      if (
+        typeof body.quality !== 'number' ||
+        body.quality < 0 ||
+        body.quality > 5
+      ) {
+        return new Response(
+          JSON.stringify({ error: 'Quality must be a number between 0 and 5' }),
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
       }
 
       const updatedItem = await reviewItem(env.DB, itemId, body.quality);
@@ -167,12 +218,12 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       if (!updatedItem) {
         return new Response(JSON.stringify({ error: 'Item not found' }), {
           status: 404,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         });
       }
 
       return new Response(JSON.stringify({ item: updatedItem }), {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
 
@@ -182,7 +233,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       if (!idMatch) {
         return new Response(JSON.stringify({ error: 'Invalid URL format' }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         });
       }
       const itemId = parseInt(idMatch[1]);
@@ -199,17 +250,20 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
 
         const contentEntry = formData.get('content');
         if (typeof contentEntry !== 'string') {
-          return new Response(JSON.stringify({ error: 'Invalid content type' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' }
-          });
+          return new Response(
+            JSON.stringify({ error: 'Invalid content type' }),
+            {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          );
         }
 
         const imageEntry = formData.get('image');
         if (imageEntry && !(imageEntry instanceof File)) {
           return new Response(JSON.stringify({ error: 'Invalid image type' }), {
             status: 400,
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
           });
         }
 
@@ -223,10 +277,13 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
         if (imageFile && imageFile.size > 0) {
           // 画像サイズ制限 (5MB)
           if (imageFile.size > 5 * 1024 * 1024) {
-            return new Response(JSON.stringify({ error: 'Image too large (max 5MB)' }), {
-              status: 400,
-              headers: { 'Content-Type': 'application/json' }
-            });
+            return new Response(
+              JSON.stringify({ error: 'Image too large (max 5MB)' }),
+              {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+              },
+            );
           }
 
           // 画像形式は共通定数を使用
@@ -234,16 +291,28 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
           // 画像形式チェック
           const allowedTypes = Object.keys(IMAGE_CONFIG.SUPPORTED_IMAGE_TYPES);
           if (!allowedTypes.includes(imageFile.type)) {
-            return new Response(JSON.stringify({ error: 'Invalid image format. Only JPEG, PNG, WebP, and GIF are allowed' }), {
-              status: 400,
-              headers: { 'Content-Type': 'application/json' }
-            });
+            return new Response(
+              JSON.stringify({
+                error:
+                  'Invalid image format. Only JPEG, PNG, WebP, and GIF are allowed',
+              }),
+              {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+              },
+            );
           }
 
           // 一意のファイル名を生成
           const timestamp = Date.now();
-          const randomId = crypto.randomUUID().replace(/-/g, '').substring(0, 12);
-          const extension = IMAGE_CONFIG.SUPPORTED_IMAGE_TYPES[imageFile.type as keyof typeof IMAGE_CONFIG.SUPPORTED_IMAGE_TYPES];
+          const randomId = crypto
+            .randomUUID()
+            .replace(/-/g, '')
+            .substring(0, 12);
+          const extension =
+            IMAGE_CONFIG.SUPPORTED_IMAGE_TYPES[
+              imageFile.type as keyof typeof IMAGE_CONFIG.SUPPORTED_IMAGE_TYPES
+            ];
           newImageFilename = `${timestamp}-${randomId}.${extension}`;
 
           try {
@@ -251,26 +320,29 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
             await env.IMAGES.put(newImageFilename, imageFile.stream(), {
               httpMetadata: {
                 contentType: imageFile.type,
-              }
+              },
             });
 
             newImageUrl = `/api/images/${newImageFilename}`;
           } catch (_error) {
-            return new Response(JSON.stringify({ error: 'Failed to upload image' }), {
-              status: 500,
-              headers: { 'Content-Type': 'application/json' }
-            });
+            return new Response(
+              JSON.stringify({ error: 'Failed to upload image' }),
+              {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+              },
+            );
           }
         }
       } else {
         // JSON形式（従来の処理）
         let requestData;
         try {
-          requestData = await request.json() as { content: string };
+          requestData = (await request.json()) as { content: string };
         } catch (_e) {
           return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
             status: 400,
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
           });
         }
         content = requestData.content;
@@ -280,28 +352,41 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       if (!content || content.trim().length === 0) {
         return new Response(JSON.stringify({ error: 'Content is required' }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         });
       }
 
       if (content.length > 750) {
-        return new Response(JSON.stringify({ error: 'Content too long (max 750 characters)' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        });
+        return new Response(
+          JSON.stringify({ error: 'Content too long (max 750 characters)' }),
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
       }
 
-      const updateResult = await updateItem(env.DB, itemId, content.trim(), newImageUrl, newImageFilename, shouldRemoveImage);
+      const updateResult = await updateItem(
+        env.DB,
+        itemId,
+        content.trim(),
+        newImageUrl,
+        newImageFilename,
+        shouldRemoveImage,
+      );
 
       if (!updateResult.item) {
         return new Response(JSON.stringify({ error: 'Item not found' }), {
           status: 404,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         });
       }
 
       // 古い画像ファイルを削除（新しい画像がアップロードされた場合、または画像削除の場合）
-      if (updateResult.oldImageFilename && (newImageFilename || shouldRemoveImage)) {
+      if (
+        updateResult.oldImageFilename &&
+        (newImageFilename || shouldRemoveImage)
+      ) {
         try {
           await env.IMAGES.delete(updateResult.oldImageFilename);
         } catch (error) {
@@ -311,7 +396,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       }
 
       return new Response(JSON.stringify({ item: updateResult.item }), {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
 
@@ -321,7 +406,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       if (!idMatch) {
         return new Response(JSON.stringify({ error: 'Invalid URL format' }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         });
       }
       const itemId = parseInt(idMatch[1]);
@@ -331,7 +416,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       if (!deleteResult.success) {
         return new Response(JSON.stringify({ error: 'Item not found' }), {
           status: 404,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         });
       }
 
@@ -346,7 +431,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       }
 
       return new Response(JSON.stringify({ message: 'Item deleted' }), {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
 
@@ -378,14 +463,13 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
     // 該当するAPIエンドポイントがない場合
     return new Response(JSON.stringify({ error: 'API endpoint not found' }), {
       status: 404,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
     });
-
   } catch (_error) {
     // エラーハンドリング
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 }
@@ -395,7 +479,7 @@ export default {
     const url = new URL(request.url);
 
     // API リクエストの処理
-    if (url.pathname.startsWith("/api/")) {
+    if (url.pathname.startsWith('/api/')) {
       return handleApiRequest(request, env);
     }
 

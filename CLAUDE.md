@@ -14,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Database Development
 
 ### Local Development
+
 ```bash
 # Apply database schema locally
 npx wrangler d1 execute repeatnote-db --local --file=schema.sql
@@ -27,6 +28,7 @@ npx wrangler d1 execute repeatnote-db --local --file=schema.sql
 ```
 
 ### Production Database
+
 ```bash
 # Apply schema to production database
 npx wrangler d1 execute repeatnote-db --remote --file=schema.sql
@@ -40,6 +42,7 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
 **RepeatNote** is a spaced repetition learning application implementing the SM-2 algorithm for optimal memory retention. Built with React + TypeScript + Vite frontend and Cloudflare Workers + D1 database backend.
 
 ### Core Functionality
+
 - **Spaced Repetition**: SM-2 algorithm calculates optimal review intervals based on recall quality (0-5 scale)
 - **Learning Items**: Create, edit, and delete study items with 750-character limit
 - **Review System**: Quality-based evaluation with visual feedback (😵 忘れた, 🤔 曖昧, 💡 思い出した, ✨ 完璧)
@@ -48,6 +51,7 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
 - **Dropdown Actions**: Integrated edit/delete menu with hover effects and click-outside-to-close
 
 ### Frontend Architecture (`src/`)
+
 - **`App.tsx`**: Main component handling all state management, API calls, and UI logic
   - State: items, editing, filtering, form data, dropdown visibility
   - Key functions: CRUD operations, SM-2 review processing, dropdown management
@@ -60,6 +64,7 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
   - Pre-wrap text display for multiline content
 
 ### Backend Architecture (`worker/`)
+
 - **`index.ts`**: RESTful API router handling CORS, request validation, and response formatting
 - **`database.ts`**: D1 database operations and SM-2 algorithm implementation
 - **API Endpoints**:
@@ -70,9 +75,11 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
   - `DELETE /api/items/:id` - Delete item
 
 ### Database Schema (`schema.sql`)
+
 Items table with fields for SM-2 algorithm: `interval_days`, `ease_factor`, `review_count`, `next_review`
 
 ### Key Integration Points
+
 - **API Communication**: Frontend fetches from `/api/` endpoints handled by Cloudflare Worker
 - **SPA Routing**: `wrangler.jsonc` configured with `"not_found_handling": "single-page-application"`
 - **Local Development**: `preview_database_id` in wrangler.jsonc enables local D1 database
@@ -91,6 +98,32 @@ Items table with fields for SM-2 algorithm: `interval_days`, `ease_factor`, `rev
 - **Local Database**: Uses `preview_database_id: "local-repeatnote-db"` for development
 - **Production Database**: Uses `database_id` for production deployment
 - **CORS**: Currently set to `*` for all origins (TODO: restrict for production)
+
+## Code Formatting Standards
+
+This project uses Prettier for consistent code formatting. All code output should follow the configuration in `.prettierrc`:
+
+```json
+{
+  "semi": true,
+  "tabWidth": 2,
+  "singleQuote": true
+}
+```
+
+**Key formatting rules:**
+- **Semicolons**: Required at the end of statements
+- **Indentation**: 2 spaces (no tabs)
+- **Quotes**: Single quotes for strings
+- **Line length**: Automatic wrapping for readability
+- **Import statements**: Multi-line with alphabetical sorting when needed
+- **Object properties**: Proper line breaks and alignment
+- **JSX attributes**: Consistent line breaks and indentation
+
+**Usage:**
+- Run `npx prettier --write .` to format all files
+- Ensure all new code follows these standards
+- Use the same formatting in code examples and outputs
 
 ## Current Status
 

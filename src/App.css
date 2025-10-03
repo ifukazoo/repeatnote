@@ -4,7 +4,8 @@
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -239,7 +240,8 @@ header p {
   font-size: 0.875rem;
 }
 
-.loading, .empty {
+.loading,
+.empty {
   text-align: center;
   padding: 2rem;
   color: #6b7280;
@@ -467,7 +469,6 @@ header p {
   background: #d97706;
 }
 
-
 .waiting-text {
   color: #10b981;
   font-weight: 500;
@@ -505,26 +506,30 @@ header p {
 }
 
 /* 品質ボタンの色分け - 忘れた・曖昧（不正解） */
-.quality-0, .quality-2 {
+.quality-0,
+.quality-2 {
   background: #fee2e2;
   color: #dc2626;
   border: 2px solid #fecaca;
 }
 
-.quality-0:hover, .quality-2:hover {
+.quality-0:hover,
+.quality-2:hover {
   background: #fecaca;
   border-color: #f87171;
   transform: translateY(-2px);
 }
 
 /* 品質ボタンの色分け - 思い出した・完璧（正解） */
-.quality-3, .quality-5 {
+.quality-3,
+.quality-5 {
   background: #dcfce7;
   color: #16a34a;
   border: 2px solid #bbf7d0;
 }
 
-.quality-3:hover, .quality-5:hover {
+.quality-3:hover,
+.quality-5:hover {
   background: #bbf7d0;
   border-color: #86efac;
   transform: translateY(-2px);

@@ -44,6 +44,7 @@ npm run dev
 ### Cloudflare Workers設定について
 
 #### wrangler.jsonc - SPAルーティング設定
+
 ```jsonc
 "assets": {
     "not_found_handling": "single-page-application"
@@ -51,12 +52,14 @@ npm run dev
 ```
 
 **この設定の意味:**
+
 - 静的ファイルが見つからない場合（404エラー）に、`index.html`を返す
 - React等のSPAでクライアントサイドルーティングを使用する際に必要
 - `/api/`で始まるパス → Workerが処理
 - その他のパス → React SPAの`index.html`を返してクライアントサイドでルーティング
 
 **動作例:**
+
 1. ユーザーが`/about`にアクセス
 2. 実際のファイルは存在しないが、この設定により`index.html`を返す
 3. Reactアプリがロードされてクライアントサイドでルーティング処理
@@ -66,6 +69,7 @@ npm run dev
 #### ルートディレクトリのファイル
 
 **設定ファイル**
+
 - `package.json` - プロジェクトの依存関係とスクリプト定義
 - `vite.config.ts` - Vite（ビルドツール）の設定
 - `eslint.config.js` - ESLintのコード品質チェック設定
@@ -74,24 +78,29 @@ npm run dev
 - `worker-configuration.d.ts` - Cloudflare Workers用の型定義
 
 **プロジェクトファイル**
+
 - `index.html` - SPAのエントリポイント
 - `CLAUDE.md` - Claude Code用の開発ガイド
 
 #### ディレクトリ構成
 
 **`src/` - Reactアプリケーション**
+
 - `main.tsx` - React アプリのエントリポイント
 - `App.tsx` - メインコンポーネント
 - `assets/` - 画像ファイル（ロゴなど）
 
 **`worker/` - Cloudflare Worker**
+
 - `index.ts` - API処理を行うWorkerコード
 
 **`dist/` - ビルド成果物**
+
 - `client/` - Reactアプリのビルド結果
 - `repeatnote/` - Cloudflare Worker用のビルド結果
 
 **その他**
+
 - `public/` - 静的ファイル
 - `.vscode/` - VS Code設定
 - `.wrangler/` - Wranglerの作業ディレクトリ
@@ -101,6 +110,7 @@ npm run dev
 #### D1データベースローカル開発設定
 
 **wrangler.jsonc - preview_database_id設定**
+
 ```jsonc
 "d1_databases": [
   {
@@ -113,16 +123,19 @@ npm run dev
 ```
 
 **この設定の意味:**
+
 - `database_id`: プロダクション用データベースID（実際のCloudflare D1作成後に設定）
 - `preview_database_id`: ローカル開発用の識別子
 - ローカルD1は `.wrangler/state/v3/d1` に SQLite ファイルとして保存
 
 #### ローカル開発手順
+
 1. **スキーマ適用**: `npx wrangler d1 execute repeatnote-db --local --file=schema.sql`
 2. **開発サーバー起動**: `npm run dev`
 3. **型定義生成**: `npm run cf-typegen` (D1設定変更後)
 
 #### ローカルD1データベース操作
+
 ```bash
 # スキーマ適用
 npx wrangler d1 execute repeatnote-db --local --file=schema.sql

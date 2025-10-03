@@ -1,271 +1,298 @@
-import { useState, useEffect, useRef } from 'react'
-import type { Item, UpdateItemData } from './types'
-import { getItems, createItem, updateItem, reviewItem, deleteItem, ApiError } from './api'
-import { IMAGE_CONFIG } from './constants'
-import type { AllowedImageType } from './constants'
-import './App.css'
+import { useState, useEffect, useRef } from 'react';
+import type { Item, UpdateItemData } from './types';
+import {
+  getItems,
+  createItem,
+  updateItem,
+  reviewItem,
+  deleteItem,
+  ApiError,
+} from './api';
+import { IMAGE_CONFIG } from './constants';
+import type { AllowedImageType } from './constants';
+import './App.css';
 
 function App() {
-  const [items, setItems] = useState<Item[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string>('')
-  const [newItemContent, setNewItemContent] = useState('')
-  const [newItemImage, setNewItemImage] = useState<File | null>(null)
-  const [newItemImagePreview, setNewItemImagePreview] = useState<string | null>(null)
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [showAllItems, setShowAllItems] = useState(false)
-  const [editingItem, setEditingItem] = useState<number | null>(null)
-  const [editContent, setEditContent] = useState('')
-  const [editImage, setEditImage] = useState<File | null>(null)
-  const [editImagePreview, setEditImagePreview] = useState<string | null>(null)
-  const [removeEditImage, setRemoveEditImage] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState<number | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const editFileInputRef = useRef<HTMLInputElement>(null)
+  const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
+  const [newItemContent, setNewItemContent] = useState('');
+  const [newItemImage, setNewItemImage] = useState<File | null>(null);
+  const [newItemImagePreview, setNewItemImagePreview] = useState<string | null>(
+    null,
+  );
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [showAllItems, setShowAllItems] = useState(false);
+  const [editingItem, setEditingItem] = useState<number | null>(null);
+  const [editContent, setEditContent] = useState('');
+  const [editImage, setEditImage] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+  const [removeEditImage, setRemoveEditImage] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
 
   // アイテム一覧を取得
   const loadItems = async () => {
     try {
-      setLoading(true)
-      setError('')
-      const itemsData = await getItems()
-      setItems(itemsData)
+      setLoading(true);
+      setError('');
+      const itemsData = await getItems();
+      setItems(itemsData);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : '読み込みに失敗しました')
+      setError(
+        err instanceof ApiError ? err.message : '読み込みに失敗しました',
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // 初回ロード
   useEffect(() => {
-    loadItems()
-  }, [])
+    loadItems();
+  }, []);
 
   // ドロップダウンの外部クリックで閉じる
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownOpen !== null) {
-        const target = event.target as Element
+        const target = event.target as Element;
         if (!target.closest('.dropdown-container')) {
-          setDropdownOpen(null)
+          setDropdownOpen(null);
         }
       }
-    }
+    };
 
-    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [dropdownOpen])
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownOpen]);
 
   // ファイル入力リセット共通関数
   const resetFileInput = (ref: React.RefObject<HTMLInputElement | null>) => {
     if (ref.current) {
-      ref.current.value = ''
+      ref.current.value = '';
     }
-  }
+  };
 
   // プレビューURLクリーンアップ関数
   const cleanupImagePreview = (previewUrl: string | null) => {
     if (previewUrl) {
-      URL.revokeObjectURL(previewUrl)
+      URL.revokeObjectURL(previewUrl);
     }
-  }
+  };
 
   // 画像バリデーション共通関数
-  const validateImageFile = (file: File): { isValid: boolean; error?: string } => {
+  const validateImageFile = (
+    file: File,
+  ): { isValid: boolean; error?: string } => {
     // 画像形式チェック
     if (!IMAGE_CONFIG.ALLOWED_TYPES.includes(file.type as AllowedImageType)) {
       return {
         isValid: false,
-        error: IMAGE_CONFIG.ERROR_MESSAGES.INVALID_TYPE
-      }
+        error: IMAGE_CONFIG.ERROR_MESSAGES.INVALID_TYPE,
+      };
     }
 
     // サイズチェック
     if (file.size > IMAGE_CONFIG.MAX_SIZE) {
       return {
         isValid: false,
-        error: IMAGE_CONFIG.ERROR_MESSAGES.FILE_TOO_LARGE
-      }
+        error: IMAGE_CONFIG.ERROR_MESSAGES.FILE_TOO_LARGE,
+      };
     }
 
-    return { isValid: true }
-  }
+    return { isValid: true };
+  };
 
   // 画像ファイル選択
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      const validation = validateImageFile(file)
+      const validation = validateImageFile(file);
       if (!validation.isValid) {
-        setError(validation.error!)
-        return
+        setError(validation.error!);
+        return;
       }
 
       // 古いプレビューURLをクリーンアップ
-      cleanupImagePreview(newItemImagePreview)
+      cleanupImagePreview(newItemImagePreview);
 
-      setNewItemImage(file)
-      setNewItemImagePreview(URL.createObjectURL(file))
-      setError('')
+      setNewItemImage(file);
+      setNewItemImagePreview(URL.createObjectURL(file));
+      setError('');
     }
-  }
+  };
 
   // 編集時の画像ファイル選択
   const handleEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      const validation = validateImageFile(file)
+      const validation = validateImageFile(file);
       if (!validation.isValid) {
-        setError(validation.error!)
-        return
+        setError(validation.error!);
+        return;
       }
 
       // 古いプレビューURLをクリーンアップ
-      cleanupImagePreview(editImagePreview)
+      cleanupImagePreview(editImagePreview);
 
-      setEditImage(file)
-      setEditImagePreview(URL.createObjectURL(file))
-      setRemoveEditImage(false) // 新しい画像が選択されたら削除フラグを解除
-      setError('')
+      setEditImage(file);
+      setEditImagePreview(URL.createObjectURL(file));
+      setRemoveEditImage(false); // 新しい画像が選択されたら削除フラグを解除
+      setError('');
     }
-  }
+  };
 
   // 新しいアイテムを追加
   const handleCreateItem = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newItemContent.trim()) return
+    e.preventDefault();
+    if (!newItemContent.trim()) return;
 
     try {
-      setError('')
+      setError('');
       const newItem = await createItem({
         content: newItemContent.trim(),
-        image: newItemImage || undefined
-      })
-      setItems(prev => [newItem, ...prev])
-      setNewItemContent('')
-      setNewItemImage(null)
+        image: newItemImage || undefined,
+      });
+      setItems((prev) => [newItem, ...prev]);
+      setNewItemContent('');
+      setNewItemImage(null);
       // プレビューURLをクリーンアップ
-      cleanupImagePreview(newItemImagePreview)
-      setNewItemImagePreview(null)
+      cleanupImagePreview(newItemImagePreview);
+      setNewItemImagePreview(null);
       // ファイル入力をリセット
-      resetFileInput(fileInputRef)
+      resetFileInput(fileInputRef);
       // フォームを折りたたむ
-      setShowAddForm(false)
+      setShowAddForm(false);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : '作成に失敗しました')
+      setError(err instanceof ApiError ? err.message : '作成に失敗しました');
     }
-  }
+  };
 
   // 新規追加フォームキャンセル
   const handleAddFormCancel = () => {
-    setNewItemContent('')
-    setNewItemImage(null)
-    cleanupImagePreview(newItemImagePreview)
-    setNewItemImagePreview(null)
-    resetFileInput(fileInputRef)
-    setShowAddForm(false)
-  }
+    setNewItemContent('');
+    setNewItemImage(null);
+    cleanupImagePreview(newItemImagePreview);
+    setNewItemImagePreview(null);
+    resetFileInput(fileInputRef);
+    setShowAddForm(false);
+  };
 
   // 復習処理
   const handleReview = async (id: number, quality: number) => {
     try {
-      setError('')
-      const updatedItem = await reviewItem(id, quality)
-      setItems(prev => prev.map(item => item.id === id ? updatedItem : item))
+      setError('');
+      const updatedItem = await reviewItem(id, quality);
+      setItems((prev) =>
+        prev.map((item) => (item.id === id ? updatedItem : item)),
+      );
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : '復習処理に失敗しました')
+      setError(
+        err instanceof ApiError ? err.message : '復習処理に失敗しました',
+      );
     }
-  }
+  };
 
   // アイテム編集開始
   const handleEditStart = (item: Item) => {
-    setEditingItem(item.id)
-    setEditContent(item.content)
-    setEditImage(null)
+    setEditingItem(item.id);
+    setEditContent(item.content);
+    setEditImage(null);
     // プレビューURLをクリーンアップ
-    cleanupImagePreview(editImagePreview)
-    setEditImagePreview(null)
-    setRemoveEditImage(false)
+    cleanupImagePreview(editImagePreview);
+    setEditImagePreview(null);
+    setRemoveEditImage(false);
     // ファイル入力をリセット
-    resetFileInput(editFileInputRef)
-  }
+    resetFileInput(editFileInputRef);
+  };
 
   // アイテム編集キャンセル
   const handleEditCancel = () => {
-    setEditingItem(null)
-    setEditContent('')
-    setEditImage(null)
+    setEditingItem(null);
+    setEditContent('');
+    setEditImage(null);
     // プレビューURLをクリーンアップ
-    cleanupImagePreview(editImagePreview)
-    setEditImagePreview(null)
-    setRemoveEditImage(false)
+    cleanupImagePreview(editImagePreview);
+    setEditImagePreview(null);
+    setRemoveEditImage(false);
     // ファイル入力をリセット
-    resetFileInput(editFileInputRef)
-  }
+    resetFileInput(editFileInputRef);
+  };
 
   // アイテム編集保存
   const handleEditSave = async (id: number) => {
-    if (!editContent.trim()) return
+    if (!editContent.trim()) return;
 
     try {
-      setError('')
+      setError('');
       const updateData: UpdateItemData = {
-        content: editContent.trim()
-      }
+        content: editContent.trim(),
+      };
 
       // 画像関連の処理
       if (editImage) {
-        updateData.image = editImage
+        updateData.image = editImage;
       }
       if (removeEditImage) {
-        updateData.removeImage = true
+        updateData.removeImage = true;
       }
 
-      const updatedItem = await updateItem(id, updateData)
-      setItems(prev => prev.map(item => item.id === id ? updatedItem : item))
-      setEditingItem(null)
-      setEditContent('')
-      setEditImage(null)
+      const updatedItem = await updateItem(id, updateData);
+      setItems((prev) =>
+        prev.map((item) => (item.id === id ? updatedItem : item)),
+      );
+      setEditingItem(null);
+      setEditContent('');
+      setEditImage(null);
       // プレビューURLをクリーンアップ
-      cleanupImagePreview(editImagePreview)
-      setEditImagePreview(null)
-      setRemoveEditImage(false)
+      cleanupImagePreview(editImagePreview);
+      setEditImagePreview(null);
+      setRemoveEditImage(false);
       // ファイル入力をリセット
-      resetFileInput(editFileInputRef)
+      resetFileInput(editFileInputRef);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : '更新に失敗しました')
+      setError(err instanceof ApiError ? err.message : '更新に失敗しました');
     }
-  }
+  };
 
   // アイテム削除
   const handleDelete = async (id: number) => {
-    const item = items.find(item => item.id === id)
-    const content = item?.content || ''
-    const preview = content.length > 30 ? content.substring(0, 30) + '...' : content
+    const item = items.find((item) => item.id === id);
+    const content = item?.content || '';
+    const preview =
+      content.length > 30 ? content.substring(0, 30) + '...' : content;
 
-    if (!confirm(`学習項目を削除しますか？\n\n「${preview}」\n\n※この操作は取り消せません。`)) return
+    if (
+      !confirm(
+        `学習項目を削除しますか？\n\n「${preview}」\n\n※この操作は取り消せません。`,
+      )
+    )
+      return;
 
     try {
-      setError('')
-      await deleteItem(id)
-      setItems(prev => prev.filter(item => item.id !== id))
+      setError('');
+      await deleteItem(id);
+      setItems((prev) => prev.filter((item) => item.id !== id));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : '削除に失敗しました')
+      setError(err instanceof ApiError ? err.message : '削除に失敗しました');
     }
-  }
+  };
 
   // 復習が必要なアイテムかチェック
   const needsReview = (item: Item): boolean => {
-    if (!item.next_review) return true
-    return new Date(item.next_review) <= new Date()
-  }
+    if (!item.next_review) return true;
+    return new Date(item.next_review) <= new Date();
+  };
 
   // 表示するアイテムを決定
-  const displayItems = showAllItems ? items : items.filter(item => needsReview(item))
-  const reviewItemsCount = items.filter(item => needsReview(item)).length
+  const displayItems = showAllItems
+    ? items
+    : items.filter((item) => needsReview(item));
+  const reviewItemsCount = items.filter((item) => needsReview(item)).length;
 
   return (
     <div className="app">
@@ -274,11 +301,7 @@ function App() {
         <p>間隔反復学習で効率的に記憶定着</p>
       </header>
 
-      {error && (
-        <div className="error">
-          ❌ {error}
-        </div>
-      )}
+      {error && <div className="error">❌ {error}</div>}
 
       {/* 新規アイテム追加フォーム */}
       <section className="add-item">
@@ -302,7 +325,9 @@ function App() {
                   rows={1}
                   className="add-textarea"
                 />
-                <div className={`char-counter ${newItemContent.length > 650 ? 'warning' : ''} ${newItemContent.length >= 750 ? 'danger' : ''}`}>
+                <div
+                  className={`char-counter ${newItemContent.length > 650 ? 'warning' : ''} ${newItemContent.length >= 750 ? 'danger' : ''}`}
+                >
                   {newItemContent.length}/750
                 </div>
               </div>
@@ -331,10 +356,10 @@ function App() {
                     <button
                       type="button"
                       onClick={() => {
-                        setNewItemImage(null)
-                        cleanupImagePreview(newItemImagePreview)
-                        setNewItemImagePreview(null)
-                        resetFileInput(fileInputRef)
+                        setNewItemImage(null);
+                        cleanupImagePreview(newItemImagePreview);
+                        setNewItemImagePreview(null);
+                        resetFileInput(fileInputRef);
                       }}
                       className="remove-image-btn"
                     >
@@ -370,10 +395,14 @@ function App() {
               onClick={() => setShowAllItems(!showAllItems)}
               className="toggle-button"
             >
-              {showAllItems ? '復習項目のみ表示' : `全項目表示 (${items.length})`}
+              {showAllItems
+                ? '復習項目のみ表示'
+                : `全項目表示 (${items.length})`}
             </button>
             {!showAllItems && reviewItemsCount > 0 && (
-              <span className="review-count">復習項目: {reviewItemsCount}件</span>
+              <span className="review-count">
+                復習項目: {reviewItemsCount}件
+              </span>
             )}
           </div>
         </div>
@@ -391,7 +420,10 @@ function App() {
         ) : (
           <div className="items-list">
             {displayItems.map((item) => (
-              <div key={item.id} className={`item ${needsReview(item) ? 'needs-review' : 'waiting'}`}>
+              <div
+                key={item.id}
+                className={`item ${needsReview(item) ? 'needs-review' : 'waiting'}`}
+              >
                 <div className="item-content">
                   {editingItem === item.id ? (
                     <div className="edit-form">
@@ -404,7 +436,9 @@ function App() {
                           autoFocus
                           rows={6}
                         />
-                        <div className={`char-counter ${editContent.length > 650 ? 'warning' : ''} ${editContent.length >= 750 ? 'danger' : ''}`}>
+                        <div
+                          className={`char-counter ${editContent.length > 650 ? 'warning' : ''} ${editContent.length >= 750 ? 'danger' : ''}`}
+                        >
                           {editContent.length}/750
                         </div>
                       </div>
@@ -414,7 +448,11 @@ function App() {
                         {/* 現在の画像表示 */}
                         {item.image_url && !removeEditImage && (
                           <div className="current-image">
-                            <img src={item.image_url} alt="現在の画像" className="edit-current-image" />
+                            <img
+                              src={item.image_url}
+                              alt="現在の画像"
+                              className="edit-current-image"
+                            />
                             <button
                               type="button"
                               onClick={() => setRemoveEditImage(true)}
@@ -441,8 +479,12 @@ function App() {
 
                         {/* 新しい画像アップロード */}
                         <div className="edit-image-upload">
-                          <label htmlFor="edit-image-upload" className="image-upload-label">
-                            📷 {item.image_url ? '画像を変更' : '画像を追加'} (任意)
+                          <label
+                            htmlFor="edit-image-upload"
+                            className="image-upload-label"
+                          >
+                            📷 {item.image_url ? '画像を変更' : '画像を追加'}{' '}
+                            (任意)
                           </label>
                           <input
                             type="file"
@@ -463,11 +505,11 @@ function App() {
                               <button
                                 type="button"
                                 onClick={() => {
-                                  setEditImage(null)
-                                  cleanupImagePreview(editImagePreview)
-                                  setEditImagePreview(null)
-                                  setRemoveEditImage(false)
-                                  resetFileInput(editFileInputRef)
+                                  setEditImage(null);
+                                  cleanupImagePreview(editImagePreview);
+                                  setEditImagePreview(null);
+                                  setRemoveEditImage(false);
+                                  resetFileInput(editFileInputRef);
                                 }}
                                 className="remove-image-btn"
                               >
@@ -499,7 +541,11 @@ function App() {
                       {/* 画像表示 */}
                       {item.image_url && (
                         <div className="item-image">
-                          <img src={item.image_url} alt="学習項目の画像" loading="lazy" />
+                          <img
+                            src={item.image_url}
+                            alt="学習項目の画像"
+                            loading="lazy"
+                          />
                         </div>
                       )}
 
@@ -508,7 +554,11 @@ function App() {
                         <div className="item-actions-menu">
                           <div className="dropdown-container">
                             <button
-                              onClick={() => setDropdownOpen(dropdownOpen === item.id ? null : item.id)}
+                              onClick={() =>
+                                setDropdownOpen(
+                                  dropdownOpen === item.id ? null : item.id,
+                                )
+                              }
                               className="dropdown-toggle"
                               title="アクション"
                             >
@@ -518,8 +568,8 @@ function App() {
                               <div className="dropdown-menu">
                                 <button
                                   onClick={() => {
-                                    handleEditStart(item)
-                                    setDropdownOpen(null)
+                                    handleEditStart(item);
+                                    setDropdownOpen(null);
                                   }}
                                   className="dropdown-item"
                                 >
@@ -527,8 +577,8 @@ function App() {
                                 </button>
                                 <button
                                   onClick={() => {
-                                    handleDelete(item.id)
-                                    setDropdownOpen(null)
+                                    handleDelete(item.id);
+                                    setDropdownOpen(null);
                                   }}
                                   className="dropdown-item delete-item"
                                 >
@@ -544,7 +594,12 @@ function App() {
                         <span>間隔: {item.interval_days}日</span>
                         <span>難易度: {item.ease_factor.toFixed(1)}</span>
                         {item.next_review && (
-                          <span>次回復習: {new Date(item.next_review).toLocaleDateString('ja-JP')}</span>
+                          <span>
+                            次回復習:{' '}
+                            {new Date(item.next_review).toLocaleDateString(
+                              'ja-JP',
+                            )}
+                          </span>
                         )}
                       </div>
                     </>
@@ -584,11 +639,11 @@ function App() {
                           ✨ 完璧
                         </button>
                       </div>
-                  ) : (
-                    <div className="action-buttons">
-                      <span className="waiting-text">⏰ 復習待ち</span>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="action-buttons">
+                        <span className="waiting-text">⏰ 復習待ち</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -597,7 +652,7 @@ function App() {
         )}
       </section>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
