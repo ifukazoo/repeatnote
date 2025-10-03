@@ -12,6 +12,7 @@ function App() {
   const [newItemContent, setNewItemContent] = useState('')
   const [newItemImage, setNewItemImage] = useState<File | null>(null)
   const [newItemImagePreview, setNewItemImagePreview] = useState<string | null>(null)
+  const [showAddForm, setShowAddForm] = useState(false)
   const [showAllItems, setShowAllItems] = useState(false)
   const [editingItem, setEditingItem] = useState<number | null>(null)
   const [editContent, setEditContent] = useState('')
@@ -151,9 +152,21 @@ function App() {
       setNewItemImagePreview(null)
       // ファイル入力をリセット
       resetFileInput(fileInputRef)
+      // フォームを折りたたむ
+      setShowAddForm(false)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '作成に失敗しました')
     }
+  }
+
+  // 新規追加フォームキャンセル
+  const handleAddFormCancel = () => {
+    setNewItemContent('')
+    setNewItemImage(null)
+    cleanupImagePreview(newItemImagePreview)
+    setNewItemImagePreview(null)
+    resetFileInput(fileInputRef)
+    setShowAddForm(false)
   }
 
   // 復習処理
@@ -269,63 +282,83 @@ function App() {
 
       {/* 新規アイテム追加フォーム */}
       <section className="add-item">
-        <h2>新しい学習項目を追加</h2>
-        <form onSubmit={handleCreateItem}>
-          <div className="input-wrapper">
-            <textarea
-              value={newItemContent}
-              onChange={(e) => setNewItemContent(e.target.value)}
-              placeholder="学習内容を入力してください"
-              maxLength={750}
-              rows={1}
-              className="add-textarea"
-            />
-            <div className={`char-counter ${newItemContent.length > 650 ? 'warning' : ''} ${newItemContent.length >= 750 ? 'danger' : ''}`}>
-              {newItemContent.length}/750
-            </div>
-          </div>
-
-          {/* 画像アップロード */}
-          <div className="image-upload-container">
-            <label htmlFor="image-upload" className="image-upload-label">
-              📷 画像を追加 (任意)
-            </label>
-            <input
-              type="file"
-              id="image-upload"
-              ref={fileInputRef}
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              onChange={handleImageChange}
-              className="image-upload-input"
-            />
-            {newItemImage && (
-              <div className="image-preview">
-                <img
-                  src={newItemImagePreview!}
-                  alt="選択した画像"
-                  className="preview-thumbnail"
+        {!showAddForm ? (
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="add-form-toggle"
+          >
+            ➕ 新しいアイテムを追加
+          </button>
+        ) : (
+          <div className="add-form-expanded">
+            <h2>新しい学習項目を追加</h2>
+            <form onSubmit={handleCreateItem}>
+              <div className="input-wrapper">
+                <textarea
+                  value={newItemContent}
+                  onChange={(e) => setNewItemContent(e.target.value)}
+                  placeholder="学習内容を入力してください"
+                  maxLength={750}
+                  rows={1}
+                  className="add-textarea"
                 />
-                <span>選択済み: {newItemImage.name}</span>
+                <div className={`char-counter ${newItemContent.length > 650 ? 'warning' : ''} ${newItemContent.length >= 750 ? 'danger' : ''}`}>
+                  {newItemContent.length}/750
+                </div>
+              </div>
+
+              {/* 画像アップロード */}
+              <div className="image-upload-container">
+                <label htmlFor="image-upload" className="image-upload-label">
+                  📷 画像を追加 (任意)
+                </label>
+                <input
+                  type="file"
+                  id="image-upload"
+                  ref={fileInputRef}
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleImageChange}
+                  className="image-upload-input"
+                />
+                {newItemImage && (
+                  <div className="image-preview">
+                    <img
+                      src={newItemImagePreview!}
+                      alt="選択した画像"
+                      className="preview-thumbnail"
+                    />
+                    <span>選択済み: {newItemImage.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewItemImage(null)
+                        cleanupImagePreview(newItemImagePreview)
+                        setNewItemImagePreview(null)
+                        resetFileInput(fileInputRef)
+                      }}
+                      className="remove-image-btn"
+                    >
+                      ❌
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="form-actions">
+                <button type="submit" disabled={!newItemContent.trim()}>
+                  ➕ 追加
+                </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setNewItemImage(null)
-                    cleanupImagePreview(newItemImagePreview)
-                    setNewItemImagePreview(null)
-                    resetFileInput(fileInputRef)
-                  }}
-                  className="remove-image-btn"
+                  onClick={handleAddFormCancel}
+                  className="cancel-btn"
                 >
-                  ❌
+                  キャンセル
                 </button>
               </div>
-            )}
+            </form>
           </div>
-
-          <button type="submit" disabled={!newItemContent.trim()}>
-            ➕ 追加
-          </button>
-        </form>
+        )}
       </section>
 
       {/* アイテム一覧 */}
