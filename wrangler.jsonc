@@ -20,6 +20,12 @@
 			"database_id": "e111886a-f204-4088-b0de-65f08ec6eeb7",
 			"preview_database_id": "local-repeatnote-db"
 		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "IMAGES",
+			"bucket_name": "repeatnote-images"
+		}
 	]
 	/**
 	 * Smart Placement

@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react'
-import type { Item } from './types'
+import { useState, useEffect, useRef } from 'react'
+import type { Item, UpdateItemData } from './types'
 import { getItems, createItem, updateItem, reviewItem, deleteItem, ApiError } from './api'
+import { IMAGE_CONFIG } from './constants'
+import type { AllowedImageType } from './constants'
 import './App.css'
 
 function App() {
@@ -8,10 +10,17 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>('')
   const [newItemContent, setNewItemContent] = useState('')
+  const [newItemImage, setNewItemImage] = useState<File | null>(null)
+  const [newItemImagePreview, setNewItemImagePreview] = useState<string | null>(null)
   const [showAllItems, setShowAllItems] = useState(false)
   const [editingItem, setEditingItem] = useState<number | null>(null)
   const [editContent, setEditContent] = useState('')
+  const [editImage, setEditImage] = useState<File | null>(null)
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null)
+  const [removeEditImage, setRemoveEditImage] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const editFileInputRef = useRef<HTMLInputElement>(null)
 
   // アイテム一覧を取得
   const loadItems = async () => {
@@ -49,6 +58,80 @@ function App() {
     }
   }, [dropdownOpen])
 
+  // ファイル入力リセット共通関数
+  const resetFileInput = (ref: React.RefObject<HTMLInputElement | null>) => {
+    if (ref.current) {
+      ref.current.value = ''
+    }
+  }
+
+  // プレビューURLクリーンアップ関数
+  const cleanupImagePreview = (previewUrl: string | null) => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+    }
+  }
+
+  // 画像バリデーション共通関数
+  const validateImageFile = (file: File): { isValid: boolean; error?: string } => {
+    // 画像形式チェック
+    if (!IMAGE_CONFIG.ALLOWED_TYPES.includes(file.type as AllowedImageType)) {
+      return {
+        isValid: false,
+        error: IMAGE_CONFIG.ERROR_MESSAGES.INVALID_TYPE
+      }
+    }
+
+    // サイズチェック
+    if (file.size > IMAGE_CONFIG.MAX_SIZE) {
+      return {
+        isValid: false,
+        error: IMAGE_CONFIG.ERROR_MESSAGES.FILE_TOO_LARGE
+      }
+    }
+
+    return { isValid: true }
+  }
+
+  // 画像ファイル選択
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const validation = validateImageFile(file)
+      if (!validation.isValid) {
+        setError(validation.error!)
+        return
+      }
+
+      // 古いプレビューURLをクリーンアップ
+      cleanupImagePreview(newItemImagePreview)
+
+      setNewItemImage(file)
+      setNewItemImagePreview(URL.createObjectURL(file))
+      setError('')
+    }
+  }
+
+  // 編集時の画像ファイル選択
+  const handleEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const validation = validateImageFile(file)
+      if (!validation.isValid) {
+        setError(validation.error!)
+        return
+      }
+
+      // 古いプレビューURLをクリーンアップ
+      cleanupImagePreview(editImagePreview)
+
+      setEditImage(file)
+      setEditImagePreview(URL.createObjectURL(file))
+      setRemoveEditImage(false) // 新しい画像が選択されたら削除フラグを解除
+      setError('')
+    }
+  }
+
   // 新しいアイテムを追加
   const handleCreateItem = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,9 +139,18 @@ function App() {
 
     try {
       setError('')
-      const newItem = await createItem({ content: newItemContent.trim() })
+      const newItem = await createItem({
+        content: newItemContent.trim(),
+        image: newItemImage || undefined
+      })
       setItems(prev => [newItem, ...prev])
       setNewItemContent('')
+      setNewItemImage(null)
+      // プレビューURLをクリーンアップ
+      cleanupImagePreview(newItemImagePreview)
+      setNewItemImagePreview(null)
+      // ファイル入力をリセット
+      resetFileInput(fileInputRef)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '作成に失敗しました')
     }
@@ -79,12 +171,26 @@ function App() {
   const handleEditStart = (item: Item) => {
     setEditingItem(item.id)
     setEditContent(item.content)
+    setEditImage(null)
+    // プレビューURLをクリーンアップ
+    cleanupImagePreview(editImagePreview)
+    setEditImagePreview(null)
+    setRemoveEditImage(false)
+    // ファイル入力をリセット
+    resetFileInput(editFileInputRef)
   }
 
   // アイテム編集キャンセル
   const handleEditCancel = () => {
     setEditingItem(null)
     setEditContent('')
+    setEditImage(null)
+    // プレビューURLをクリーンアップ
+    cleanupImagePreview(editImagePreview)
+    setEditImagePreview(null)
+    setRemoveEditImage(false)
+    // ファイル入力をリセット
+    resetFileInput(editFileInputRef)
   }
 
   // アイテム編集保存
@@ -93,10 +199,29 @@ function App() {
 
     try {
       setError('')
-      const updatedItem = await updateItem(id, { content: editContent.trim() })
+      const updateData: UpdateItemData = {
+        content: editContent.trim()
+      }
+
+      // 画像関連の処理
+      if (editImage) {
+        updateData.image = editImage
+      }
+      if (removeEditImage) {
+        updateData.removeImage = true
+      }
+
+      const updatedItem = await updateItem(id, updateData)
       setItems(prev => prev.map(item => item.id === id ? updatedItem : item))
       setEditingItem(null)
       setEditContent('')
+      setEditImage(null)
+      // プレビューURLをクリーンアップ
+      cleanupImagePreview(editImagePreview)
+      setEditImagePreview(null)
+      setRemoveEditImage(false)
+      // ファイル入力をリセット
+      resetFileInput(editFileInputRef)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '更新に失敗しました')
     }
@@ -159,6 +284,44 @@ function App() {
               {newItemContent.length}/750
             </div>
           </div>
+
+          {/* 画像アップロード */}
+          <div className="image-upload-container">
+            <label htmlFor="image-upload" className="image-upload-label">
+              📷 画像を追加 (任意)
+            </label>
+            <input
+              type="file"
+              id="image-upload"
+              ref={fileInputRef}
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={handleImageChange}
+              className="image-upload-input"
+            />
+            {newItemImage && (
+              <div className="image-preview">
+                <img
+                  src={newItemImagePreview!}
+                  alt="選択した画像"
+                  className="preview-thumbnail"
+                />
+                <span>選択済み: {newItemImage.name}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewItemImage(null)
+                    cleanupImagePreview(newItemImagePreview)
+                    setNewItemImagePreview(null)
+                    resetFileInput(fileInputRef)
+                  }}
+                  className="remove-image-btn"
+                >
+                  ❌
+                </button>
+              </div>
+            )}
+          </div>
+
           <button type="submit" disabled={!newItemContent.trim()}>
             ➕ 追加
           </button>
@@ -212,6 +375,76 @@ function App() {
                           {editContent.length}/750
                         </div>
                       </div>
+
+                      {/* 編集時の画像操作 */}
+                      <div className="edit-image-container">
+                        {/* 現在の画像表示 */}
+                        {item.image_url && !removeEditImage && (
+                          <div className="current-image">
+                            <img src={item.image_url} alt="現在の画像" className="edit-current-image" />
+                            <button
+                              type="button"
+                              onClick={() => setRemoveEditImage(true)}
+                              className="remove-current-image-btn"
+                            >
+                              🗑️ 画像を削除
+                            </button>
+                          </div>
+                        )}
+
+                        {/* 画像削除状態の表示 */}
+                        {removeEditImage && (
+                          <div className="image-removed">
+                            <span>画像が削除されます</span>
+                            <button
+                              type="button"
+                              onClick={() => setRemoveEditImage(false)}
+                              className="undo-remove-btn"
+                            >
+                              ↶ 削除を取り消し
+                            </button>
+                          </div>
+                        )}
+
+                        {/* 新しい画像アップロード */}
+                        <div className="edit-image-upload">
+                          <label htmlFor="edit-image-upload" className="image-upload-label">
+                            📷 {item.image_url ? '画像を変更' : '画像を追加'} (任意)
+                          </label>
+                          <input
+                            type="file"
+                            id="edit-image-upload"
+                            ref={editFileInputRef}
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            onChange={handleEditImageChange}
+                            className="image-upload-input"
+                          />
+                          {editImage && (
+                            <div className="image-preview">
+                              <img
+                                src={editImagePreview!}
+                                alt="選択した新しい画像"
+                                className="preview-thumbnail"
+                              />
+                              <span>新しい画像: {editImage.name}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditImage(null)
+                                  cleanupImagePreview(editImagePreview)
+                                  setEditImagePreview(null)
+                                  setRemoveEditImage(false)
+                                  resetFileInput(editFileInputRef)
+                                }}
+                                className="remove-image-btn"
+                              >
+                                ❌
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
                       <div className="edit-actions">
                         <button
                           onClick={() => handleEditSave(item.id)}
@@ -230,6 +463,13 @@ function App() {
                     </div>
                   ) : (
                     <>
+                      {/* 画像表示 */}
+                      {item.image_url && (
+                        <div className="item-image">
+                          <img src={item.image_url} alt="学習項目の画像" loading="lazy" />
+                        </div>
+                      )}
+
                       <div className="content-with-actions">
                         <div className="item-text">{item.content}</div>
                         <div className="item-actions-menu">

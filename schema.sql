@@ -4,6 +4,8 @@
 CREATE TABLE IF NOT EXISTS items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     content TEXT NOT NULL,
+    image_url TEXT,
+    image_filename TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     next_review DATETIME,
     interval_days INTEGER DEFAULT 1,

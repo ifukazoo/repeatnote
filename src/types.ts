@@ -3,6 +3,8 @@
 export interface Item {
   id: number;
   content: string;
+  image_url: string | null;
+  image_filename: string | null;
   created_at: string;
   next_review: string | null;
   interval_days: number;
@@ -12,10 +14,13 @@ export interface Item {
 
 export interface CreateItemData {
   content: string;
+  image?: File;
 }
 
 export interface UpdateItemData {
   content: string;
+  image?: File;
+  removeImage?: boolean;
 }
 
 export interface ReviewResult {
