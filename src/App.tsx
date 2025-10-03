@@ -19,7 +19,7 @@ function App() {
   const [newItemContent, setNewItemContent] = useState('');
   const [newItemImage, setNewItemImage] = useState<File | null>(null);
   const [newItemImagePreview, setNewItemImagePreview] = useState<string | null>(
-    null,
+    null
   );
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAllItems, setShowAllItems] = useState(false);
@@ -41,7 +41,7 @@ function App() {
       setItems(itemsData);
     } catch (err) {
       setError(
-        err instanceof ApiError ? err.message : '読み込みに失敗しました',
+        err instanceof ApiError ? err.message : '読み込みに失敗しました'
       );
     } finally {
       setLoading(false);
@@ -86,7 +86,7 @@ function App() {
 
   // 画像バリデーション共通関数
   const validateImageFile = (
-    file: File,
+    file: File
   ): { isValid: boolean; error?: string } => {
     // 画像形式チェック
     if (!IMAGE_CONFIG.ALLOWED_TYPES.includes(file.type as AllowedImageType)) {
@@ -188,11 +188,11 @@ function App() {
       setError('');
       const updatedItem = await reviewItem(id, quality);
       setItems((prev) =>
-        prev.map((item) => (item.id === id ? updatedItem : item)),
+        prev.map((item) => (item.id === id ? updatedItem : item))
       );
     } catch (err) {
       setError(
-        err instanceof ApiError ? err.message : '復習処理に失敗しました',
+        err instanceof ApiError ? err.message : '復習処理に失敗しました'
       );
     }
   };
@@ -243,7 +243,7 @@ function App() {
 
       const updatedItem = await updateItem(id, updateData);
       setItems((prev) =>
-        prev.map((item) => (item.id === id ? updatedItem : item)),
+        prev.map((item) => (item.id === id ? updatedItem : item))
       );
       setEditingItem(null);
       setEditContent('');
@@ -268,7 +268,7 @@ function App() {
 
     if (
       !confirm(
-        `学習項目を削除しますか？\n\n「${preview}」\n\n※この操作は取り消せません。`,
+        `学習項目を削除しますか？\n\n「${preview}」\n\n※この操作は取り消せません。`
       )
     )
       return;
@@ -298,7 +298,6 @@ function App() {
     <div className="app">
       <header>
         <h1>📚 RepeatNote</h1>
-        <p>間隔反復学習で効率的に記憶定着</p>
       </header>
 
       {error && <div className="error">❌ {error}</div>}
@@ -326,7 +325,9 @@ function App() {
                   className="add-textarea"
                 />
                 <div
-                  className={`char-counter ${newItemContent.length > 650 ? 'warning' : ''} ${newItemContent.length >= 750 ? 'danger' : ''}`}
+                  className={`char-counter ${
+                    newItemContent.length > 650 ? 'warning' : ''
+                  } ${newItemContent.length >= 750 ? 'danger' : ''}`}
                 >
                   {newItemContent.length}/750
                 </div>
@@ -422,7 +423,9 @@ function App() {
             {displayItems.map((item) => (
               <div
                 key={item.id}
-                className={`item ${needsReview(item) ? 'needs-review' : 'waiting'}`}
+                className={`item ${
+                  needsReview(item) ? 'needs-review' : 'waiting'
+                }`}
               >
                 <div className="item-content">
                   {editingItem === item.id ? (
@@ -437,7 +440,9 @@ function App() {
                           rows={6}
                         />
                         <div
-                          className={`char-counter ${editContent.length > 650 ? 'warning' : ''} ${editContent.length >= 750 ? 'danger' : ''}`}
+                          className={`char-counter ${
+                            editContent.length > 650 ? 'warning' : ''
+                          } ${editContent.length >= 750 ? 'danger' : ''}`}
                         >
                           {editContent.length}/750
                         </div>
@@ -556,7 +561,7 @@ function App() {
                             <button
                               onClick={() =>
                                 setDropdownOpen(
-                                  dropdownOpen === item.id ? null : item.id,
+                                  dropdownOpen === item.id ? null : item.id
                                 )
                               }
                               className="dropdown-toggle"
@@ -597,7 +602,7 @@ function App() {
                           <span>
                             次回復習:{' '}
                             {new Date(item.next_review).toLocaleDateString(
-                              'ja-JP',
+                              'ja-JP'
                             )}
                           </span>
                         )}
