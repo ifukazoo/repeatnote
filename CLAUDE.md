@@ -45,42 +45,53 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
 
 - **Spaced Repetition**: SM-2 algorithm calculates optimal review intervals based on recall quality (0-5 scale)
 - **Learning Items**: Create, edit, and delete study items with 750-character limit
+- **Image Support**: Upload, edit, and delete images (JPEG/PNG/WebP/GIF, 5MB limit) with Cloudflare R2 storage
 - **Review System**: Quality-based evaluation with visual feedback (😵 忘れた, 🤔 曖昧, 💡 思い出した, ✨ 完璧)
 - **Smart Filtering**: Default view shows only items needing review; toggle to show all items
+- **Review-First UI**: Collapsible add form prioritizes daily review workflow
 - **Multiline Input**: Support for textarea input with automatic resize and proper line break display
 - **Dropdown Actions**: Integrated edit/delete menu with hover effects and click-outside-to-close
 
 ### Frontend Architecture (`src/`)
 
 - **`App.tsx`**: Main component handling all state management, API calls, and UI logic
-  - State: items, editing, filtering, form data, dropdown visibility
-  - Key functions: CRUD operations, SM-2 review processing, dropdown management
+  - State: items, editing, filtering, form data, dropdown visibility, image handling
+  - Key functions: CRUD operations, SM-2 review processing, dropdown management, image upload/edit
 - **`api.ts`**: Centralized API communication with error handling via ApiError class
 - **`types.ts`**: TypeScript interfaces for Item, CreateItemData, UpdateItemData, and API responses
+- **`constants.ts`**: Shared configuration for image validation and error messages
 - **UI Features**:
   - Character counters with visual warnings (650+ orange, 750 red)
   - Textarea inputs with row configuration (1 for add, 6 for edit)
   - Dropdown menus with outside-click handling
   - Pre-wrap text display for multiline content
+  - Image upload with preview thumbnails and validation
+  - Collapsible add form for review-first workflow
 
 ### Backend Architecture (`worker/`)
 
-- **`index.ts`**: RESTful API router handling CORS, request validation, and response formatting
+- **`index.ts`**: RESTful API router handling request validation, response formatting, and image processing
 - **`database.ts`**: D1 database operations and SM-2 algorithm implementation
+- **`constants.ts`**: Image configuration and validation constants
 - **API Endpoints**:
   - `GET /api/items` - Retrieve all items
-  - `POST /api/items` - Create new item (750 char limit)
-  - `PUT /api/items/:id` - Update item content
+  - `POST /api/items` - Create new item (750 char limit, FormData/JSON support, image upload)
+  - `PUT /api/items/:id` - Update item content and images
   - `PUT /api/items/:id/review` - Process review with quality score
-  - `DELETE /api/items/:id` - Delete item
+  - `DELETE /api/items/:id` - Delete item and associated images
+  - `GET /api/images/:filename` - Serve images from R2 storage
 
 ### Database Schema (`schema.sql`)
 
-Items table with fields for SM-2 algorithm: `interval_days`, `ease_factor`, `review_count`, `next_review`
+Items table with fields for SM-2 algorithm and image support:
+- Core fields: `id`, `content`, `created_at`
+- SM-2 fields: `interval_days`, `ease_factor`, `review_count`, `next_review`
+- Image fields: `image_url`, `image_filename`
 
 ### Key Integration Points
 
 - **API Communication**: Frontend fetches from `/api/` endpoints handled by Cloudflare Worker
+- **Image Storage**: Cloudflare R2 bucket (`repeatnote-images`) for secure image storage
 - **SPA Routing**: `wrangler.jsonc` configured with `"not_found_handling": "single-page-application"`
 - **Local Development**: `preview_database_id` in wrangler.jsonc enables local D1 database
 - **Build Process**: Vite builds frontend, Wrangler handles worker deployment
@@ -97,7 +108,8 @@ Items table with fields for SM-2 algorithm: `interval_days`, `ease_factor`, `rev
 
 - **Local Database**: Uses `preview_database_id: "local-repeatnote-db"` for development
 - **Production Database**: Uses `database_id` for production deployment
-- **CORS**: Currently set to `*` for all origins (TODO: restrict for production)
+- **R2 Storage**: `repeatnote-images` bucket for image storage
+- **CORS**: Same-Origin deployment eliminates CORS requirements
 
 ## Code Formatting Standards
 
@@ -127,4 +139,10 @@ This project uses Prettier for consistent code formatting. All code output shoul
 
 ## Current Status
 
-Application fully deployed and functional. Remaining tasks in `TODO.md`: component refactoring (low priority), production CORS configuration (high priority for security).
+Application fully deployed and functional with complete feature set including:
+- ✅ Spaced repetition learning system with SM-2 algorithm
+- ✅ Complete image upload/edit/delete functionality
+- ✅ Review-first UI with collapsible add form
+- ✅ Production-ready security and optimization
+
+Remaining tasks in `TODO.md`: component refactoring (low priority), production environment optimization (medium priority).
