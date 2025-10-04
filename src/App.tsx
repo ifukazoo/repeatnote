@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Item, UpdateItemData } from './types';
 import {
   getItems,
@@ -70,6 +70,7 @@ function App() {
     };
   }, [dropdownOpen]);
 
+
   // ファイル入力リセット共通関数
   const resetFileInput = (ref: React.RefObject<HTMLInputElement | null>) => {
     if (ref.current) {
@@ -106,6 +107,30 @@ function App() {
 
     return { isValid: true };
   };
+
+  // クリップボードから画像を処理する共通関数
+  const handleClipboardImage = useCallback(
+    (
+      file: File,
+      setImage: (file: File) => void,
+      setImagePreview: (url: string) => void,
+      currentPreview: string | null
+    ) => {
+      const validation = validateImageFile(file);
+      if (!validation.isValid) {
+        setError(validation.error!);
+        return;
+      }
+
+      // 古いプレビューURLをクリーンアップ
+      cleanupImagePreview(currentPreview);
+
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+      setError('');
+    },
+    []
+  );
 
   // 画像ファイル選択
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -145,6 +170,81 @@ function App() {
       setError('');
     }
   };
+
+  // クリップボードペーストイベントハンドラー（新規追加フォーム用）
+  const handlePasteInAddForm = useCallback(
+    (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.indexOf('image') !== -1) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (file) {
+            handleClipboardImage(
+              file,
+              setNewItemImage,
+              setNewItemImagePreview,
+              newItemImagePreview
+            );
+          }
+          break;
+        }
+      }
+    },
+    [newItemImagePreview, handleClipboardImage]
+  );
+
+  // クリップボードペーストイベントハンドラー（編集フォーム用）
+  const handlePasteInEditForm = useCallback(
+    (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.indexOf('image') !== -1) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (file) {
+            handleClipboardImage(
+              file,
+              setEditImage,
+              setEditImagePreview,
+              editImagePreview
+            );
+            setRemoveEditImage(false); // 新しい画像が選択されたら削除フラグを解除
+          }
+          break;
+        }
+      }
+    },
+    [editImagePreview, handleClipboardImage]
+  );
+
+  // クリップボードペーストイベントリスナー
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const target = e.target as Element;
+
+      // 新規追加フォームの場合
+      if (showAddForm && target.closest('.add-form-expanded')) {
+        handlePasteInAddForm(e);
+      }
+
+      // 編集フォームの場合
+      if (editingItem !== null && target.closest('.edit-form')) {
+        handlePasteInEditForm(e);
+      }
+    };
+
+    document.addEventListener('paste', handlePaste);
+    return () => {
+      document.removeEventListener('paste', handlePaste);
+    };
+  }, [showAddForm, editingItem, handlePasteInAddForm, handlePasteInEditForm]);
 
   // 新しいアイテムを追加
   const handleCreateItem = async (e: React.FormEvent) => {
@@ -336,7 +436,7 @@ function App() {
               {/* 画像アップロード */}
               <div className="image-upload-container">
                 <label htmlFor="image-upload" className="image-upload-label">
-                  📷 画像を追加 (任意)
+                  📷 画像を追加 (任意・クリップボードからペースト可能)
                 </label>
                 <input
                   type="file"
@@ -489,7 +589,7 @@ function App() {
                             className="image-upload-label"
                           >
                             📷 {item.image_url ? '画像を変更' : '画像を追加'}{' '}
-                            (任意)
+                            (任意・クリップボードからペースト可能)
                           </label>
                           <input
                             type="file"
