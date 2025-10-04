@@ -29,6 +29,8 @@ function App() {
   const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
   const [removeEditImage, setRemoveEditImage] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [modalImageSrc, setModalImageSrc] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -245,6 +247,34 @@ function App() {
       document.removeEventListener('paste', handlePaste);
     };
   }, [showAddForm, editingItem, handlePasteInAddForm, handlePasteInEditForm]);
+
+  // 画像モーダル関連の関数
+  const openImageModal = (imageSrc: string) => {
+    setModalImageSrc(imageSrc);
+    setImageModalOpen(true);
+  };
+
+  const closeImageModal = () => {
+    setImageModalOpen(false);
+    setModalImageSrc('');
+  };
+
+  // ESCキーでモーダルを閉じる
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && imageModalOpen) {
+        closeImageModal();
+      }
+    };
+
+    if (imageModalOpen) {
+      document.addEventListener('keydown', handleKeyPress);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [imageModalOpen]);
 
   // 新しいアイテムを追加
   const handleCreateItem = async (e: React.FormEvent) => {
@@ -650,6 +680,9 @@ function App() {
                             src={item.image_url}
                             alt="学習項目の画像"
                             loading="lazy"
+                            onClick={() => openImageModal(item.image_url!)}
+                            style={{ cursor: 'pointer' }}
+                            title="クリックして拡大表示"
                           />
                         </div>
                       )}
@@ -756,6 +789,29 @@ function App() {
           </div>
         )}
       </section>
+
+      {/* 画像モーダル */}
+      {imageModalOpen && (
+        <div
+          className="image-modal-overlay"
+          onClick={closeImageModal}
+        >
+          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="image-modal-close"
+              onClick={closeImageModal}
+              title="閉じる (ESC)"
+            >
+              ✕
+            </button>
+            <img
+              src={modalImageSrc}
+              alt="画像（拡大表示）"
+              className="image-modal-img"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
