@@ -797,41 +797,31 @@ function App() {
                       </div>
                     ) : needsReview(item) ? (
                       <div className="action-buttons">
-                        <button
-                          onClick={() => handleReview(item.id, 0)}
-                          className="quality-0"
-                          title="まったく覚えていない"
-                        >
-                          😵 忘れた
-                        </button>
-                        <button
-                          onClick={() => handleReview(item.id, 2)}
-                          className="quality-2"
-                          title="少し思い出せた"
-                        >
-                          🤔 曖昧
-                        </button>
-                        <button
-                          onClick={() => handleReview(item.id, 3)}
-                          className="quality-3"
-                          title="なんとか思い出せた"
-                        >
-                          💡 思い出した
-                        </button>
-                        <button
-                          onClick={() => handleReview(item.id, 5)}
-                          className="quality-5"
-                          title="完璧に覚えている"
-                        >
-                          ✨ 完璧
-                        </button>
-                        <button
-                          onClick={() => handleMaster(item.id)}
-                          className="master-button"
-                          title="完全に覚えた（復習から外す）"
-                        >
-                          🎯 覚えた
-                        </button>
+                        <div className="review-buttons">
+                          <button
+                            onClick={() => handleReview(item.id, 2)}
+                            className="quality-2"
+                            title="少し思い出せた"
+                          >
+                            🤔 曖昧
+                          </button>
+                          <button
+                            onClick={() => handleReview(item.id, 5)}
+                            className="quality-5"
+                            title="完璧に覚えている"
+                          >
+                            ✨ 完璧
+                          </button>
+                        </div>
+                        <div className="master-section">
+                          <button
+                            onClick={() => handleMaster(item.id)}
+                            className="master-button"
+                            title="完全に覚えた（復習から外す）"
+                          >
+                            🎯 覚えた
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <div className="action-buttons">

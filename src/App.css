@@ -495,6 +495,31 @@ header p {
   flex-wrap: wrap;
 }
 
+.review-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.master-section {
+  display: flex;
+  align-items: center;
+  margin-left: 1rem;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.master-section::before {
+  content: '';
+  position: absolute;
+  left: -0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 24px;
+  background: #cbd5e1;
+}
+
 .action-buttons button {
   min-width: 80px;
   height: 50px;
@@ -511,30 +536,26 @@ header p {
   gap: 0.25rem;
 }
 
-/* 品質ボタンの色分け - 忘れた・曖昧（不正解） */
-.quality-0,
+/* 品質ボタンの色分け - 曖昧（不正解） */
 .quality-2 {
   background: #fee2e2;
   color: #dc2626;
   border: 2px solid #fecaca;
 }
 
-.quality-0:hover,
 .quality-2:hover {
   background: #fecaca;
   border-color: #f87171;
   transform: translateY(-2px);
 }
 
-/* 品質ボタンの色分け - 思い出した・完璧（正解） */
-.quality-3,
+/* 品質ボタンの色分け - 完璧（正解） */
 .quality-5 {
   background: #dcfce7;
   color: #16a34a;
   border: 2px solid #bbf7d0;
 }
 
-.quality-3:hover,
 .quality-5:hover {
   background: #bbf7d0;
   border-color: #86efac;
@@ -542,15 +563,17 @@ header p {
 }
 
 .master-button {
-  background: #3b82f6;
+  background: #0d9488;
   color: #fff;
-  border: 2px solid #60a5fa;
+  border: 2px solid #14b8a6;
+  box-shadow: 0 2px 4px rgba(13, 148, 136, 0.2);
 }
 
 .master-button:hover {
-  background: #2563eb;
-  border-color: #3b82f6;
+  background: #0f766e;
+  border-color: #0d9488;
   transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(13, 148, 136, 0.3);
 }
 
 .unmaster-button {
@@ -602,6 +625,27 @@ header p {
 
   .action-buttons {
     justify-content: center;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .review-buttons {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .master-section {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e2e8f0;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .master-section::before {
+    display: none;
   }
 
   .items-header {
