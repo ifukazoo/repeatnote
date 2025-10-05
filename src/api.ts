@@ -143,3 +143,19 @@ export async function deleteItem(id: number): Promise<void> {
     method: 'DELETE',
   });
 }
+
+// アイテムを「覚えた」状態にマーク
+export async function masterItem(id: number): Promise<Item> {
+  const response = await apiRequest<ItemResponse>(`/items/${id}/master`, {
+    method: 'PUT',
+  });
+  return response.item;
+}
+
+// アイテムの「覚えた」状態を解除し、復習スケジュールをリセット
+export async function unmasterItem(id: number): Promise<Item> {
+  const response = await apiRequest<ItemResponse>(`/items/${id}/unmaster`, {
+    method: 'PUT',
+  });
+  return response.item;
+}

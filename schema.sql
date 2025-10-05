@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS items (
     next_review DATETIME,
     interval_days INTEGER DEFAULT 1,
     ease_factor REAL DEFAULT 2.5,
-    review_count INTEGER DEFAULT 0
+    review_count INTEGER DEFAULT 0,
+    mastered BOOLEAN DEFAULT FALSE
 );
 
 -- インデックス作成（復習日での検索を高速化）

@@ -10,6 +10,7 @@ export interface Item {
   interval_days: number;
   ease_factor: number;
   review_count: number;
+  mastered: boolean;
 }
 
 export interface CreateItemData {

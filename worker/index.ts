@@ -4,6 +4,8 @@ import {
   updateItem,
   deleteItem,
   reviewItem,
+  masterItem,
+  unmasterItem,
 } from './database';
 import type { CreateItemData, ReviewResult } from './database';
 import { IMAGE_CONFIG } from './constants';
@@ -223,6 +225,56 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       }
 
       return new Response(JSON.stringify({ item: updatedItem }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (pathname.match(/^\/api\/items\/\d+\/master$/) && method === 'PUT') {
+      // PUT /api/items/:id/master - アイテムを「覚えた」状態にマーク
+      const idMatch = pathname.match(/^\/api\/items\/(\d+)\/master$/);
+      if (!idMatch) {
+        return new Response(JSON.stringify({ error: 'Invalid URL format' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      const itemId = parseInt(idMatch[1]);
+      const masteredItem = await masterItem(env.DB, itemId);
+
+      if (!masteredItem) {
+        return new Response(JSON.stringify({ error: 'Item not found' }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(JSON.stringify({ item: masteredItem }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (pathname.match(/^\/api\/items\/\d+\/unmaster$/) && method === 'PUT') {
+      // PUT /api/items/:id/unmaster - アイテムの「覚えた」状態を解除
+      const idMatch = pathname.match(/^\/api\/items\/(\d+)\/unmaster$/);
+      if (!idMatch) {
+        return new Response(JSON.stringify({ error: 'Invalid URL format' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      const itemId = parseInt(idMatch[1]);
+      const unmasteredItem = await unmasterItem(env.DB, itemId);
+
+      if (!unmasteredItem) {
+        return new Response(JSON.stringify({ error: 'Item not found' }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(JSON.stringify({ item: unmasteredItem }), {
         headers: { 'Content-Type': 'application/json' },
       });
     }

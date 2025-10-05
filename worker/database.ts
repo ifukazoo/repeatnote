@@ -11,6 +11,7 @@ export interface Item {
   interval_days: number;
   ease_factor: number;
   review_count: number;
+  mastered: boolean;
 }
 
 export interface CreateItemData {
@@ -237,4 +238,41 @@ function calculateNextReview(
     intervalDays,
     easeFactor: Math.round(easeFactor * 100) / 100, // 小数点2桁で丸める
   };
+}
+
+// アイテムを「覚えた」状態にマーク
+export async function masterItem(
+  db: D1Database,
+  id: number,
+): Promise<Item | null> {
+  const result = await db
+    .prepare('UPDATE items SET mastered = TRUE WHERE id = ? RETURNING *')
+    .bind(id)
+    .first<Item>();
+
+  return result;
+}
+
+// アイテムの「覚えた」状態を解除し、復習スケジュールをリセット
+export async function unmasterItem(
+  db: D1Database,
+  id: number,
+): Promise<Item | null> {
+  const now = new Date().toISOString();
+
+  const result = await db
+    .prepare(`
+      UPDATE items
+      SET mastered = FALSE,
+          review_count = 0,
+          interval_days = 1,
+          ease_factor = 2.5,
+          next_review = ?
+      WHERE id = ?
+      RETURNING *
+    `)
+    .bind(now, id)
+    .first<Item>();
+
+  return result;
 }

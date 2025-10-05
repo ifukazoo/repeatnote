@@ -6,6 +6,8 @@ import {
   updateItem,
   reviewItem,
   deleteItem,
+  masterItem,
+  unmasterItem,
   ApiError,
 } from './api';
 import { IMAGE_CONFIG } from './constants';
@@ -327,6 +329,36 @@ function App() {
     }
   };
 
+  // アイテム「覚えた」処理
+  const handleMaster = async (id: number) => {
+    try {
+      setError('');
+      const masteredItem = await masterItem(id);
+      setItems((prev) =>
+        prev.map((item) => (item.id === id ? masteredItem : item))
+      );
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : '「覚えた」処理に失敗しました'
+      );
+    }
+  };
+
+  // アイテム「覚え直し」処理
+  const handleUnmaster = async (id: number) => {
+    try {
+      setError('');
+      const unmasteredItem = await unmasterItem(id);
+      setItems((prev) =>
+        prev.map((item) => (item.id === id ? unmasteredItem : item))
+      );
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : '「覚え直し」処理に失敗しました'
+      );
+    }
+  };
+
   // アイテム編集開始
   const handleEditStart = (item: Item) => {
     setEditingItem(item.id);
@@ -420,9 +452,10 @@ function App() {
 
   // 表示するアイテムを決定
   const displayItems = showAllItems
-    ? items
-    : items.filter((item) => needsReview(item));
-  const reviewItemsCount = items.filter((item) => needsReview(item)).length;
+    ? items // 覚えた項目も含めて全項目表示
+    : items.filter((item) => needsReview(item) && !item.mastered); // 復習が必要かつ覚えていない項目のみ
+  const reviewItemsCount = items.filter((item) => needsReview(item) && !item.mastered).length;
+  const masteredItemsCount = items.filter((item) => item.mastered).length;
 
   return (
     <div className="app">
@@ -520,7 +553,7 @@ function App() {
       {/* アイテム一覧 */}
       <section className="items">
         <div className="items-header">
-          <h2>{showAllItems ? '学習項目一覧' : '復習が必要な項目'}</h2>
+          <h2>{showAllItems ? '学習項目一覧（全項目）' : '復習が必要な項目'}</h2>
           <div className="view-toggle">
             <button
               onClick={() => setShowAllItems(!showAllItems)}
@@ -533,6 +566,11 @@ function App() {
             {!showAllItems && reviewItemsCount > 0 && (
               <span className="review-count">
                 復習項目: {reviewItemsCount}件
+              </span>
+            )}
+            {masteredItemsCount > 0 && (
+              <span className="review-count" style={{color: '#3b82f6'}}>
+                覚えた項目: {masteredItemsCount}件
               </span>
             )}
           </div>
@@ -554,7 +592,7 @@ function App() {
               <div
                 key={item.id}
                 className={`item ${
-                  needsReview(item) ? 'needs-review' : 'waiting'
+                  item.mastered ? 'mastered' : needsReview(item) ? 'needs-review' : 'waiting'
                 }`}
               >
                 <div className="item-content">
@@ -746,7 +784,18 @@ function App() {
 
                 {editingItem !== item.id && (
                   <div className="item-actions">
-                    {needsReview(item) ? (
+                    {item.mastered ? (
+                      <div className="action-buttons">
+                        <span className="waiting-text">✅ 覚えた項目</span>
+                        <button
+                          onClick={() => handleUnmaster(item.id)}
+                          className="unmaster-button"
+                          title="覚え直し（復習スケジュールをリセット）"
+                        >
+                          🔄 覚え直し
+                        </button>
+                      </div>
+                    ) : needsReview(item) ? (
                       <div className="action-buttons">
                         <button
                           onClick={() => handleReview(item.id, 0)}
@@ -775,6 +824,13 @@ function App() {
                           title="完璧に覚えている"
                         >
                           ✨ 完璧
+                        </button>
+                        <button
+                          onClick={() => handleMaster(item.id)}
+                          className="master-button"
+                          title="完全に覚えた（復習から外す）"
+                        >
+                          🎯 覚えた
                         </button>
                       </div>
                     ) : (
