@@ -146,3 +146,9 @@ Application fully deployed and functional with complete feature set including:
 - ✅ Production-ready security and optimization
 
 Remaining tasks in `TODO.md`: component refactoring (low priority), production environment optimization (medium priority).
+
+## Development Notes
+
+- **No test suite**: This project does not have automated tests. When making changes, manual testing through the UI is required.
+- **Single component architecture**: The frontend uses a single `App.tsx` component by design for simplicity, though component extraction is noted as a future improvement.
+- **Local vs Production**: Always test locally with `npm run dev` before deploying with `npm run deploy`.
