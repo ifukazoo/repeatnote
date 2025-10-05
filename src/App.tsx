@@ -331,6 +331,15 @@ function App() {
 
   // アイテム「覚えた」処理
   const handleMaster = async (id: number) => {
+    // 確認ダイアログを表示
+    const confirmed = window.confirm(
+      'この項目を完全に覚えましたか？\n復習リストから外れます。'
+    );
+
+    if (!confirmed) {
+      return; // キャンセルされた場合は何もしない
+    }
+
     try {
       setError('');
       const masteredItem = await masterItem(id);
