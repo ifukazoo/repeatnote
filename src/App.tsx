@@ -454,7 +454,10 @@ function App() {
   const displayItems = showAllItems
     ? items // 覚えた項目も含めて全項目表示
     : items.filter((item) => needsReview(item) && !item.mastered); // 復習が必要かつ覚えていない項目のみ
+
+  // 3つの状態の項目数を計算
   const reviewItemsCount = items.filter((item) => needsReview(item) && !item.mastered).length;
+  const waitingItemsCount = items.filter((item) => !needsReview(item) && !item.mastered).length;
   const masteredItemsCount = items.filter((item) => item.mastered).length;
 
   return (
@@ -553,24 +556,24 @@ function App() {
       {/* アイテム一覧 */}
       <section className="items">
         <div className="items-header">
-          <h2>{showAllItems ? '学習項目一覧（全項目）' : '復習が必要な項目'}</h2>
+          <h2>{showAllItems ? 'すべての学習項目' : '復習が必要な項目'}</h2>
           <div className="view-toggle">
             <button
               onClick={() => setShowAllItems(!showAllItems)}
               className="toggle-button"
             >
               {showAllItems
-                ? '復習項目のみ表示'
-                : `全項目表示 (${items.length})`}
+                ? '復習項目のみ'
+                : 'すべて表示'}
             </button>
             {!showAllItems && reviewItemsCount > 0 && (
               <span className="review-count">
-                復習項目: {reviewItemsCount}件
+                {reviewItemsCount}件
               </span>
             )}
-            {masteredItemsCount > 0 && (
-              <span className="review-count" style={{color: '#3b82f6'}}>
-                覚えた項目: {masteredItemsCount}件
+            {showAllItems && (
+              <span className="review-count">
+                復習: {reviewItemsCount}件 / 待機: {waitingItemsCount}件 / 覚えた: {masteredItemsCount}件
               </span>
             )}
           </div>
