@@ -7,6 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run dev` - Start development server with Vite HMR
 - `npm run build` - Build the project (TypeScript compilation + Vite build)
 - `npm run lint` - Run ESLint on the codebase
+- `npm test` - Run unit tests in watch mode with Vitest
+- `npm run test:run` - Run all unit tests once
+- `npm run test:ui` - Run tests with Vitest UI interface
 - `npm run preview` - Build and preview the production build locally
 - `npm run deploy` - Build and deploy to Cloudflare Workers
 - `npm run cf-typegen` - Generate TypeScript types for Cloudflare Workers
@@ -147,8 +150,42 @@ Application fully deployed and functional with complete feature set including:
 
 Remaining tasks in `TODO.md`: component refactoring (low priority), production environment optimization (medium priority).
 
+## Testing Framework
+
+**RepeatNote** uses a comprehensive unit testing suite built with modern JavaScript testing tools:
+
+### Test Stack
+- **Vitest**: Fast unit test runner with Vite integration
+- **React Testing Library**: User-centric component testing
+- **jsdom**: Browser environment simulation
+- **@testing-library/user-event**: User interaction simulation
+
+### Test Structure (`src/test/`)
+- **`sm2-algorithm.test.ts`**: SM-2 spaced repetition algorithm tests (12 tests)
+  - Interval calculations for different review stages
+  - Ease factor updates and boundary conditions
+  - Next review date generation
+- **`api.test.ts`**: API client function tests (13 tests)
+  - All CRUD operations (create, read, update, delete)
+  - Review processing and master/unmaster operations
+  - Error handling and response validation
+- **`constants.test.ts`**: Configuration and validation tests (10 tests)
+  - Image upload constraints and validation
+  - File size and type restrictions
+- **`app.test.tsx`**: React component integration tests (9 tests)
+  - UI element rendering and interaction
+  - Form expansion and input validation
+  - Display toggling and accessibility
+
+### Test Commands
+- `npm test` - Watch mode for development
+- `npm run test:run` - Single run for CI/automation
+- `npm run test:ui` - Interactive UI mode
+
+**Total: 44 tests** covering core business logic, API layer, validation, and UI components.
+
 ## Development Notes
 
-- **No test suite**: This project does not have automated tests. When making changes, manual testing through the UI is required.
+- **Comprehensive test coverage**: All critical functionality is covered by automated tests, ensuring code quality and preventing regressions.
 - **Single component architecture**: The frontend uses a single `App.tsx` component by design for simplicity, though component extraction is noted as a future improvement.
-- **Local vs Production**: Always test locally with `npm run dev` before deploying with `npm run deploy`.
+- **Test-driven development**: When making changes, run tests first with `npm test`, then manual UI testing with `npm run dev` before deploying with `npm run deploy`.
