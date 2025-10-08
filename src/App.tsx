@@ -285,12 +285,12 @@ function App() {
 
     try {
       setError('');
-      await createItem({
+      const newItem = await createItem({
         content: newItemContent.trim(),
         image: newItemImage || undefined,
       });
-      // バックエンドのソート順序を保持するため、アイテムリストを再取得
-      await loadItems();
+      // 新規アイテムを追加（フロントエンドソートが適用される）
+      setItems((prev) => [newItem, ...prev]);
       setNewItemContent('');
       setNewItemImage(null);
       // プレビューURLをクリーンアップ
@@ -319,9 +319,11 @@ function App() {
   const handleReview = async (id: number, quality: number) => {
     try {
       setError('');
-      await reviewItem(id, quality);
-      // 復習処理により next_review が変更されるため、ソート順序維持のため再取得
-      await loadItems();
+      const updatedItem = await reviewItem(id, quality);
+      // 部分更新：該当アイテムのみを更新（フロントエンドソートが適用される）
+      setItems((prev) =>
+        prev.map((item) => (item.id === id ? updatedItem : item))
+      );
     } catch (err) {
       setError(
         err instanceof ApiError ? err.message : '復習処理に失敗しました'
@@ -459,10 +461,24 @@ function App() {
     return new Date(item.next_review) <= new Date();
   };
 
-  // 表示するアイテムを決定（バックエンドで既にソート済み）
+  // アイテムを次回復習日順でソート
+  const sortByNextReview = (items: Item[]): Item[] => {
+    return [...items].sort((a, b) => {
+      // next_reviewがnullの項目を最初に表示（即座に復習が必要）
+      if (a.next_review === null && b.next_review === null) return 0;
+      if (a.next_review === null) return -1;
+      if (b.next_review === null) return 1;
+
+      // 次回復習日の昇順でソート
+      return new Date(a.next_review).getTime() - new Date(b.next_review).getTime();
+    });
+  };
+
+  // 表示するアイテムを決定（フロントエンドでソート）
+  const sortedItems = sortByNextReview(items);
   const displayItems = showAllItems
-    ? items // 覚えた項目も含めて全項目表示
-    : items.filter((item) => needsReview(item) && !item.mastered); // 復習が必要かつ覚えていない項目のみ
+    ? sortedItems // 覚えた項目も含めて全項目表示
+    : sortedItems.filter((item) => needsReview(item) && !item.mastered); // 復習が必要かつ覚えていない項目のみ
 
   // 3つの状態の項目数を計算
   const reviewItemsCount = items.filter((item) => needsReview(item) && !item.mastered).length;
