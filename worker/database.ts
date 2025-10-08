@@ -25,7 +25,7 @@ export interface ReviewResult {
 // アイテム一覧を取得
 export async function getItems(db: D1Database): Promise<Item[]> {
   const result = await db
-    .prepare('SELECT * FROM items ORDER BY next_review ASC, created_at DESC')
+    .prepare('SELECT * FROM items ORDER BY CASE WHEN next_review IS NULL THEN 0 ELSE 1 END, next_review ASC, created_at DESC')
     .all<Item>();
 
   return result.results;

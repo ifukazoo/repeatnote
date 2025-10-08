@@ -459,10 +459,20 @@ function App() {
     return new Date(item.next_review) <= new Date();
   };
 
-  // 表示するアイテムを決定
+  // 表示するアイテムを決定し、次回復習日順でソート
+  const sortedItems = [...items].sort((a, b) => {
+    // next_reviewがnullの項目を最初に表示（即座に復習が必要）
+    if (a.next_review === null && b.next_review === null) return 0;
+    if (a.next_review === null) return -1;
+    if (b.next_review === null) return 1;
+
+    // 次回復習日の昇順でソート
+    return new Date(a.next_review).getTime() - new Date(b.next_review).getTime();
+  });
+
   const displayItems = showAllItems
-    ? items // 覚えた項目も含めて全項目表示
-    : items.filter((item) => needsReview(item) && !item.mastered); // 復習が必要かつ覚えていない項目のみ
+    ? sortedItems // 覚えた項目も含めて全項目表示
+    : sortedItems.filter((item) => needsReview(item) && !item.mastered); // 復習が必要かつ覚えていない項目のみ
 
   // 3つの状態の項目数を計算
   const reviewItemsCount = items.filter((item) => needsReview(item) && !item.mastered).length;
