@@ -50,7 +50,9 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
 - **Learning Items**: Create, edit, and delete study items with 750-character limit
 - **Image Support**: Upload, edit, and delete images (JPEG/PNG/WebP/GIF, 5MB limit) with Cloudflare R2 storage
 - **Review System**: Quality-based evaluation with visual feedback (😵 忘れた, 🤔 曖昧, 💡 思い出した, ✨ 完璧)
+- **Master/Unmaster**: Mark items as "mastered" to exclude from review cycle, or unmaster to resume reviews
 - **Smart Filtering**: Default view shows only items needing review; toggle to show all items
+- **Smart Sorting**: Items sorted by next_review date (ascending) for optimal study order
 - **Review-First UI**: Collapsible add form prioritizes daily review workflow
 - **Multiline Input**: Support for textarea input with automatic resize and proper line break display
 - **Dropdown Actions**: Integrated edit/delete menu with hover effects and click-outside-to-close
@@ -81,6 +83,8 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
   - `POST /api/items` - Create new item (750 char limit, FormData/JSON support, image upload)
   - `PUT /api/items/:id` - Update item content and images
   - `PUT /api/items/:id/review` - Process review with quality score
+  - `PUT /api/items/:id/master` - Mark item as mastered (exclude from reviews)
+  - `PUT /api/items/:id/unmaster` - Unmaster item and reset review schedule
   - `DELETE /api/items/:id` - Delete item and associated images
   - `GET /api/images/:filename` - Serve images from R2 storage
 
@@ -88,7 +92,7 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
 
 Items table with fields for SM-2 algorithm and image support:
 - Core fields: `id`, `content`, `created_at`
-- SM-2 fields: `interval_days`, `ease_factor`, `review_count`, `next_review`
+- SM-2 fields: `interval_days`, `ease_factor`, `review_count`, `next_review`, `mastered`
 - Image fields: `image_url`, `image_filename`
 
 ### Key Integration Points
@@ -172,6 +176,9 @@ Remaining tasks in `TODO.md`: component refactoring (low priority), production e
 - **`constants.test.ts`**: Configuration and validation tests (10 tests)
   - Image upload constraints and validation
   - File size and type restrictions
+- **`sorting.test.ts`**: Item sorting and filtering tests
+  - Next review date sorting logic
+  - Frontend sort optimization
 - **`app.test.tsx`**: React component integration tests (9 tests)
   - UI element rendering and interaction
   - Form expansion and input validation
@@ -189,3 +196,4 @@ Remaining tasks in `TODO.md`: component refactoring (low priority), production e
 - **Comprehensive test coverage**: All critical functionality is covered by automated tests, ensuring code quality and preventing regressions.
 - **Single component architecture**: The frontend uses a single `App.tsx` component by design for simplicity, though component extraction is noted as a future improvement.
 - **Test-driven development**: When making changes, run tests first with `npm test`, then manual UI testing with `npm run dev` before deploying with `npm run deploy`.
+- **Frontend sorting optimization**: Items are sorted by next_review date (ascending) on the frontend for optimal performance and user experience. This approach avoids redundant backend sorting and provides instant visual feedback.
