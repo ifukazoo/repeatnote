@@ -33,6 +33,7 @@ function App() {
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [modalImageSrc, setModalImageSrc] = useState<string>('');
+  const [copiedItems, setCopiedItems] = useState<Set<number>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -455,6 +456,28 @@ function App() {
     }
   };
 
+  // クリップボードコピー
+  const handleCopy = async (id: number, content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+
+      // コピー済みマークを追加
+      setCopiedItems((prev) => new Set(prev).add(id));
+
+      // 2秒後にマークをクリア
+      setTimeout(() => {
+        setCopiedItems((prev) => {
+          const updated = new Set(prev);
+          updated.delete(id);
+          return updated;
+        });
+      }, 2000);
+    } catch (err) {
+      console.error('クリップボードへのコピーに失敗しました:', err);
+      setError('コピーに失敗しました');
+    }
+  };
+
   // 復習が必要なアイテムかチェック
   const needsReview = (item: Item): boolean => {
     if (!item.next_review) return true;
@@ -755,6 +778,19 @@ function App() {
 
                       <div className="content-with-actions">
                         <div className="item-text">{item.content}</div>
+                        <button
+                          onClick={() => handleCopy(item.id, item.content)}
+                          className="copy-button"
+                          title={
+                            copiedItems.has(item.id)
+                              ? 'コピー済み'
+                              : 'クリップボードにコピー'
+                          }
+                        >
+                          {copiedItems.has(item.id)
+                            ? '✓ コピー済み'
+                            : '📋 コピー'}
+                        </button>
                         <div className="item-actions-menu">
                           <div className="dropdown-container">
                             <button
