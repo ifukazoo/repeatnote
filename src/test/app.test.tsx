@@ -40,7 +40,7 @@ describe('App コンポーネント', () => {
 
     await waitFor(() => {
       expect(screen.getByText('➕ 新しいアイテムを追加')).toBeInTheDocument();
-      expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+      expect(screen.queryByPlaceholderText('学習内容を入力してください')).not.toBeInTheDocument();
     });
   });
 
@@ -56,7 +56,7 @@ describe('App コンポーネント', () => {
     await user.click(addButton);
 
     await waitFor(() => {
-      expect(screen.getByRole('textbox')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('学習内容を入力してください')).toBeInTheDocument();
       expect(screen.getByText('➕ 追加')).toBeInTheDocument();
       expect(screen.getByText('キャンセル')).toBeInTheDocument();
     });
@@ -94,7 +94,7 @@ describe('App コンポーネント', () => {
     const addButton = screen.getByText('➕ 新しいアイテムを追加');
     await user.click(addButton);
 
-    const textarea = screen.getByRole('textbox');
+    const textarea = screen.getByPlaceholderText('学習内容を入力してください');
 
     // 文字を入力
     await user.type(textarea, 'テスト項目');
@@ -110,7 +110,7 @@ describe('App コンポーネント', () => {
     const addButton = screen.getByText('➕ 新しいアイテムを追加');
     await user.click(addButton);
 
-    const textarea = screen.getByRole('textbox');
+    const textarea = screen.getByPlaceholderText('学習内容を入力してください');
 
     // 650文字以上入力（警告色）
     const longText = 'あ'.repeat(651);
@@ -134,6 +134,24 @@ describe('アクセシビリティ', () => {
     const user = userEvent.setup();
     await user.click(addButton);
 
-    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('学習内容を入力してください')).toBeInTheDocument();
+  });
+
+  it('テキスト検索で絞り込みができる', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const searchInput = await screen.findByPlaceholderText('キーワードで絞り込み...');
+    await user.type(searchInput, '検索テキスト');
+    expect(searchInput).toHaveValue('検索テキスト');
+  });
+
+  it('検索クリアボタンで入力がリセットされる', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const searchInput = await screen.findByPlaceholderText('キーワードで絞り込み...');
+    await user.type(searchInput, 'テスト');
+    const clearButton = screen.getByTitle('クリア');
+    await user.click(clearButton);
+    expect(searchInput).toHaveValue('');
   });
 });

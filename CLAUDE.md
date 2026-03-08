@@ -52,6 +52,7 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
 - **Review System**: Quality-based evaluation with visual feedback (😵 忘れた, 🤔 曖昧, 💡 思い出した, ✨ 完璧)
 - **Master/Unmaster**: Mark items as "mastered" to exclude from review cycle, or unmaster to resume reviews
 - **Smart Filtering**: Default view shows only items needing review; toggle to show all items
+- **Text Search**: Keyword filter to narrow down the item list; case-insensitive, applied after status filter
 - **Smart Sorting**: Items sorted by next_review date (ascending) for optimal study order
 - **Review-First UI**: Collapsible add form prioritizes daily review workflow
 - **Multiline Input**: Support for textarea input with automatic resize and proper line break display
@@ -60,7 +61,7 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
 ### Frontend Architecture (`src/`)
 
 - **`App.tsx`**: Main component handling all state management, API calls, and UI logic
-  - State: items, editing, filtering, form data, dropdown visibility, image handling
+  - State: items, editing, filtering, searchText, form data, dropdown visibility, image handling
   - Key functions: CRUD operations, SM-2 review processing, dropdown management, image upload/edit
 - **`api.ts`**: Centralized API communication with error handling via ApiError class
 - **`types.ts`**: TypeScript interfaces for Item, CreateItemData, UpdateItemData, and API responses
@@ -72,6 +73,7 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
   - Pre-wrap text display for multiline content
   - Image upload with preview thumbnails and validation
   - Collapsible add form for review-first workflow
+  - Keyword search box with clear button (status filter → text search applied in sequence)
 
 ### Backend Architecture (`worker/`)
 
@@ -150,6 +152,7 @@ Application fully deployed and functional with complete feature set including:
 - ✅ Spaced repetition learning system with SM-2 algorithm
 - ✅ Complete image upload/edit/delete functionality
 - ✅ Review-first UI with collapsible add form
+- ✅ Text search filter for narrowing down the item list
 - ✅ Production-ready security and optimization
 
 Remaining tasks in `TODO.md`: component refactoring (low priority), production environment optimization (medium priority).
@@ -179,17 +182,18 @@ Remaining tasks in `TODO.md`: component refactoring (low priority), production e
 - **`sorting.test.ts`**: Item sorting and filtering tests
   - Next review date sorting logic
   - Frontend sort optimization
-- **`app.test.tsx`**: React component integration tests (9 tests)
+- **`app.test.tsx`**: React component integration tests (11 tests)
   - UI element rendering and interaction
   - Form expansion and input validation
   - Display toggling and accessibility
+  - Text search input and clear button
 
 ### Test Commands
 - `npm test` - Watch mode for development
 - `npm run test:run` - Single run for CI/automation
 - `npm run test:ui` - Interactive UI mode
 
-**Total: 44 tests** covering core business logic, API layer, validation, and UI components.
+**Total: 52 tests** covering core business logic, API layer, validation, and UI components.
 
 ## Development Notes
 

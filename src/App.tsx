@@ -25,6 +25,7 @@ function App() {
   );
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAllItems, setShowAllItems] = useState(false);
+  const [searchText, setSearchText] = useState('');
   const [editingItem, setEditingItem] = useState<number | null>(null);
   const [editContent, setEditContent] = useState('');
   const [editImage, setEditImage] = useState<File | null>(null);
@@ -499,9 +500,14 @@ function App() {
 
   // 表示するアイテムを決定（フロントエンドでソート）
   const sortedItems = sortByNextReview(items);
-  const displayItems = showAllItems
+  const statusFilteredItems = showAllItems
     ? sortedItems // 覚えた項目も含めて全項目表示
     : sortedItems.filter((item) => needsReview(item) && !item.mastered); // 復習が必要かつ覚えていない項目のみ
+  const displayItems = searchText.trim()
+    ? statusFilteredItems.filter((item) =>
+        item.content.toLowerCase().includes(searchText.toLowerCase())
+      )
+    : statusFilteredItems;
 
   // 3つの状態の項目数を計算
   const reviewItemsCount = items.filter((item) => needsReview(item) && !item.mastered).length;
@@ -625,6 +631,26 @@ function App() {
               </span>
             )}
           </div>
+        </div>
+
+        {/* テキスト検索 */}
+        <div className="search-container">
+          <input
+            type="text"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder="キーワードで絞り込み..."
+            className="search-input"
+          />
+          {searchText && (
+            <button
+              onClick={() => setSearchText('')}
+              className="search-clear-btn"
+              title="クリア"
+            >
+              ✕
+            </button>
+          )}
         </div>
 
         {loading ? (
