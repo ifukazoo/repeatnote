@@ -200,4 +200,5 @@ Remaining tasks in `TODO.md`: component refactoring (low priority), production e
 - **Comprehensive test coverage**: All critical functionality is covered by automated tests, ensuring code quality and preventing regressions.
 - **Single component architecture**: The frontend uses a single `App.tsx` component by design for simplicity, though component extraction is noted as a future improvement.
 - **Test-driven development**: When making changes, run tests first with `npm test`, then manual UI testing with `npm run dev` before deploying with `npm run deploy`.
+- **Documentation update**: After adding or changing features, always update CLAUDE.md to reflect the changes (Core Functionality, Frontend Architecture, Current Status, test counts, etc.).
 - **Frontend sorting optimization**: Items are sorted by next_review date (ascending) on the frontend for optimal performance and user experience. This approach avoids redundant backend sorting and provides instant visual feedback.
