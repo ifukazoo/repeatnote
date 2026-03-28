@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## External Services
+
+- Before implementing features that use Cloudflare platform APIs (Workers, D1, R2, KV, etc.), always check the latest official documentation to verify correct usage patterns, configuration, and TypeScript types.
+
 ## Development Commands
 
 - `npm run dev` - Start development server with Vite HMR
@@ -89,6 +93,33 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
   - `PUT /api/items/:id/unmaster` - Unmaster item and reset review schedule
   - `DELETE /api/items/:id` - Delete item and associated images
   - `GET /api/images/:filename` - Serve images from R2 storage
+  - `POST /api/external/items` - **外部API**: APIキー認証付きでアイテムを追加（JSON/FormData対応、画像アップロード可）
+
+### External API
+
+外部ツールやスクリプトからアイテムを追加するための専用エンドポイント。`X-API-Key` ヘッダーによる認証が必須。
+
+```bash
+# テキストのみ (JSON)
+curl -X POST https://repeatnote.ifukazoo.workers.dev/api/external/items \
+  -H "X-API-Key: your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{"content": "学習アイテム"}'
+
+# 画像付き (FormData)
+curl -X POST https://repeatnote.ifukazoo.workers.dev/api/external/items \
+  -H "X-API-Key: your-api-key" \
+  -F "content=学習アイテム" \
+  -F "image=@photo.jpg"
+```
+
+**セットアップ:**
+```bash
+# 本番: Worker Secretとして登録
+npx wrangler secret put API_KEY
+
+# ローカル開発: .dev.vars に記載済み（API_KEY=dev-secret-key）
+```
 
 ### Database Schema (`schema.sql`)
 
@@ -153,6 +184,7 @@ Application fully deployed and functional with complete feature set including:
 - ✅ Complete image upload/edit/delete functionality
 - ✅ Review-first UI with collapsible add form
 - ✅ Text search filter for narrowing down the item list
+- ✅ External REST API with API key authentication for adding items from external tools
 - ✅ Production-ready security and optimization
 
 Remaining tasks in `TODO.md`: component refactoring (low priority), production environment optimization (medium priority).
@@ -168,6 +200,10 @@ Remaining tasks in `TODO.md`: component refactoring (low priority), production e
 - **@testing-library/user-event**: User interaction simulation
 
 ### Test Structure (`src/test/`)
+- **`worker/index.test.ts`**: External API endpoint tests (8 tests)
+  - API key authentication (missing key, wrong key, unset key)
+  - JSON format (success, empty content, too long content)
+  - FormData format (text only, with image upload)
 - **`sm2-algorithm.test.ts`**: SM-2 spaced repetition algorithm tests (12 tests)
   - Interval calculations for different review stages
   - Ease factor updates and boundary conditions
@@ -194,7 +230,7 @@ Remaining tasks in `TODO.md`: component refactoring (low priority), production e
 - `npm run test:ui` - Interactive UI mode
 - `npx vitest run src/test/<filename>.test.ts` - 単一テストファイルを実行
 
-**Total: 52 tests** covering core business logic, API layer, validation, and UI components.
+**Total: 60 tests** covering core business logic, API layer, validation, UI components, and external API authentication.
 
 ## Development Notes
 
