@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run build` - Build the project (TypeScript compilation + Vite build)
 - `npm run lint` - Run ESLint on the codebase
 - `npm test` - Run unit tests in watch mode with Vitest
-- `npm run test:run` - Run all unit tests once
+- `npm run test:run` - Run TypeScript type check + all unit tests once
 - `npm run test:ui` - Run tests with Vitest UI interface
 - `npm run preview` - Build and preview the production build locally
 - `npm run deploy` - Build and deploy to Cloudflare Workers

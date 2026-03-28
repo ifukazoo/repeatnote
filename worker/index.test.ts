@@ -57,8 +57,7 @@ describe('POST /api/external/items', () => {
 
       const response = await handler.fetch(
         request,
-        makeEnv('secret-key'),
-        {} as ExecutionContext,
+        makeEnv('secret-key')
       );
       expect(response.status).toBe(401);
       const body = (await response.json()) as { error: string };
@@ -77,8 +76,7 @@ describe('POST /api/external/items', () => {
 
       const response = await handler.fetch(
         request,
-        makeEnv('secret-key'),
-        {} as ExecutionContext,
+        makeEnv('secret-key')
       );
       expect(response.status).toBe(401);
     });
@@ -95,8 +93,7 @@ describe('POST /api/external/items', () => {
 
       const response = await handler.fetch(
         request,
-        makeEnv(undefined),
-        {} as ExecutionContext,
+        makeEnv(undefined)
       );
       expect(response.status).toBe(401);
     });
@@ -115,8 +112,7 @@ describe('POST /api/external/items', () => {
 
       const response = await handler.fetch(
         request,
-        makeEnv('secret-key'),
-        {} as ExecutionContext,
+        makeEnv('secret-key')
       );
       expect(response.status).toBe(201);
       const body = (await response.json()) as { item: typeof mockItem };
@@ -141,8 +137,7 @@ describe('POST /api/external/items', () => {
 
       const response = await handler.fetch(
         request,
-        makeEnv('secret-key'),
-        {} as ExecutionContext,
+        makeEnv('secret-key')
       );
       expect(response.status).toBe(400);
     });
@@ -159,8 +154,7 @@ describe('POST /api/external/items', () => {
 
       const response = await handler.fetch(
         request,
-        makeEnv('secret-key'),
-        {} as ExecutionContext,
+        makeEnv('secret-key')
       );
       expect(response.status).toBe(400);
     });
@@ -179,8 +173,7 @@ describe('POST /api/external/items', () => {
 
       const response = await handler.fetch(
         request,
-        makeEnv('secret-key'),
-        {} as ExecutionContext,
+        makeEnv('secret-key')
       );
       expect(response.status).toBe(201);
     });
@@ -202,8 +195,7 @@ describe('POST /api/external/items', () => {
 
       const response = await handler.fetch(
         request,
-        env,
-        {} as ExecutionContext,
+        env
       );
       expect(response.status).toBe(201);
       expect(env.IMAGES.put).toHaveBeenCalled();
