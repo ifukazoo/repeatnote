@@ -28,7 +28,7 @@ const mockItem = {
   mastered: false,
 };
 
-function makeEnv(apiKey?: string): Env {
+function makeEnv(): Env {
   return {
     DB: {} as D1Database,
     IMAGES: {
@@ -36,7 +36,6 @@ function makeEnv(apiKey?: string): Env {
       get: vi.fn(),
       delete: vi.fn(),
     } as unknown as R2Bucket,
-    API_KEY: apiKey,
   };
 }
 
@@ -47,73 +46,15 @@ describe('POST /api/external/items', () => {
     mockCreateItem.mockResolvedValue(mockItem);
   });
 
-  describe('認証', () => {
-    it('X-API-Keyヘッダーがない場合は401を返す', async () => {
+  describe('JSON形式', () => {
+    it('contentで201とアイテムを返す', async () => {
       const request = new Request(`${BASE_URL}/api/external/items`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: 'テスト' }),
-      });
-
-      const response = await handler.fetch(
-        request,
-        makeEnv('secret-key')
-      );
-      expect(response.status).toBe(401);
-      const body = (await response.json()) as { error: string };
-      expect(body.error).toBe('Unauthorized');
-    });
-
-    it('間違ったAPIキーの場合は401を返す', async () => {
-      const request = new Request(`${BASE_URL}/api/external/items`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': 'wrong-key',
-        },
-        body: JSON.stringify({ content: 'テスト' }),
-      });
-
-      const response = await handler.fetch(
-        request,
-        makeEnv('secret-key')
-      );
-      expect(response.status).toBe(401);
-    });
-
-    it('API_KEYが未設定の場合は401を返す', async () => {
-      const request = new Request(`${BASE_URL}/api/external/items`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': 'any-key',
-        },
-        body: JSON.stringify({ content: 'テスト' }),
-      });
-
-      const response = await handler.fetch(
-        request,
-        makeEnv(undefined)
-      );
-      expect(response.status).toBe(401);
-    });
-  });
-
-  describe('JSON形式', () => {
-    it('正しいAPIキーとcontentで201とアイテムを返す', async () => {
-      const request = new Request(`${BASE_URL}/api/external/items`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': 'secret-key',
-        },
         body: JSON.stringify({ content: 'テスト項目' }),
       });
 
-      const response = await handler.fetch(
-        request,
-        makeEnv('secret-key')
-      );
+      const response = await handler.fetch(request, makeEnv());
       expect(response.status).toBe(201);
       const body = (await response.json()) as { item: typeof mockItem };
       expect(body.item).toEqual(mockItem);
@@ -128,34 +69,22 @@ describe('POST /api/external/items', () => {
     it('contentが空の場合は400を返す', async () => {
       const request = new Request(`${BASE_URL}/api/external/items`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': 'secret-key',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: '' }),
       });
 
-      const response = await handler.fetch(
-        request,
-        makeEnv('secret-key')
-      );
+      const response = await handler.fetch(request, makeEnv());
       expect(response.status).toBe(400);
     });
 
     it('contentが751文字超の場合は400を返す', async () => {
       const request = new Request(`${BASE_URL}/api/external/items`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': 'secret-key',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: 'a'.repeat(751) }),
       });
 
-      const response = await handler.fetch(
-        request,
-        makeEnv('secret-key')
-      );
+      const response = await handler.fetch(request, makeEnv());
       expect(response.status).toBe(400);
     });
   });
@@ -167,19 +96,15 @@ describe('POST /api/external/items', () => {
 
       const request = new Request(`${BASE_URL}/api/external/items`, {
         method: 'POST',
-        headers: { 'X-API-Key': 'secret-key' },
         body: formData,
       });
 
-      const response = await handler.fetch(
-        request,
-        makeEnv('secret-key')
-      );
+      const response = await handler.fetch(request, makeEnv());
       expect(response.status).toBe(201);
     });
 
     it('画像付きFormDataで201を返しR2にアップロードする', async () => {
-      const env = makeEnv('secret-key');
+      const env = makeEnv();
       const formData = new FormData();
       formData.append('content', 'テスト項目');
       formData.append(
@@ -189,14 +114,10 @@ describe('POST /api/external/items', () => {
 
       const request = new Request(`${BASE_URL}/api/external/items`, {
         method: 'POST',
-        headers: { 'X-API-Key': 'secret-key' },
         body: formData,
       });
 
-      const response = await handler.fetch(
-        request,
-        env
-      );
+      const response = await handler.fetch(request, env);
       expect(response.status).toBe(201);
       expect(env.IMAGES.put).toHaveBeenCalled();
     });

@@ -93,33 +93,30 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
   - `PUT /api/items/:id/unmaster` - Unmaster item and reset review schedule
   - `DELETE /api/items/:id` - Delete item and associated images
   - `GET /api/images/:filename` - Serve images from R2 storage
-  - `POST /api/external/items` - **外部API**: APIキー認証付きでアイテムを追加（JSON/FormData対応、画像アップロード可）
+  - `POST /api/external/items` - **外部API**: Cloudflare Access Service Auth認証付きでアイテムを追加（JSON/FormData対応、画像アップロード可）
 
 ### External API
 
-外部ツールやスクリプトからアイテムを追加するための専用エンドポイント。`X-API-Key` ヘッダーによる認証が必須。
+外部ツールやスクリプトからアイテムを追加するための専用エンドポイント。Cloudflare Access Service Token による認証が必須。
 
 ```bash
 # テキストのみ (JSON)
 curl -X POST https://repeatnote.ifukazoo.workers.dev/api/external/items \
-  -H "X-API-Key: your-api-key" \
+  -H "CF-Access-Client-Id: <CLIENT_ID>" \
+  -H "CF-Access-Client-Secret: <CLIENT_SECRET>" \
   -H "Content-Type: application/json" \
   -d '{"content": "学習アイテム"}'
 
 # 画像付き (FormData)
 curl -X POST https://repeatnote.ifukazoo.workers.dev/api/external/items \
-  -H "X-API-Key: your-api-key" \
+  -H "CF-Access-Client-Id: <CLIENT_ID>" \
+  -H "CF-Access-Client-Secret: <CLIENT_SECRET>" \
   -F "content=学習アイテム" \
   -F "image=@photo.jpg"
 ```
 
 **セットアップ:**
-```bash
-# 本番: Worker Secretとして登録
-npx wrangler secret put API_KEY
-
-# ローカル開発: .dev.vars に記載済み（API_KEY=dev-secret-key）
-```
+Cloudflare One → Access controls → Service credentials → Service Tokens でサービストークンを作成し、`/api/external/items` パス用の Access アプリケーションに Service Auth ポリシーを設定する。
 
 ### Database Schema (`schema.sql`)
 
@@ -200,8 +197,7 @@ Remaining tasks in `TODO.md`: component refactoring (low priority), production e
 - **@testing-library/user-event**: User interaction simulation
 
 ### Test Structure (`src/test/`)
-- **`worker/index.test.ts`**: External API endpoint tests (8 tests)
-  - API key authentication (missing key, wrong key, unset key)
+- **`worker/index.test.ts`**: External API endpoint tests (5 tests)
   - JSON format (success, empty content, too long content)
   - FormData format (text only, with image upload)
 - **`sm2-algorithm.test.ts`**: SM-2 spaced repetition algorithm tests (12 tests)
@@ -230,7 +226,7 @@ Remaining tasks in `TODO.md`: component refactoring (low priority), production e
 - `npm run test:ui` - Interactive UI mode
 - `npx vitest run src/test/<filename>.test.ts` - 単一テストファイルを実行
 
-**Total: 60 tests** covering core business logic, API layer, validation, UI components, and external API authentication.
+**Total: 57 tests** covering core business logic, API layer, validation, UI components, and external API.
 
 ## Development Notes
 

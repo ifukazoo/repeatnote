@@ -175,15 +175,7 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
     }
 
     if (pathname === '/api/external/items' && method === 'POST') {
-      // POST /api/external/items - 外部APIからアイテムを追加（APIキー認証必須）
-      const apiKey = request.headers.get('X-API-Key');
-      if (!env.API_KEY || apiKey !== env.API_KEY) {
-        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
-
+      // POST /api/external/items - 外部APIからアイテムを追加（Cloudflare Access Service Authで認証）
       const contentType = request.headers.get('content-type') || '';
       let itemData: CreateItemData;
       let imageUrl: string | null = null;
