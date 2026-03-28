@@ -192,6 +192,7 @@ Remaining tasks in `TODO.md`: component refactoring (low priority), production e
 - `npm test` - Watch mode for development
 - `npm run test:run` - Single run for CI/automation
 - `npm run test:ui` - Interactive UI mode
+- `npx vitest run src/test/<filename>.test.ts` - 単一テストファイルを実行
 
 **Total: 52 tests** covering core business logic, API layer, validation, and UI components.
 
@@ -199,6 +200,6 @@ Remaining tasks in `TODO.md`: component refactoring (low priority), production e
 
 - **Comprehensive test coverage**: All critical functionality is covered by automated tests, ensuring code quality and preventing regressions.
 - **Single component architecture**: The frontend uses a single `App.tsx` component by design for simplicity, though component extraction is noted as a future improvement.
-- **Test-driven development**: When making changes, run tests first with `npm test`, then manual UI testing with `npm run dev` before deploying with `npm run deploy`.
+- **Test-driven development**: ビジネスロジック（SM-2アルゴリズム、APIレイヤーなど）はTDDで開発する（テストを先に書いてから実装）。UIコンポーネントはモノリシックな `App.tsx` の制約上テストファーストが難しいため、実装後にテストを追加する。変更後は `npm test` でテストを確認し、`npm run dev` で手動UIテストをしてから `npm run deploy` でデプロイする。
 - **Documentation update**: After adding or changing features, always update CLAUDE.md to reflect the changes (Core Functionality, Frontend Architecture, Current Status, test counts, etc.).
 - **Frontend sorting optimization**: Items are sorted by next_review date (ascending) on the frontend for optimal performance and user experience. This approach avoids redundant backend sorting and provides instant visual feedback.
