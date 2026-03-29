@@ -125,6 +125,15 @@ Items table with fields for SM-2 algorithm and image support:
 - SM-2 fields: `interval_days`, `ease_factor`, `review_count`, `next_review`, `mastered`
 - Image fields: `image_url`, `image_filename`
 
+### Claude Desktop MCP Integration (`mcp/`)
+
+Claude Desktop から `add_item` ツールで直接アイテムを追加できる MCP サーバー。
+
+- **実装**: `mcp/src/index.ts`（`@modelcontextprotocol/sdk` 使用）
+- **認証**: プロジェクトルートの `.env` から `CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` を読み込む
+- **ビルド**: `cd mcp && npm run build`
+- **登録**: `~/Library/Application Support/Claude/claude_desktop_config.json` に `repeatnote` サーバーとして登録済み
+
 ### Architecture Diagram
 
 システム全体のアーキテクチャ図は `architecture.drawio` に保存されている。構成に変更があった場合はこのファイルも更新すること。
