@@ -1,0 +1,96 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36" version="29.6.4">
+  <diagram name="ページ-1" id="VjpS_YDhWcfdZx2IQ-Lu">
+    <mxGraphModel dx="1901" dy="1015" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="外部ツール / スクリプト" vertex="1">
+          <mxGeometry height="104" width="272" x="57" y="8" as="geometry" />
+        </mxCell>
+        <mxCell id="3" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Cloudflare" vertex="1">
+          <mxGeometry height="795" width="926" x="8" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="4" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Cloudflare Workers" vertex="1">
+          <mxGeometry height="336" width="583" x="66" y="486" as="geometry" />
+        </mxCell>
+        <mxCell id="5" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Cloudflare Access" vertex="1">
+          <mxGeometry height="128" width="330" x="28" y="235" as="geometry" />
+        </mxCell>
+        <mxCell id="6" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="ブラウザ" vertex="1">
+          <mxGeometry height="178" width="279" x="954" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="7" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="React SPA&#xa;(App.tsx)" vertex="1">
+          <mxGeometry height="54" width="209" x="989" y="272" as="geometry" />
+        </mxCell>
+        <mxCell id="8" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Service Auth&#xa;(Service Token認証)" vertex="1">
+          <mxGeometry height="78" width="260" x="63" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="9" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="APIルーター&#xa;(worker/index.ts)" vertex="1">
+          <mxGeometry height="78" width="260" x="299" y="511" as="geometry" />
+        </mxCell>
+        <mxCell id="10" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="DBレイヤー&#xa;(worker/database.ts)&#xa;SM-2アルゴリズム" vertex="1">
+          <mxGeometry height="102" width="267" x="101" y="691" as="geometry" />
+        </mxCell>
+        <mxCell id="11" parent="1" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Cloudflare D1&#xa;(SQLite)" vertex="1">
+          <mxGeometry height="84" width="185" x="142" y="896" as="geometry" />
+        </mxCell>
+        <mxCell id="12" parent="1" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Cloudflare R2&#xa;(画像ストレージ)" vertex="1">
+          <mxGeometry height="110" width="215" x="684" y="687" as="geometry" />
+        </mxCell>
+        <mxCell id="13" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="curl / 外部サービス" vertex="1">
+          <mxGeometry height="54" width="202" x="92" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="14" edge="1" parent="1" source="7" style="curved=1;startArrow=none;endArrow=block;exitX=0.4;exitY=1;entryX=0.5;entryY=0;" target="9" value="GET/POST/PUT/DELETE&#xa;/api/*">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1044" y="363" />
+              <mxPoint x="1044" y="388" />
+              <mxPoint x="429" y="437" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="15" edge="1" parent="1" source="13" style="curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="8" value="CF-Access-Client-Id&#xa;CF-Access-Client-Secret">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="16" edge="1" parent="1" source="8" style="curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0;entryY=0.05;" target="9" value="認証済みリクエスト&#xa;POST /api/external/items">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="193" y="486" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="17" edge="1" parent="1" source="9" style="curved=1;startArrow=none;endArrow=block;exitX=0.17;exitY=1;entryX=0.5;entryY=0;" target="10" value="CRUD操作">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235" y="638" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="18" edge="1" parent="1" source="10" style="curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0.01;" target="11" value="SQL">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="19" edge="1" parent="1" source="9" style="curved=1;startArrow=none;endArrow=block;exitX=0.63;exitY=1;entryX=0;entryY=0.14;" target="12" value="画像アップロード/取得/削除">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="507" y="638" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="20" edge="1" parent="1" source="9" style="curved=1;startArrow=none;endArrow=block;exitX=0.97;exitY=0;entryX=0.62;entryY=1;" target="7" value="静的ファイル配信">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="629" y="486" />
+              <mxPoint x="629" y="437" />
+              <mxPoint x="1154" y="388" />
+              <mxPoint x="1154" y="363" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

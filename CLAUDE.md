@@ -125,6 +125,10 @@ Items table with fields for SM-2 algorithm and image support:
 - SM-2 fields: `interval_days`, `ease_factor`, `review_count`, `next_review`, `mastered`
 - Image fields: `image_url`, `image_filename`
 
+### Architecture Diagram
+
+システム全体のアーキテクチャ図は `architecture.drawio` に保存されている。構成に変更があった場合はこのファイルも更新すること。
+
 ### Key Integration Points
 
 - **API Communication**: Frontend fetches from `/api/` endpoints handled by Cloudflare Worker
