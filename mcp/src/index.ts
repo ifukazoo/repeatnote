@@ -36,7 +36,7 @@ server.registerTool(
       content: z
         .string()
         .max(750)
-        .describe('学習アイテムの内容（最大750文字）'),
+        .describe('学習アイテムの内容（最大750文字）。Markdown形式（太字、箇条書き、コードブロックなど）もそのまま登録できる。'),
       image_path: z
         .string()
         .optional()
