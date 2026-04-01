@@ -59,24 +59,37 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
 - **Text Search**: Keyword filter to narrow down the item list; case-insensitive, applied after status filter
 - **Smart Sorting**: Items sorted by next_review date (ascending) for optimal study order
 - **Review-First UI**: Collapsible add form prioritizes daily review workflow
-- **Multiline Input**: Support for textarea input with automatic resize and proper line break display
+- **Markdown Viewer**: Item content rendered as Markdown (bold, code, lists, blockquotes, etc.) using react-markdown
+- **Markdown Preview**: Edit form includes Edit/Preview tab toggle for live markdown preview before saving
 - **Dropdown Actions**: Integrated edit/delete menu with hover effects and click-outside-to-close
 
 ### Frontend Architecture (`src/`)
 
-- **`App.tsx`**: Main component handling all state management, API calls, and UI logic
-  - State: items, editing, filtering, searchText, form data, dropdown visibility, image handling
-  - Key functions: CRUD operations, SM-2 review processing, dropdown management, image upload/edit
+- **`App.tsx`**: Orchestrator (~187 lines) — state management (items, error, editing, copy, modal, dropdown) and CRUD handlers
 - **`api.ts`**: Centralized API communication with error handling via ApiError class
 - **`types.ts`**: TypeScript interfaces for Item, CreateItemData, UpdateItemData, and API responses
 - **`constants.ts`**: Shared configuration for image validation and error messages
-- **UI Features**:
+
+**Custom Hooks (`src/hooks/`)**:
+- **`useImageUpload.ts`**: Image state, file validation, change/paste handlers, preview URL cleanup on unmount
+- **`useImageModal.ts`**: Modal open/close state and ESC key listener
+- **`useDropdown.ts`**: Dropdown open state and click-outside listener
+
+**Components (`src/components/`)**:
+- **`AddItemForm/`**: Collapsible form with image upload; manages its own content/image state
+- **`EditForm/`**: Edit textarea with Edit/Preview tab toggle (Markdown preview); manages its own state
+- **`ItemDisplay/`**: Read-only card view with Markdown rendering (react-markdown), copy button, dropdown menu
+- **`ItemCard/`**: Card wrapper rendering either EditForm or ItemDisplay + action buttons (review/master)
+- **`ItemList/`**: Items header, search bar, filtering/sorting logic, maps items to ItemCards
+- **`ImageModal/`**: Full-screen image overlay modal
+
+**UI Features**:
   - Character counters with visual warnings (650+ orange, 750 red)
-  - Textarea inputs with row configuration (1 for add, 6 for edit)
-  - Dropdown menus with outside-click handling
-  - Pre-wrap text display for multiline content
+  - Markdown rendering for item content (bold, italic, code, lists, blockquotes, headings)
+  - Edit/Preview tab toggle in edit form for live Markdown preview
   - Image upload with preview thumbnails and validation
   - Collapsible add form for review-first workflow
+  - Dropdown menus with outside-click handling
   - Keyword search box with clear button (status filter → text search applied in sequence)
 
 ### Backend Architecture (`worker/`)
@@ -196,8 +209,10 @@ Application fully deployed and functional with complete feature set including:
 - ✅ Text search filter for narrowing down the item list
 - ✅ External REST API with API key authentication for adding items from external tools
 - ✅ Production-ready security and optimization
+- ✅ Component refactoring: split into hooks + 6 components (App.tsx: 956→187 lines)
+- ✅ Markdown viewer with react-markdown (item display + edit preview tab)
 
-Remaining tasks in `TODO.md`: component refactoring (low priority), production environment optimization (medium priority).
+Remaining tasks in `TODO.md`: production environment optimization (medium priority).
 
 ## Testing Framework
 

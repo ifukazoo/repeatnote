@@ -1,8 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import type { Item, UpdateItemData } from './types';
 import {
   getItems,
-  createItem,
   updateItem,
   reviewItem,
   deleteItem,
@@ -10,35 +9,24 @@ import {
   unmasterItem,
   ApiError,
 } from './api';
-import { IMAGE_CONFIG } from './constants';
-import type { AllowedImageType } from './constants';
+import { useImageModal } from './hooks/useImageModal';
+import { useDropdown } from './hooks/useDropdown';
+import { AddItemForm } from './components/AddItemForm/AddItemForm';
+import { ItemList } from './components/ItemList/ItemList';
+import { ImageModal } from './components/ImageModal/ImageModal';
 import './App.css';
 
 function App() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
-  const [newItemContent, setNewItemContent] = useState('');
-  const [newItemImage, setNewItemImage] = useState<File | null>(null);
-  const [newItemImagePreview, setNewItemImagePreview] = useState<string | null>(
-    null
-  );
-  const [showAddForm, setShowAddForm] = useState(false);
   const [showAllItems, setShowAllItems] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [editingItem, setEditingItem] = useState<number | null>(null);
-  const [editContent, setEditContent] = useState('');
-  const [editImage, setEditImage] = useState<File | null>(null);
-  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
-  const [removeEditImage, setRemoveEditImage] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
-  const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [modalImageSrc, setModalImageSrc] = useState<string>('');
   const [copiedItems, setCopiedItems] = useState<Set<number>>(new Set());
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const editFileInputRef = useRef<HTMLInputElement>(null);
+  const { imageModalOpen, modalImageSrc, openImageModal, closeImageModal } = useImageModal();
+  const { dropdownOpen, setDropdownOpen } = useDropdown();
 
-  // アイテム一覧を取得
   const loadItems = async () => {
     try {
       setLoading(true);
@@ -46,406 +34,51 @@ function App() {
       const itemsData = await getItems();
       setItems(itemsData);
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : '読み込みに失敗しました'
-      );
+      setError(err instanceof ApiError ? err.message : '読み込みに失敗しました');
     } finally {
       setLoading(false);
     }
   };
 
-  // 初回ロード
   useEffect(() => {
     loadItems();
   }, []);
 
-  // ドロップダウンの外部クリックで閉じる
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownOpen !== null) {
-        const target = event.target as Element;
-        if (!target.closest('.dropdown-container')) {
-          setDropdownOpen(null);
-        }
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [dropdownOpen]);
-
-
-  // ファイル入力リセット共通関数
-  const resetFileInput = (ref: React.RefObject<HTMLInputElement | null>) => {
-    if (ref.current) {
-      ref.current.value = '';
-    }
+  const handleEditStart = (id: number) => {
+    setDropdownOpen(null);
+    setEditingItem(id);
   };
 
-  // プレビューURLクリーンアップ関数
-  const cleanupImagePreview = (previewUrl: string | null) => {
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-  };
-
-  // 画像バリデーション共通関数
-  const validateImageFile = (
-    file: File
-  ): { isValid: boolean; error?: string } => {
-    // 画像形式チェック
-    if (!IMAGE_CONFIG.ALLOWED_TYPES.includes(file.type as AllowedImageType)) {
-      return {
-        isValid: false,
-        error: IMAGE_CONFIG.ERROR_MESSAGES.INVALID_TYPE,
-      };
-    }
-
-    // サイズチェック
-    if (file.size > IMAGE_CONFIG.MAX_SIZE) {
-      return {
-        isValid: false,
-        error: IMAGE_CONFIG.ERROR_MESSAGES.FILE_TOO_LARGE,
-      };
-    }
-
-    return { isValid: true };
-  };
-
-  // クリップボードから画像を処理する共通関数
-  const handleClipboardImage = useCallback(
-    (
-      file: File,
-      setImage: (file: File) => void,
-      setImagePreview: (url: string) => void,
-      currentPreview: string | null
-    ) => {
-      const validation = validateImageFile(file);
-      if (!validation.isValid) {
-        setError(validation.error!);
-        return;
-      }
-
-      // 古いプレビューURLをクリーンアップ
-      cleanupImagePreview(currentPreview);
-
-      setImage(file);
-      setImagePreview(URL.createObjectURL(file));
-      setError('');
-    },
-    []
-  );
-
-  // 画像ファイル選択
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const validation = validateImageFile(file);
-      if (!validation.isValid) {
-        setError(validation.error!);
-        return;
-      }
-
-      // 古いプレビューURLをクリーンアップ
-      cleanupImagePreview(newItemImagePreview);
-
-      setNewItemImage(file);
-      setNewItemImagePreview(URL.createObjectURL(file));
-      setError('');
-    }
-  };
-
-  // 編集時の画像ファイル選択
-  const handleEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const validation = validateImageFile(file);
-      if (!validation.isValid) {
-        setError(validation.error!);
-        return;
-      }
-
-      // 古いプレビューURLをクリーンアップ
-      cleanupImagePreview(editImagePreview);
-
-      setEditImage(file);
-      setEditImagePreview(URL.createObjectURL(file));
-      setRemoveEditImage(false); // 新しい画像が選択されたら削除フラグを解除
-      setError('');
-    }
-  };
-
-  // クリップボードペーストイベントハンドラー（新規追加フォーム用）
-  const handlePasteInAddForm = useCallback(
-    (e: ClipboardEvent) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
-
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        if (item.type.indexOf('image') !== -1) {
-          e.preventDefault();
-          const file = item.getAsFile();
-          if (file) {
-            handleClipboardImage(
-              file,
-              setNewItemImage,
-              setNewItemImagePreview,
-              newItemImagePreview
-            );
-          }
-          break;
-        }
-      }
-    },
-    [newItemImagePreview, handleClipboardImage]
-  );
-
-  // クリップボードペーストイベントハンドラー（編集フォーム用）
-  const handlePasteInEditForm = useCallback(
-    (e: ClipboardEvent) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
-
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        if (item.type.indexOf('image') !== -1) {
-          e.preventDefault();
-          const file = item.getAsFile();
-          if (file) {
-            handleClipboardImage(
-              file,
-              setEditImage,
-              setEditImagePreview,
-              editImagePreview
-            );
-            setRemoveEditImage(false); // 新しい画像が選択されたら削除フラグを解除
-          }
-          break;
-        }
-      }
-    },
-    [editImagePreview, handleClipboardImage]
-  );
-
-  // クリップボードペーストイベントリスナー
-  useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
-      const target = e.target as Element;
-
-      // 新規追加フォームの場合
-      if (showAddForm && target.closest('.add-form-expanded')) {
-        handlePasteInAddForm(e);
-      }
-
-      // 編集フォームの場合
-      if (editingItem !== null && target.closest('.edit-form')) {
-        handlePasteInEditForm(e);
-      }
-    };
-
-    document.addEventListener('paste', handlePaste);
-    return () => {
-      document.removeEventListener('paste', handlePaste);
-    };
-  }, [showAddForm, editingItem, handlePasteInAddForm, handlePasteInEditForm]);
-
-  // 画像モーダル関連の関数
-  const openImageModal = (imageSrc: string) => {
-    setModalImageSrc(imageSrc);
-    setImageModalOpen(true);
-  };
-
-  const closeImageModal = () => {
-    setImageModalOpen(false);
-    setModalImageSrc('');
-  };
-
-  // ESCキーでモーダルを閉じる
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && imageModalOpen) {
-        closeImageModal();
-      }
-    };
-
-    if (imageModalOpen) {
-      document.addEventListener('keydown', handleKeyPress);
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyPress);
-    };
-  }, [imageModalOpen]);
-
-  // 新しいアイテムを追加
-  const handleCreateItem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newItemContent.trim()) return;
-
-    try {
-      setError('');
-      const newItem = await createItem({
-        content: newItemContent.trim(),
-        image: newItemImage || undefined,
-      });
-      // 新規アイテムを追加（フロントエンドソートが適用される）
-      setItems((prev) => [newItem, ...prev]);
-      setNewItemContent('');
-      setNewItemImage(null);
-      // プレビューURLをクリーンアップ
-      cleanupImagePreview(newItemImagePreview);
-      setNewItemImagePreview(null);
-      // ファイル入力をリセット
-      resetFileInput(fileInputRef);
-      // フォームを折りたたむ
-      setShowAddForm(false);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : '作成に失敗しました');
-    }
-  };
-
-  // 新規追加フォームキャンセル
-  const handleAddFormCancel = () => {
-    setNewItemContent('');
-    setNewItemImage(null);
-    cleanupImagePreview(newItemImagePreview);
-    setNewItemImagePreview(null);
-    resetFileInput(fileInputRef);
-    setShowAddForm(false);
-  };
-
-  // 復習処理
-  const handleReview = async (id: number, quality: number) => {
-    try {
-      setError('');
-      const updatedItem = await reviewItem(id, quality);
-      // 部分更新：該当アイテムのみを更新（フロントエンドソートが適用される）
-      setItems((prev) =>
-        prev.map((item) => (item.id === id ? updatedItem : item))
-      );
-    } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : '復習処理に失敗しました'
-      );
-    }
-  };
-
-  // アイテム「覚えた」処理
-  const handleMaster = async (id: number) => {
-    // 確認ダイアログを表示
-    const confirmed = window.confirm(
-      'この項目を完全に覚えましたか？\n復習リストから外れます。'
-    );
-
-    if (!confirmed) {
-      return; // キャンセルされた場合は何もしない
-    }
-
-    try {
-      setError('');
-      const masteredItem = await masterItem(id);
-      setItems((prev) =>
-        prev.map((item) => (item.id === id ? masteredItem : item))
-      );
-    } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : '「覚えた」処理に失敗しました'
-      );
-    }
-  };
-
-  // アイテム「覚え直し」処理
-  const handleUnmaster = async (id: number) => {
-    try {
-      setError('');
-      const unmasteredItem = await unmasterItem(id);
-      setItems((prev) =>
-        prev.map((item) => (item.id === id ? unmasteredItem : item))
-      );
-    } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : '「覚え直し」処理に失敗しました'
-      );
-    }
-  };
-
-  // アイテム編集開始
-  const handleEditStart = (item: Item) => {
-    setEditingItem(item.id);
-    setEditContent(item.content);
-    setEditImage(null);
-    // プレビューURLをクリーンアップ
-    cleanupImagePreview(editImagePreview);
-    setEditImagePreview(null);
-    setRemoveEditImage(false);
-    // ファイル入力をリセット
-    resetFileInput(editFileInputRef);
-  };
-
-  // アイテム編集キャンセル
   const handleEditCancel = () => {
     setEditingItem(null);
-    setEditContent('');
-    setEditImage(null);
-    // プレビューURLをクリーンアップ
-    cleanupImagePreview(editImagePreview);
-    setEditImagePreview(null);
-    setRemoveEditImage(false);
-    // ファイル入力をリセット
-    resetFileInput(editFileInputRef);
   };
 
-  // アイテム編集保存
-  const handleEditSave = async (id: number) => {
-    if (!editContent.trim()) return;
-
+  const handleEditSave = async (
+    id: number,
+    content: string,
+    image: File | null,
+    removeImage: boolean,
+  ) => {
     try {
       setError('');
-      const updateData: UpdateItemData = {
-        content: editContent.trim(),
-      };
-
-      // 画像関連の処理
-      if (editImage) {
-        updateData.image = editImage;
-      }
-      if (removeEditImage) {
-        updateData.removeImage = true;
-      }
-
+      const updateData: UpdateItemData = { content };
+      if (image) updateData.image = image;
+      if (removeImage) updateData.removeImage = true;
       const updatedItem = await updateItem(id, updateData);
-      setItems((prev) =>
-        prev.map((item) => (item.id === id ? updatedItem : item))
-      );
+      setItems((prev) => prev.map((item) => (item.id === id ? updatedItem : item)));
       setEditingItem(null);
-      setEditContent('');
-      setEditImage(null);
-      // プレビューURLをクリーンアップ
-      cleanupImagePreview(editImagePreview);
-      setEditImagePreview(null);
-      setRemoveEditImage(false);
-      // ファイル入力をリセット
-      resetFileInput(editFileInputRef);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '更新に失敗しました');
     }
   };
 
-  // アイテム削除
   const handleDelete = async (id: number) => {
+    setDropdownOpen(null);
     const item = items.find((item) => item.id === id);
     const content = item?.content || '';
-    const preview =
-      content.length > 30 ? content.substring(0, 30) + '...' : content;
+    const preview = content.length > 30 ? content.substring(0, 30) + '...' : content;
 
-    if (
-      !confirm(
-        `学習項目を削除しますか？\n\n「${preview}」\n\n※この操作は取り消せません。`
-      )
-    )
+    if (!confirm(`学習項目を削除しますか？\n\n「${preview}」\n\n※この操作は取り消せません。`))
       return;
 
     try {
@@ -457,15 +90,42 @@ function App() {
     }
   };
 
-  // クリップボードコピー
+  const handleReview = async (id: number, quality: number) => {
+    try {
+      setError('');
+      const updatedItem = await reviewItem(id, quality);
+      setItems((prev) => prev.map((item) => (item.id === id ? updatedItem : item)));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : '復習処理に失敗しました');
+    }
+  };
+
+  const handleMaster = async (id: number) => {
+    const confirmed = window.confirm('この項目を完全に覚えましたか？\n復習リストから外れます。');
+    if (!confirmed) return;
+    try {
+      setError('');
+      const masteredItem = await masterItem(id);
+      setItems((prev) => prev.map((item) => (item.id === id ? masteredItem : item)));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : '「覚えた」処理に失敗しました');
+    }
+  };
+
+  const handleUnmaster = async (id: number) => {
+    try {
+      setError('');
+      const unmasteredItem = await unmasterItem(id);
+      setItems((prev) => prev.map((item) => (item.id === id ? unmasteredItem : item)));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : '「覚え直し」処理に失敗しました');
+    }
+  };
+
   const handleCopy = async (id: number, content: string) => {
     try {
       await navigator.clipboard.writeText(content);
-
-      // コピー済みマークを追加
       setCopiedItems((prev) => new Set(prev).add(id));
-
-      // 2秒後にマークをクリア
       setTimeout(() => {
         setCopiedItems((prev) => {
           const updated = new Set(prev);
@@ -479,40 +139,9 @@ function App() {
     }
   };
 
-  // 復習が必要なアイテムかチェック
-  const needsReview = (item: Item): boolean => {
-    if (!item.next_review) return true;
-    return new Date(item.next_review) <= new Date();
+  const handleDropdownToggle = (id: number) => {
+    setDropdownOpen(dropdownOpen === id ? null : id);
   };
-
-  // アイテムを次回復習日順でソート
-  const sortByNextReview = (items: Item[]): Item[] => {
-    return [...items].sort((a, b) => {
-      // next_reviewがnullの項目を最初に表示（即座に復習が必要）
-      if (a.next_review === null && b.next_review === null) return 0;
-      if (a.next_review === null) return -1;
-      if (b.next_review === null) return 1;
-
-      // 次回復習日の昇順でソート
-      return new Date(a.next_review).getTime() - new Date(b.next_review).getTime();
-    });
-  };
-
-  // 表示するアイテムを決定（フロントエンドでソート）
-  const sortedItems = sortByNextReview(items);
-  const statusFilteredItems = showAllItems
-    ? sortedItems // 覚えた項目も含めて全項目表示
-    : sortedItems.filter((item) => needsReview(item) && !item.mastered); // 復習が必要かつ覚えていない項目のみ
-  const displayItems = searchText.trim()
-    ? statusFilteredItems.filter((item) =>
-        item.content.toLowerCase().includes(searchText.toLowerCase())
-      )
-    : statusFilteredItems;
-
-  // 3つの状態の項目数を計算
-  const reviewItemsCount = items.filter((item) => needsReview(item) && !item.mastered).length;
-  const waitingItemsCount = items.filter((item) => !needsReview(item) && !item.mastered).length;
-  const masteredItemsCount = items.filter((item) => item.mastered).length;
 
   return (
     <div className="app">
@@ -522,432 +151,35 @@ function App() {
 
       {error && <div className="error">❌ {error}</div>}
 
-      {/* 新規アイテム追加フォーム */}
-      <section className="add-item">
-        {!showAddForm ? (
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="add-form-toggle"
-          >
-            ➕ 新しいアイテムを追加
-          </button>
-        ) : (
-          <div className="add-form-expanded">
-            <h2>新しい学習項目を追加</h2>
-            <form onSubmit={handleCreateItem}>
-              <div className="input-wrapper">
-                <textarea
-                  value={newItemContent}
-                  onChange={(e) => setNewItemContent(e.target.value)}
-                  placeholder="学習内容を入力してください"
-                  maxLength={750}
-                  rows={1}
-                  className="add-textarea"
-                />
-                <div
-                  className={`char-counter ${
-                    newItemContent.length > 650 ? 'warning' : ''
-                  } ${newItemContent.length >= 750 ? 'danger' : ''}`}
-                >
-                  {newItemContent.length}/750
-                </div>
-              </div>
+      <AddItemForm
+        onItemCreated={(item) => setItems((prev) => [item, ...prev])}
+        onError={setError}
+      />
 
-              {/* 画像アップロード */}
-              <div className="image-upload-container">
-                <label htmlFor="image-upload" className="image-upload-label">
-                  📷 画像を追加 (任意・クリップボードからペースト可能)
-                </label>
-                <input
-                  type="file"
-                  id="image-upload"
-                  ref={fileInputRef}
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  onChange={handleImageChange}
-                  className="image-upload-input"
-                />
-                {newItemImage && (
-                  <div className="image-preview">
-                    <img
-                      src={newItemImagePreview!}
-                      alt="選択した画像"
-                      className="preview-thumbnail"
-                    />
-                    <span>選択済み: {newItemImage.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setNewItemImage(null);
-                        cleanupImagePreview(newItemImagePreview);
-                        setNewItemImagePreview(null);
-                        resetFileInput(fileInputRef);
-                      }}
-                      className="remove-image-btn"
-                    >
-                      ❌
-                    </button>
-                  </div>
-                )}
-              </div>
+      <ItemList
+        items={items}
+        loading={loading}
+        showAllItems={showAllItems}
+        onToggleShowAll={() => setShowAllItems(!showAllItems)}
+        searchText={searchText}
+        onSearchChange={setSearchText}
+        editingItem={editingItem}
+        copiedItems={copiedItems}
+        dropdownOpen={dropdownOpen}
+        onDropdownToggle={handleDropdownToggle}
+        onEditStart={handleEditStart}
+        onEditSave={handleEditSave}
+        onEditCancel={handleEditCancel}
+        onDelete={handleDelete}
+        onReview={handleReview}
+        onMaster={handleMaster}
+        onUnmaster={handleUnmaster}
+        onCopy={handleCopy}
+        onImageClick={openImageModal}
+        onError={setError}
+      />
 
-              <div className="form-actions">
-                <button type="submit" disabled={!newItemContent.trim()}>
-                  ➕ 追加
-                </button>
-                <button
-                  type="button"
-                  onClick={handleAddFormCancel}
-                  className="cancel-btn"
-                >
-                  キャンセル
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-      </section>
-
-      {/* アイテム一覧 */}
-      <section className="items">
-        <div className="items-header">
-          <h2>{showAllItems ? 'すべての学習項目' : '復習が必要な項目'}</h2>
-          <div className="view-toggle">
-            <button
-              onClick={() => setShowAllItems(!showAllItems)}
-              className="toggle-button"
-            >
-              {showAllItems
-                ? '復習項目のみ'
-                : 'すべて表示'}
-            </button>
-            {!showAllItems && reviewItemsCount > 0 && (
-              <span className="review-count">
-                {reviewItemsCount}件
-              </span>
-            )}
-            {showAllItems && (
-              <span className="review-count">
-                復習: {reviewItemsCount}件 / 待機: {waitingItemsCount}件 / 覚えた: {masteredItemsCount}件
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* テキスト検索 */}
-        <div className="search-container">
-          <input
-            type="text"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            placeholder="キーワードで絞り込み..."
-            className="search-input"
-          />
-          {searchText && (
-            <button
-              onClick={() => setSearchText('')}
-              className="search-clear-btn"
-              title="クリア"
-            >
-              ✕
-            </button>
-          )}
-        </div>
-
-        {loading ? (
-          <div className="loading">⏳ 読み込み中...</div>
-        ) : items.length === 0 ? (
-          <div className="empty">
-            📝 まだ学習項目がありません。上記フォームから追加してください。
-          </div>
-        ) : displayItems.length === 0 ? (
-          <div className="empty">
-            🎉 復習が必要な項目はありません！お疲れ様でした。
-          </div>
-        ) : (
-          <div className="items-list">
-            {displayItems.map((item) => (
-              <div
-                key={item.id}
-                className={`item ${
-                  item.mastered ? 'mastered' : needsReview(item) ? 'needs-review' : 'waiting'
-                }`}
-              >
-                <div className="item-content">
-                  {editingItem === item.id ? (
-                    <div className="edit-form">
-                      <div className="input-wrapper">
-                        <textarea
-                          value={editContent}
-                          onChange={(e) => setEditContent(e.target.value)}
-                          maxLength={750}
-                          className="edit-textarea"
-                          autoFocus
-                          rows={6}
-                        />
-                        <div
-                          className={`char-counter ${
-                            editContent.length > 650 ? 'warning' : ''
-                          } ${editContent.length >= 750 ? 'danger' : ''}`}
-                        >
-                          {editContent.length}/750
-                        </div>
-                      </div>
-
-                      {/* 編集時の画像操作 */}
-                      <div className="edit-image-container">
-                        {/* 現在の画像表示 */}
-                        {item.image_url && !removeEditImage && (
-                          <div className="current-image">
-                            <img
-                              src={item.image_url}
-                              alt="現在の画像"
-                              className="edit-current-image"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setRemoveEditImage(true)}
-                              className="remove-current-image-btn"
-                            >
-                              🗑️ 画像を削除
-                            </button>
-                          </div>
-                        )}
-
-                        {/* 画像削除状態の表示 */}
-                        {removeEditImage && (
-                          <div className="image-removed">
-                            <span>画像が削除されます</span>
-                            <button
-                              type="button"
-                              onClick={() => setRemoveEditImage(false)}
-                              className="undo-remove-btn"
-                            >
-                              ↶ 削除を取り消し
-                            </button>
-                          </div>
-                        )}
-
-                        {/* 新しい画像アップロード */}
-                        <div className="edit-image-upload">
-                          <label
-                            htmlFor="edit-image-upload"
-                            className="image-upload-label"
-                          >
-                            📷 {item.image_url ? '画像を変更' : '画像を追加'}{' '}
-                            (任意・クリップボードからペースト可能)
-                          </label>
-                          <input
-                            type="file"
-                            id="edit-image-upload"
-                            ref={editFileInputRef}
-                            accept="image/jpeg,image/png,image/webp,image/gif"
-                            onChange={handleEditImageChange}
-                            className="image-upload-input"
-                          />
-                          {editImage && (
-                            <div className="image-preview">
-                              <img
-                                src={editImagePreview!}
-                                alt="選択した新しい画像"
-                                className="preview-thumbnail"
-                              />
-                              <span>新しい画像: {editImage.name}</span>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditImage(null);
-                                  cleanupImagePreview(editImagePreview);
-                                  setEditImagePreview(null);
-                                  setRemoveEditImage(false);
-                                  resetFileInput(editFileInputRef);
-                                }}
-                                className="remove-image-btn"
-                              >
-                                ❌
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="edit-actions">
-                        <button
-                          onClick={() => handleEditSave(item.id)}
-                          className="save-button"
-                          disabled={!editContent.trim()}
-                        >
-                          💾 保存
-                        </button>
-                        <button
-                          onClick={handleEditCancel}
-                          className="cancel-button"
-                        >
-                          ❌ キャンセル
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      {/* 画像表示 */}
-                      {item.image_url && (
-                        <div className="item-image">
-                          <img
-                            src={item.image_url}
-                            alt="学習項目の画像"
-                            loading="lazy"
-                            onClick={() => openImageModal(item.image_url!)}
-                            style={{ cursor: 'pointer' }}
-                            title="クリックして拡大表示"
-                          />
-                        </div>
-                      )}
-
-                      <div className="content-with-actions">
-                        <div className="item-text">{item.content}</div>
-                        <button
-                          onClick={() => handleCopy(item.id, item.content)}
-                          className="copy-button"
-                          title={
-                            copiedItems.has(item.id)
-                              ? 'コピー済み'
-                              : 'クリップボードにコピー'
-                          }
-                        >
-                          {copiedItems.has(item.id)
-                            ? '✓ コピー済み'
-                            : '📋 コピー'}
-                        </button>
-                        <div className="item-actions-menu">
-                          <div className="dropdown-container">
-                            <button
-                              onClick={() =>
-                                setDropdownOpen(
-                                  dropdownOpen === item.id ? null : item.id
-                                )
-                              }
-                              className="dropdown-toggle"
-                              title="アクション"
-                            >
-                              ⌄
-                            </button>
-                            {dropdownOpen === item.id && (
-                              <div className="dropdown-menu">
-                                <button
-                                  onClick={() => {
-                                    handleEditStart(item);
-                                    setDropdownOpen(null);
-                                  }}
-                                  className="dropdown-item"
-                                >
-                                  ✏️ 編集
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    handleDelete(item.id);
-                                    setDropdownOpen(null);
-                                  }}
-                                  className="dropdown-item delete-item"
-                                >
-                                  🗑️ 削除
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="item-meta">
-                        <span>復習回数: {item.review_count}</span>
-                        <span>間隔: {item.interval_days}日</span>
-                        <span>難易度: {item.ease_factor.toFixed(1)}</span>
-                        {item.next_review && (
-                          <span>
-                            次回復習:{' '}
-                            {new Date(item.next_review).toLocaleDateString(
-                              'ja-JP'
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {editingItem !== item.id && (
-                  <div className="item-actions">
-                    {item.mastered ? (
-                      <div className="action-buttons">
-                        <span className="waiting-text">✅ 覚えた項目</span>
-                        <button
-                          onClick={() => handleUnmaster(item.id)}
-                          className="unmaster-button"
-                          title="覚え直し（復習スケジュールをリセット）"
-                        >
-                          🔄 覚え直し
-                        </button>
-                      </div>
-                    ) : needsReview(item) ? (
-                      <div className="action-buttons">
-                        <div className="review-buttons">
-                          <button
-                            onClick={() => handleReview(item.id, 2)}
-                            className="quality-2"
-                            title="少し思い出せた"
-                          >
-                            🤔 曖昧
-                          </button>
-                          <button
-                            onClick={() => handleReview(item.id, 5)}
-                            className="quality-5"
-                            title="完璧に覚えている"
-                          >
-                            ✨ 完璧
-                          </button>
-                        </div>
-                        <div className="master-section">
-                          <button
-                            onClick={() => handleMaster(item.id)}
-                            className="master-button"
-                            title="完全に覚えた（復習から外す）"
-                          >
-                            🎯 覚えた
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="action-buttons">
-                        <span className="waiting-text">⏰ 復習待ち</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* 画像モーダル */}
-      {imageModalOpen && (
-        <div
-          className="image-modal-overlay"
-          onClick={closeImageModal}
-        >
-          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="image-modal-close"
-              onClick={closeImageModal}
-              title="閉じる (ESC)"
-            >
-              ✕
-            </button>
-            <img
-              src={modalImageSrc}
-              alt="画像（拡大表示）"
-              className="image-modal-img"
-            />
-          </div>
-        </div>
-      )}
+      <ImageModal isOpen={imageModalOpen} imageSrc={modalImageSrc} onClose={closeImageModal} />
     </div>
   );
 }

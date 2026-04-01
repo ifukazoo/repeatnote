@@ -1,0 +1,150 @@
+/* コンテンツとアクション */
+.content-with-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.content-with-actions .item-text {
+  flex: 1;
+  font-size: 1.1rem;
+  color: #1e293b;
+  font-weight: 500;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+
+.item-actions-menu {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* コピーボタン */
+.copy-button {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  white-space: nowrap;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+  width: 110px;
+  text-align: center;
+}
+
+.copy-button:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.copy-button:active,
+.copy-button[title='コピー済み'] {
+  background: #dcfce7;
+  color: #16a34a;
+  border-color: #86efac;
+}
+
+/* ドロップダウン */
+.dropdown-container {
+  position: relative;
+}
+
+.dropdown-toggle {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s;
+  min-width: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdown-toggle:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  min-width: 100px;
+  margin-top: 2px;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #374151;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+  background: #f9fafb;
+}
+
+.dropdown-item.delete-item:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* アイテム画像表示 */
+.item-image {
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.item-image img {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+/* メタ情報 */
+.item-meta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+@media (max-width: 640px) {
+  .item-image img {
+    max-width: 100%;
+  }
+
+  .copy-button {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.4rem;
+    width: 100px;
+  }
+}
