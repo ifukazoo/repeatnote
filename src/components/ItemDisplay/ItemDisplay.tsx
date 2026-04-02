@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import type { Item } from '../../types';
 import './ItemDisplay.css';
 
@@ -40,7 +41,7 @@ export function ItemDisplay({
 
       <div className="content-with-actions">
         <div className="item-text item-text--markdown">
-          <ReactMarkdown>{item.content}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.content}</ReactMarkdown>
         </div>
         <button
           onClick={onCopy}

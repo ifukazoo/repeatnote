@@ -128,6 +128,30 @@
   object-fit: cover;
 }
 
+/* Markdownテーブル (GitHub スタイル) */
+.item-text--markdown table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+}
+
+.item-text--markdown th,
+.item-text--markdown td {
+  border: 1px solid #d0d7de;
+  padding: 6px 13px;
+  text-align: left;
+}
+
+.item-text--markdown th {
+  background-color: #f6f8fa;
+  font-weight: 600;
+}
+
+.item-text--markdown tr:nth-child(even) td {
+  background-color: #f6f8fa;
+}
+
 /* メタ情報 */
 .item-meta {
   display: flex;

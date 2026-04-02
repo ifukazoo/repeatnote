@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useImageUpload } from '../../hooks/useImageUpload';
 import './EditForm.css';
 
@@ -78,7 +79,7 @@ export function EditForm({
         </div>
       ) : (
         <div className="item-text item-text--markdown markdown-preview-panel">
-          <ReactMarkdown>{editContent}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{editContent}</ReactMarkdown>
         </div>
       )}
 
