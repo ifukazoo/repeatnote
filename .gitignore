@@ -23,6 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 
+# Playwright MCP artifacts
+.playwright-mcp/
+
 # wrangler files
 .wrangler
 .dev.vars*

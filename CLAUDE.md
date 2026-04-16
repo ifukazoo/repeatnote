@@ -69,6 +69,9 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
 - **`api.ts`**: Centralized API communication with error handling via ApiError class
 - **`types.ts`**: TypeScript interfaces for Item, CreateItemData, UpdateItemData, and API responses
 - **`constants.ts`**: Shared configuration for image validation and error messages
+- **`shared.css`**: Shared styles used by multiple components (input-wrapper/char-counter, image upload, Markdown rendering)
+- **`App.css`**: App-level styles only (.app, header, .error)
+- **`index.css`**: Global styles (body, *, #root)
 
 **Custom Hooks (`src/hooks/`)**:
 - **`useImageUpload.ts`**: Image state, file validation, change/paste handlers, preview URL cleanup on unmount
@@ -211,6 +214,7 @@ Application fully deployed and functional with complete feature set including:
 - ✅ Production-ready security and optimization
 - ✅ Component refactoring: split into hooks + 6 components (App.tsx: 956→187 lines)
 - ✅ Markdown viewer with react-markdown (item display + edit preview tab)
+- ✅ CSS整理: 共有スタイルを shared.css に集約（App.css はアプリレベルのみ）
 
 Remaining tasks in `TODO.md`: production environment optimization (medium priority).
 

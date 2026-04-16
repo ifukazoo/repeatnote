@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useImageUpload } from '../../hooks/useImageUpload';
 import './EditForm.css';
+import '../../shared.css';
 
 interface EditFormProps {
   initialContent: string;

@@ -15,6 +15,7 @@ import { AddItemForm } from './components/AddItemForm/AddItemForm';
 import { ItemList } from './components/ItemList/ItemList';
 import { ImageModal } from './components/ImageModal/ImageModal';
 import './App.css';
+import './shared.css';
 
 function App() {
   const [items, setItems] = useState<Item[]>([]);

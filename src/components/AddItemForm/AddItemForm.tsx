@@ -3,6 +3,7 @@ import { createItem, ApiError } from '../../api';
 import type { Item } from '../../types';
 import { useImageUpload } from '../../hooks/useImageUpload';
 import './AddItemForm.css';
+import '../../shared.css';
 
 interface AddItemFormProps {
   onItemCreated: (item: Item) => void;

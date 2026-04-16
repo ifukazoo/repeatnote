@@ -1,0 +1,189 @@
+/* 共有スタイル: 複数コンポーネントで使用 */
+
+/* input-wrapper と char-counter */
+.input-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.char-counter {
+  position: absolute;
+  right: 0.5rem;
+  bottom: -1.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  background: white;
+  padding: 0 0.25rem;
+  transition: color 0.2s;
+}
+
+.char-counter.warning {
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.char-counter.danger {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+/* 画像アップロード */
+.image-upload-container {
+  margin-bottom: 0;
+}
+
+.image-upload-label {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px dashed #cbd5e1;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  height: 48px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-upload-label:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+.image-upload-input {
+  display: none;
+}
+
+.image-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f8fafc;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.875rem;
+  color: #475569;
+  margin-top: 0.5rem;
+}
+
+.remove-image-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  transition: background 0.2s ease;
+}
+
+.remove-image-btn:hover {
+  background: #f1f5f9;
+}
+
+.preview-thumbnail {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* Markdownレンダリング */
+.item-text--markdown p {
+  margin: 0 0 0.5em 0;
+}
+
+.item-text--markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.item-text--markdown strong {
+  color: #0f172a;
+}
+
+.item-text--markdown em {
+  font-style: italic;
+}
+
+.item-text--markdown code {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 3px;
+  padding: 0.1em 0.3em;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.9em;
+}
+
+.item-text--markdown pre {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.75rem;
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+
+.item-text--markdown pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.875rem;
+}
+
+.item-text--markdown ul,
+.item-text--markdown ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.item-text--markdown h1 { font-size: 2em; font-weight: 600; margin: 0.67em 0; border-bottom: 1px solid #d0d7de; padding-bottom: 0.3em; }
+.item-text--markdown h2 { font-size: 1.5em; font-weight: 600; margin: 0.83em 0; border-bottom: 1px solid #d0d7de; padding-bottom: 0.3em; }
+.item-text--markdown h3 { font-size: 1.25em; font-weight: 600; margin: 1em 0; }
+.item-text--markdown h4 { font-size: 1em; font-weight: 600; margin: 1.33em 0; }
+.item-text--markdown h5 { font-size: 0.875em; font-weight: 600; margin: 1.67em 0; }
+.item-text--markdown h6 { font-size: 0.85em; font-weight: 600; margin: 2.33em 0; color: #57606a; }
+
+.item-text--markdown blockquote {
+  border-left: 3px solid #cbd5e1;
+  margin: 0.5em 0;
+  padding-left: 0.75em;
+  color: #64748b;
+}
+
+/* Markdownテーブル (GitHub スタイル) */
+.item-text--markdown table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+}
+
+.item-text--markdown th,
+.item-text--markdown td {
+  border: 1px solid #d0d7de;
+  padding: 6px 13px;
+  text-align: left;
+}
+
+.item-text--markdown th {
+  background-color: #f6f8fa;
+  font-weight: 600;
+}
+
+.item-text--markdown tr:nth-child(even) td {
+  background-color: #f6f8fa;
+}
+
+@media (max-width: 640px) {
+  .input-wrapper {
+    margin-bottom: 1.5rem;
+  }
+}

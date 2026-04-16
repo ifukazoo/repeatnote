@@ -2,6 +2,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Item } from '../../types';
 import './ItemDisplay.css';
+import '../../shared.css';
 
 interface ItemDisplayProps {
   item: Item;
