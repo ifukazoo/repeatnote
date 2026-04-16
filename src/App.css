@@ -182,12 +182,12 @@ header p {
   margin: 0.5em 0;
 }
 
-.item-text--markdown h1,
-.item-text--markdown h2,
-.item-text--markdown h3 {
-  font-size: 1rem;
-  margin: 0.5em 0 0.25em 0;
-}
+.item-text--markdown h1 { font-size: 2em; font-weight: 600; margin: 0.67em 0; border-bottom: 1px solid #d0d7de; padding-bottom: 0.3em; }
+.item-text--markdown h2 { font-size: 1.5em; font-weight: 600; margin: 0.83em 0; border-bottom: 1px solid #d0d7de; padding-bottom: 0.3em; }
+.item-text--markdown h3 { font-size: 1.25em; font-weight: 600; margin: 1em 0; }
+.item-text--markdown h4 { font-size: 1em; font-weight: 600; margin: 1.33em 0; }
+.item-text--markdown h5 { font-size: 0.875em; font-weight: 600; margin: 1.67em 0; }
+.item-text--markdown h6 { font-size: 0.85em; font-weight: 600; margin: 2.33em 0; color: #57606a; }
 
 .item-text--markdown blockquote {
   border-left: 3px solid #cbd5e1;
