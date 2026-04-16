@@ -41,6 +41,96 @@ function makeEnv(): Env {
 
 const BASE_URL = 'https://repeatnote.example.com';
 
+describe('POST /api/items', () => {
+  beforeEach(() => {
+    mockCreateItem.mockResolvedValue(mockItem);
+  });
+
+  describe('JSON形式', () => {
+    it('contentで201とアイテムを返す', async () => {
+      const request = new Request(`${BASE_URL}/api/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: 'テスト項目' }),
+      });
+
+      const response = await handler.fetch(request, makeEnv());
+      expect(response.status).toBe(201);
+    });
+
+    it('contentが空の場合は400を返す', async () => {
+      const request = new Request(`${BASE_URL}/api/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: '' }),
+      });
+
+      const response = await handler.fetch(request, makeEnv());
+      expect(response.status).toBe(400);
+      const body = (await response.json()) as { error: string };
+      expect(body.error).toBe('Content is required');
+    });
+
+    it('contentが751文字超の場合は400を返す', async () => {
+      const request = new Request(`${BASE_URL}/api/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: 'a'.repeat(751) }),
+      });
+
+      const response = await handler.fetch(request, makeEnv());
+      expect(response.status).toBe(400);
+      const body = (await response.json()) as { error: string };
+      expect(body.error).toBe('Content too long (max 750 characters)');
+    });
+  });
+
+  describe('FormData形式', () => {
+    it('contentのみで201を返す', async () => {
+      const formData = new FormData();
+      formData.append('content', 'テスト項目');
+
+      const request = new Request(`${BASE_URL}/api/items`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const response = await handler.fetch(request, makeEnv());
+      expect(response.status).toBe(201);
+    });
+
+    it('contentが空の場合は400を返す', async () => {
+      const formData = new FormData();
+      formData.append('content', '');
+
+      const request = new Request(`${BASE_URL}/api/items`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const response = await handler.fetch(request, makeEnv());
+      expect(response.status).toBe(400);
+      const body = (await response.json()) as { error: string };
+      expect(body.error).toBe('Content is required');
+    });
+
+    it('contentが751文字超の場合は400を返す', async () => {
+      const formData = new FormData();
+      formData.append('content', 'a'.repeat(751));
+
+      const request = new Request(`${BASE_URL}/api/items`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const response = await handler.fetch(request, makeEnv());
+      expect(response.status).toBe(400);
+      const body = (await response.json()) as { error: string };
+      expect(body.error).toBe('Content too long (max 750 characters)');
+    });
+  });
+});
+
 describe('POST /api/external/items', () => {
   beforeEach(() => {
     mockCreateItem.mockResolvedValue(mockItem);

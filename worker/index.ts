@@ -10,6 +10,29 @@ import {
 import type { CreateItemData, ReviewResult } from './database';
 import { IMAGE_CONFIG } from './constants';
 
+function jsonError(message: string, status: number = 400): Response {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+function validateContent(content: string): Response | null {
+  if (!content || content.trim() === '') return jsonError('Content is required');
+  if (content.length > 750) return jsonError('Content too long (max 750 characters)');
+  return null;
+}
+
+function parseItemFormData(
+  formData: FormData,
+): { content: string; imageFile: File | null } | Response {
+  const contentEntry = formData.get('content');
+  if (typeof contentEntry !== 'string') return jsonError('Invalid content type');
+  const imageEntry = formData.get('image');
+  if (imageEntry && !(imageEntry instanceof File)) return jsonError('Invalid image type');
+  return { content: contentEntry, imageFile: imageEntry as File | null };
+}
+
 // 画像アップロードヘルパー
 async function uploadImageToR2(
   env: Env,
@@ -80,53 +103,14 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       let imageFilename: string | null = null;
 
       if (contentType.includes('multipart/form-data')) {
-        // FormDataから画像とテキストを処理
         const formData = await request.formData();
+        const parsed = parseItemFormData(formData);
+        if (parsed instanceof Response) return parsed;
+        const { content, imageFile } = parsed;
 
-        // 型安全なFormData処理
-        const contentEntry = formData.get('content');
-        if (typeof contentEntry !== 'string') {
-          return new Response(
-            JSON.stringify({ error: 'Invalid content type' }),
-            {
-              status: 400,
-              headers: { 'Content-Type': 'application/json' },
-            },
-          );
-        }
+        const contentError = validateContent(content);
+        if (contentError) return contentError;
 
-        const imageEntry = formData.get('image');
-        if (imageEntry && !(imageEntry instanceof File)) {
-          return new Response(JSON.stringify({ error: 'Invalid image type' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-
-        const content = contentEntry;
-        const imageFile = imageEntry as File | null; // 型ガードで安全性確保済み
-
-        if (!content || content.trim() === '') {
-          return new Response(
-            JSON.stringify({ error: 'Content is required' }),
-            {
-              status: 400,
-              headers: { 'Content-Type': 'application/json' },
-            },
-          );
-        }
-
-        if (content.length > 750) {
-          return new Response(
-            JSON.stringify({ error: 'Content too long (max 750 characters)' }),
-            {
-              status: 400,
-              headers: { 'Content-Type': 'application/json' },
-            },
-          );
-        }
-
-        // 画像アップロード処理
         if (imageFile && imageFile.size > 0) {
           const uploadResult = await uploadImageToR2(env, imageFile);
           if (uploadResult instanceof Response) return uploadResult;
@@ -136,29 +120,9 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
 
         itemData = { content: content.trim() };
       } else {
-        // JSON形式（従来の処理）
         const body = (await request.json()) as CreateItemData;
-
-        if (!body.content || body.content.trim() === '') {
-          return new Response(
-            JSON.stringify({ error: 'Content is required' }),
-            {
-              status: 400,
-              headers: { 'Content-Type': 'application/json' },
-            },
-          );
-        }
-
-        if (body.content.length > 750) {
-          return new Response(
-            JSON.stringify({ error: 'Content too long (max 750 characters)' }),
-            {
-              status: 400,
-              headers: { 'Content-Type': 'application/json' },
-            },
-          );
-        }
-
+        const contentError = validateContent(body.content);
+        if (contentError) return contentError;
         itemData = { content: body.content.trim() };
       }
 
@@ -183,39 +147,12 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
 
       if (contentType.includes('multipart/form-data')) {
         const formData = await request.formData();
+        const parsed = parseItemFormData(formData);
+        if (parsed instanceof Response) return parsed;
+        const { content, imageFile } = parsed;
 
-        const contentEntry = formData.get('content');
-        if (typeof contentEntry !== 'string') {
-          return new Response(
-            JSON.stringify({ error: 'Invalid content type' }),
-            { status: 400, headers: { 'Content-Type': 'application/json' } },
-          );
-        }
-
-        const imageEntry = formData.get('image');
-        if (imageEntry && !(imageEntry instanceof File)) {
-          return new Response(
-            JSON.stringify({ error: 'Invalid image type' }),
-            { status: 400, headers: { 'Content-Type': 'application/json' } },
-          );
-        }
-
-        const content = contentEntry;
-        const imageFile = imageEntry as File | null;
-
-        if (!content || content.trim() === '') {
-          return new Response(
-            JSON.stringify({ error: 'Content is required' }),
-            { status: 400, headers: { 'Content-Type': 'application/json' } },
-          );
-        }
-
-        if (content.length > 750) {
-          return new Response(
-            JSON.stringify({ error: 'Content too long (max 750 characters)' }),
-            { status: 400, headers: { 'Content-Type': 'application/json' } },
-          );
-        }
+        const contentError = validateContent(content);
+        if (contentError) return contentError;
 
         if (imageFile && imageFile.size > 0) {
           const uploadResult = await uploadImageToR2(env, imageFile);
@@ -227,21 +164,8 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
         itemData = { content: content.trim() };
       } else {
         const body = (await request.json()) as CreateItemData;
-
-        if (!body.content || body.content.trim() === '') {
-          return new Response(
-            JSON.stringify({ error: 'Content is required' }),
-            { status: 400, headers: { 'Content-Type': 'application/json' } },
-          );
-        }
-
-        if (body.content.length > 750) {
-          return new Response(
-            JSON.stringify({ error: 'Content too long (max 750 characters)' }),
-            { status: 400, headers: { 'Content-Type': 'application/json' } },
-          );
-        }
-
+        const contentError = validateContent(body.content);
+        if (contentError) return contentError;
         itemData = { content: body.content.trim() };
       }
 
@@ -361,35 +285,14 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       let shouldRemoveImage = false;
 
       if (contentType.includes('multipart/form-data')) {
-        // FormData処理（画像編集対応）
         const formData = await request.formData();
+        const parsed = parseItemFormData(formData);
+        if (parsed instanceof Response) return parsed;
+        const { content: parsedContent, imageFile } = parsed;
 
-        const contentEntry = formData.get('content');
-        if (typeof contentEntry !== 'string') {
-          return new Response(
-            JSON.stringify({ error: 'Invalid content type' }),
-            {
-              status: 400,
-              headers: { 'Content-Type': 'application/json' },
-            },
-          );
-        }
+        shouldRemoveImage = formData.get('removeImage') === 'true';
+        content = parsedContent;
 
-        const imageEntry = formData.get('image');
-        if (imageEntry && !(imageEntry instanceof File)) {
-          return new Response(JSON.stringify({ error: 'Invalid image type' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-
-        const removeImageEntry = formData.get('removeImage');
-        shouldRemoveImage = removeImageEntry === 'true';
-
-        content = contentEntry;
-        const imageFile = imageEntry as File | null;
-
-        // 新しい画像がアップロードされた場合
         if (imageFile && imageFile.size > 0) {
           const uploadResult = await uploadImageToR2(env, imageFile);
           if (uploadResult instanceof Response) return uploadResult;
@@ -410,23 +313,8 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
         content = requestData.content;
       }
 
-      // バリデーション
-      if (!content || content.trim().length === 0) {
-        return new Response(JSON.stringify({ error: 'Content is required' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
-
-      if (content.length > 750) {
-        return new Response(
-          JSON.stringify({ error: 'Content too long (max 750 characters)' }),
-          {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          },
-        );
-      }
+      const contentError = validateContent(content);
+      if (contentError) return contentError;
 
       const updateResult = await updateItem(
         env.DB,
