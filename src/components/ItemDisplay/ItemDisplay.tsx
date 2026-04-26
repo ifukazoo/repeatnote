@@ -40,10 +40,11 @@ export function ItemDisplay({
         </div>
       )}
 
-      <div className="content-with-actions">
-        <div className="item-text item-text--markdown">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.content}</ReactMarkdown>
-        </div>
+      <div className="item-text item-text--markdown">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.content}</ReactMarkdown>
+      </div>
+
+      <div className="content-actions-bar">
         <button
           onClick={onCopy}
           className="copy-button"

@@ -1,21 +1,21 @@
-/* コンテンツとアクション */
-.content-with-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.content-with-actions .item-text {
-  flex: 1;
+/* コンテンツ */
+.item-text {
   font-size: 1.1rem;
   color: #1e293b;
   font-weight: 500;
   word-break: break-word;
   line-height: 1.5;
+  margin-bottom: 0.5rem;
 }
 
+/* アクションバー（テキストの下） */
+.content-actions-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
 
 .item-actions-menu {
   display: flex;
