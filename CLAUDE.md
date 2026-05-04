@@ -271,7 +271,20 @@ Remaining tasks in `TODO.md`: production environment optimization (medium priori
 - `npm run test:ui` - Interactive UI mode
 - `npx vitest run src/test/<filename>.test.ts` - 単一テストファイルを実行
 
-**Total: 57 tests** covering core business logic, API layer, validation, UI components, and external API.
+**Total: 69 tests** covering core business logic, API layer, validation, UI components, and external API.
+
+### テスト環境の方針と判断根拠
+
+テスト環境は `@vitest-environment node`（Node.js ランタイム）を使用し、D1・R2・ExecutionContext は手動モックで対応している。
+
+`@cloudflare/vitest-pool-workers`（Miniflare ベースの本物の Workers ランタイム）への移行は**意図的に見送った**。理由：
+
+- テストの主目的はビジネスロジック（SM-2アルゴリズム・APIレイヤー・バリデーション）の検証であり、現環境で十分カバーできている
+- 個人用途の現規模では、セットアップコストに見合う恩恵がない
+
+**この判断を覆す目安**: D1トランザクション・キャッシュ無効化ロジックなど、Worker 固有の複雑な動作をテストで検証する必要が生じたとき。
+
+**Worker 固有の動作の検証方法**: `wrangler dev` での手動確認、または本番デプロイ後にレスポンスヘッダー（`CF-Cache-Status` など）を確認する。
 
 ## Development Notes
 
