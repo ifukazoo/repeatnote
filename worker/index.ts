@@ -116,7 +116,11 @@ async function uploadImageToR2(
 }
 
 // API ルーター関数
-async function handleApiRequest(request: Request, env: Env): Promise<Response> {
+async function handleApiRequest(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext,
+): Promise<Response> {
   const url = new URL(request.url);
   const method = request.method;
   const pathname = url.pathname;
@@ -432,6 +436,12 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
       }
       const filename = filenameMatch[1];
 
+      // Cache-Control ヘッダーだけでは Cloudflare エッジはキャッシュしないため
+      // caches.default API で明示的にエッジキャッシュへ保存・取得する
+      const cache = caches.default;
+      const cached = await cache.match(request);
+      if (cached) return cached;
+
       try {
         const object = await env.IMAGES.get(filename);
         if (!object) {
@@ -441,9 +451,11 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
         const headers = new Headers();
         object.writeHttpMetadata(headers);
         headers.set('etag', object.httpEtag);
-        headers.set('cache-control', 'public, max-age=31536000'); // 1年キャッシュ
+        headers.set('cache-control', 'public, max-age=31536000');
 
-        return new Response(object.body, { headers });
+        const response = new Response(object.body, { headers });
+        ctx.waitUntil(cache.put(request, response.clone()));
+        return response;
       } catch (_error) {
         return new Response('Failed to retrieve image', { status: 500 });
       }
@@ -464,12 +476,12 @@ async function handleApiRequest(request: Request, env: Env): Promise<Response> {
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
     // API リクエストの処理
     if (url.pathname.startsWith('/api/')) {
-      return handleApiRequest(request, env);
+      return handleApiRequest(request, env, ctx);
     }
 
     // API以外のリクエストは404を返す（静的アセットはCloudflareが処理）

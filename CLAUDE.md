@@ -108,8 +108,21 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
   - `PUT /api/items/:id/master` - Mark item as mastered (exclude from reviews)
   - `PUT /api/items/:id/unmaster` - Unmaster item and reset review schedule
   - `DELETE /api/items/:id` - Delete item and associated images
-  - `GET /api/images/:filename` - Serve images from R2 storage
+  - `GET /api/images/:filename` - Serve images from R2 storage with Cloudflare edge caching
   - `POST /api/external/items` - **外部API**: Cloudflare Access Service Auth認証付きでアイテムを追加（JSON/FormData対応、画像アップロード可）
+
+### Image Caching
+
+`GET /api/images/:filename` は `caches.default` API（Cloudflare Cache API）でエッジキャッシュを実装している。
+
+**なぜ Cache-Control ヘッダーだけでは不十分か**: Cloudflare Workers が返すレスポンスに `Cache-Control: public` を付けても、Cloudflare エッジは Workers のレスポンスを自動的にキャッシュしない。`caches.default.put()` を明示的に呼び出すことで初めてエッジにキャッシュされる。
+
+**動作フロー**:
+1. `caches.default.match(request)` でエッジキャッシュを確認
+2. キャッシュヒット → そのまま返す（Worker・R2 どちらも不要）
+3. キャッシュミス → R2 から取得し、`ctx.waitUntil(cache.put(...))` でバックグラウンドに保存してから返す
+
+`ctx.waitUntil()` を使うことで、キャッシュ保存をユーザーへのレスポンス送信と並行して実行し、レイテンシを増やさない。TTL は `Cache-Control: public, max-age=31536000`（1年）。
 
 ### External API
 

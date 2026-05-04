@@ -39,6 +39,10 @@ const mockItem = {
   mastered: false,
 };
 
+function makeCtx(): ExecutionContext {
+  return { waitUntil: vi.fn(), passThroughOnException: vi.fn(), props: {} };
+}
+
 function makeEnv(): Env {
   return {
     DB: {} as D1Database,
@@ -65,7 +69,7 @@ describe('POST /api/items', () => {
         body: JSON.stringify({ content: 'テスト項目' }),
       });
 
-      const response = await handler.fetch(request, makeEnv());
+      const response = await handler.fetch(request, makeEnv(), makeCtx());
       expect(response.status).toBe(201);
     });
 
@@ -76,7 +80,7 @@ describe('POST /api/items', () => {
         body: JSON.stringify({ content: '' }),
       });
 
-      const response = await handler.fetch(request, makeEnv());
+      const response = await handler.fetch(request, makeEnv(), makeCtx());
       expect(response.status).toBe(400);
       const body = (await response.json()) as { error: string };
       expect(body.error).toBe('Content is required');
@@ -89,7 +93,7 @@ describe('POST /api/items', () => {
         body: JSON.stringify({ content: 'a'.repeat(751) }),
       });
 
-      const response = await handler.fetch(request, makeEnv());
+      const response = await handler.fetch(request, makeEnv(), makeCtx());
       expect(response.status).toBe(400);
       const body = (await response.json()) as { error: string };
       expect(body.error).toBe('Content too long (max 750 characters)');
@@ -106,7 +110,7 @@ describe('POST /api/items', () => {
         body: formData,
       });
 
-      const response = await handler.fetch(request, makeEnv());
+      const response = await handler.fetch(request, makeEnv(), makeCtx());
       expect(response.status).toBe(201);
     });
 
@@ -119,7 +123,7 @@ describe('POST /api/items', () => {
         body: formData,
       });
 
-      const response = await handler.fetch(request, makeEnv());
+      const response = await handler.fetch(request, makeEnv(), makeCtx());
       expect(response.status).toBe(400);
       const body = (await response.json()) as { error: string };
       expect(body.error).toBe('Content is required');
@@ -134,7 +138,7 @@ describe('POST /api/items', () => {
         body: formData,
       });
 
-      const response = await handler.fetch(request, makeEnv());
+      const response = await handler.fetch(request, makeEnv(), makeCtx());
       expect(response.status).toBe(400);
       const body = (await response.json()) as { error: string };
       expect(body.error).toBe('Content too long (max 750 characters)');
@@ -155,7 +159,7 @@ describe('POST /api/external/items', () => {
         body: JSON.stringify({ content: 'テスト項目' }),
       });
 
-      const response = await handler.fetch(request, makeEnv());
+      const response = await handler.fetch(request, makeEnv(), makeCtx());
       expect(response.status).toBe(201);
       const body = (await response.json()) as { item: typeof mockItem };
       expect(body.item).toEqual(mockItem);
@@ -174,7 +178,7 @@ describe('POST /api/external/items', () => {
         body: JSON.stringify({ content: '' }),
       });
 
-      const response = await handler.fetch(request, makeEnv());
+      const response = await handler.fetch(request, makeEnv(), makeCtx());
       expect(response.status).toBe(400);
     });
 
@@ -185,7 +189,7 @@ describe('POST /api/external/items', () => {
         body: JSON.stringify({ content: 'a'.repeat(751) }),
       });
 
-      const response = await handler.fetch(request, makeEnv());
+      const response = await handler.fetch(request, makeEnv(), makeCtx());
       expect(response.status).toBe(400);
     });
   });
@@ -200,7 +204,7 @@ describe('POST /api/external/items', () => {
         body: formData,
       });
 
-      const response = await handler.fetch(request, makeEnv());
+      const response = await handler.fetch(request, makeEnv(), makeCtx());
       expect(response.status).toBe(201);
     });
 
@@ -215,7 +219,7 @@ describe('POST /api/external/items', () => {
         body: formData,
       });
 
-      const response = await handler.fetch(request, env);
+      const response = await handler.fetch(request, env, makeCtx());
       expect(response.status).toBe(201);
       expect(env.IMAGES.put).toHaveBeenCalled();
     });
@@ -242,7 +246,7 @@ describe('画像マジックバイト検証', () => {
       body: formData,
     });
 
-    const response = await handler.fetch(request, makeEnv());
+    const response = await handler.fetch(request, makeEnv(), makeCtx());
     expect(response.status).toBe(201);
   });
 
@@ -257,7 +261,7 @@ describe('画像マジックバイト検証', () => {
       body: formData,
     });
 
-    const response = await handler.fetch(request, makeEnv());
+    const response = await handler.fetch(request, makeEnv(), makeCtx());
     expect(response.status).toBe(400);
     const body = (await response.json()) as { error: string };
     expect(body.error).toBe('Image content does not match declared type');
@@ -273,7 +277,7 @@ describe('画像マジックバイト検証', () => {
       body: formData,
     });
 
-    const response = await handler.fetch(request, makeEnv());
+    const response = await handler.fetch(request, makeEnv(), makeCtx());
     expect(response.status).toBe(400);
   });
 });
