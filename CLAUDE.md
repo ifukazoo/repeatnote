@@ -51,7 +51,7 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
 ### Core Functionality
 
 - **Spaced Repetition**: SM-2 algorithm calculates optimal review intervals based on recall quality (0-5 scale)
-- **Learning Items**: Create, edit, and delete study items with 750-character limit
+- **Learning Items**: Create, edit, and delete study items with 1000-character limit
 - **Image Support**: Upload, edit, and delete images (JPEG/PNG/WebP/GIF, 5MB limit) with Cloudflare R2 storage
 - **Review System**: Quality-based evaluation with visual feedback (😵 忘れた, 🤔 曖昧, 💡 思い出した, ✨ 完璧)
 - **Master/Unmaster**: Mark items as "mastered" to exclude from review cycle, or unmaster to resume reviews
@@ -87,7 +87,7 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
 - **`ImageModal/`**: Full-screen image overlay modal
 
 **UI Features**:
-  - Character counters with visual warnings (650+ orange, 750 red)
+  - Character counters with visual warnings (900+ orange, 1000+ red, submit disabled when over 1000)
   - Markdown rendering for item content (bold, italic, code, lists, blockquotes, headings)
   - Edit/Preview tab toggle in edit form for live Markdown preview
   - Image upload with preview thumbnails and validation
@@ -102,7 +102,7 @@ npx wrangler d1 execute repeatnote-db --remote --command="SELECT * FROM items"
 - **`constants.ts`**: Image configuration and validation constants
 - **API Endpoints**:
   - `GET /api/items` - Retrieve all items
-  - `POST /api/items` - Create new item (750 char limit, FormData/JSON support, image upload)
+  - `POST /api/items` - Create new item (1000 char limit, FormData/JSON support, image upload)
   - `PUT /api/items/:id` - Update item content and images
   - `PUT /api/items/:id/review` - Process review with quality score
   - `PUT /api/items/:id/master` - Mark item as mastered (exclude from reviews)

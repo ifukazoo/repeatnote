@@ -19,7 +19,7 @@ function jsonError(message: string, status: number = 400): Response {
 
 function validateContent(content: string): Response | null {
   if (!content || content.trim() === '') return jsonError('Content is required');
-  if (content.length > 750) return jsonError('Content too long (max 750 characters)');
+  if (content.length > 1000) return jsonError('Content too long (max 1000 characters)');
   return null;
 }
 

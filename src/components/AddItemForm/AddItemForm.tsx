@@ -56,14 +56,13 @@ export function AddItemForm({ onItemCreated, onError }: AddItemFormProps) {
                 onChange={(e) => setNewItemContent(e.target.value)}
                 onPaste={handleClipboardPaste}
                 placeholder="学習内容を入力してください"
-                maxLength={750}
                 rows={1}
                 className="add-textarea"
               />
               <div
-                className={`char-counter ${newItemContent.length > 650 ? 'warning' : ''} ${newItemContent.length >= 750 ? 'danger' : ''}`}
+                className={`char-counter ${newItemContent.length > 900 ? 'warning' : ''} ${newItemContent.length >= 1000 ? 'danger' : ''}`}
               >
-                {newItemContent.length}/750
+                {newItemContent.length}/1000
               </div>
             </div>
 
@@ -91,7 +90,7 @@ export function AddItemForm({ onItemCreated, onError }: AddItemFormProps) {
             </div>
 
             <div className="form-actions">
-              <button type="submit" disabled={!newItemContent.trim()}>
+              <button type="submit" disabled={!newItemContent.trim() || newItemContent.length > 1000}>
                 ➕ 追加
               </button>
               <button type="button" onClick={handleCancel} className="cancel-btn">

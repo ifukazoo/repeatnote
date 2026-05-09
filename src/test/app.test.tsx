@@ -99,10 +99,10 @@ describe('App コンポーネント', () => {
     // 文字を入力
     await user.type(textarea, 'テスト項目');
 
-    expect(screen.getByText('5/750')).toBeInTheDocument();
+    expect(screen.getByText('5/1000')).toBeInTheDocument();
   });
 
-  it('750文字制限の警告が表示される', async () => {
+  it('1000文字制限の警告が表示される', async () => {
     const user = userEvent.setup();
     render(<App />);
 
@@ -112,11 +112,11 @@ describe('App コンポーネント', () => {
 
     const textarea = screen.getByPlaceholderText('学習内容を入力してください');
 
-    // 650文字以上入力（警告色）
-    const longText = 'あ'.repeat(651);
+    // 900文字以上入力（警告色）
+    const longText = 'あ'.repeat(901);
     await user.type(textarea, longText);
 
-    const counter = screen.getByText('651/750');
+    const counter = screen.getByText('901/1000');
     expect(counter).toHaveClass('warning');
   });
 });

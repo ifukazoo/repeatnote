@@ -86,17 +86,17 @@ describe('POST /api/items', () => {
       expect(body.error).toBe('Content is required');
     });
 
-    it('contentが751文字超の場合は400を返す', async () => {
+    it('contentが1001文字超の場合は400を返す', async () => {
       const request = new Request(`${BASE_URL}/api/items`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: 'a'.repeat(751) }),
+        body: JSON.stringify({ content: 'a'.repeat(1001) }),
       });
 
       const response = await handler.fetch(request, makeEnv(), makeCtx());
       expect(response.status).toBe(400);
       const body = (await response.json()) as { error: string };
-      expect(body.error).toBe('Content too long (max 750 characters)');
+      expect(body.error).toBe('Content too long (max 1000 characters)');
     });
   });
 
@@ -129,9 +129,9 @@ describe('POST /api/items', () => {
       expect(body.error).toBe('Content is required');
     });
 
-    it('contentが751文字超の場合は400を返す', async () => {
+    it('contentが1001文字超の場合は400を返す', async () => {
       const formData = new FormData();
-      formData.append('content', 'a'.repeat(751));
+      formData.append('content', 'a'.repeat(1001));
 
       const request = new Request(`${BASE_URL}/api/items`, {
         method: 'POST',
@@ -141,7 +141,7 @@ describe('POST /api/items', () => {
       const response = await handler.fetch(request, makeEnv(), makeCtx());
       expect(response.status).toBe(400);
       const body = (await response.json()) as { error: string };
-      expect(body.error).toBe('Content too long (max 750 characters)');
+      expect(body.error).toBe('Content too long (max 1000 characters)');
     });
   });
 });
@@ -182,11 +182,11 @@ describe('POST /api/external/items', () => {
       expect(response.status).toBe(400);
     });
 
-    it('contentが751文字超の場合は400を返す', async () => {
+    it('contentが1001文字超の場合は400を返す', async () => {
       const request = new Request(`${BASE_URL}/api/external/items`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: 'a'.repeat(751) }),
+        body: JSON.stringify({ content: 'a'.repeat(1001) }),
       });
 
       const response = await handler.fetch(request, makeEnv(), makeCtx());

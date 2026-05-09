@@ -34,6 +34,7 @@ export function EditForm({
 
   const handleSave = async () => {
     if (!editContent.trim()) return;
+    if (editContent.length > 1000) return;
     await onSave(editContent.trim(), editImage, removeEditImage);
   };
 
@@ -67,15 +68,14 @@ export function EditForm({
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
             onPaste={handleClipboardPaste}
-            maxLength={750}
             className="edit-textarea"
             autoFocus
             rows={6}
           />
           <div
-            className={`char-counter ${editContent.length > 650 ? 'warning' : ''} ${editContent.length >= 750 ? 'danger' : ''}`}
+            className={`char-counter ${editContent.length > 900 ? 'warning' : ''} ${editContent.length >= 1000 ? 'danger' : ''}`}
           >
-            {editContent.length}/750
+            {editContent.length}/1000
           </div>
         </div>
       ) : (
@@ -140,7 +140,7 @@ export function EditForm({
       </div>
 
       <div className="edit-actions">
-        <button onClick={handleSave} className="save-button" disabled={!editContent.trim()}>
+        <button onClick={handleSave} className="save-button" disabled={!editContent.trim() || editContent.length > 1000}>
           💾 保存
         </button>
         <button onClick={onCancel} className="cancel-button">
