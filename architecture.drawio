@@ -1,116 +1,75 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36" version="29.6.6">
-  <diagram name="ページ-1" id="rAoWD5OuplhCIvPj-KC4">
-    <mxGraphModel dx="2377" dy="1268" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+<mxfile host="app.diagrams.net" version="29.6.6">
+  <diagram name="RepeatNote Architecture" id="repeatnote-arch-v2">
+    <mxGraphModel dx="1200" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="900" pageHeight="1100" math="0" shadow="0" adaptiveColors="auto">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="2" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="外部ツール / スクリプト" vertex="1">
-          <mxGeometry height="128" width="272" x="8" y="161" as="geometry" />
+        <mxCell id="2" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);verticalAlign=top;" value="ブラウザ" vertex="1">
+          <mxGeometry height="200" width="320" x="20" y="20" as="geometry" />
         </mxCell>
-        <mxCell id="3" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Cloudflare" vertex="1">
-          <mxGeometry height="795" width="1027" x="21" y="387" as="geometry" />
+        <mxCell id="3" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#4A90D9;strokeColor=#2C5F8A;fontColor=#fff;" value="React SPA&#xa;(src/App.tsx + src/api.ts)" vertex="1">
+          <mxGeometry height="110" width="260" x="50" y="75" as="geometry" />
         </mxCell>
-        <mxCell id="4" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Cloudflare Workers" vertex="1">
-          <mxGeometry height="336" width="583" x="180" y="663" as="geometry" />
+        <mxCell id="4" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);verticalAlign=top;" value="Claude Desktop" vertex="1">
+          <mxGeometry height="310" width="370" x="460" y="20" as="geometry" />
         </mxCell>
-        <mxCell id="5" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Cloudflare Access" vertex="1">
-          <mxGeometry height="128" width="522" x="41" y="412" as="geometry" />
+        <mxCell id="5" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#4A90D9;strokeColor=#2C5F8A;fontColor=#fff;" value="Claude" vertex="1">
+          <mxGeometry height="54" width="150" x="570" y="65" as="geometry" />
         </mxCell>
-        <mxCell id="6" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="Claude Desktop" vertex="1">
-          <mxGeometry height="281" width="342" x="300" y="8" as="geometry" />
+        <mxCell id="6" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#4A90D9;strokeColor=#2C5F8A;fontColor=#fff;" value="RepeatNote MCP Server&#xa;(mcp/build/index.js)" vertex="1">
+          <mxGeometry height="78" width="300" x="495" y="210" as="geometry" />
         </mxCell>
-        <mxCell id="7" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);" value="ブラウザ" vertex="1">
-          <mxGeometry height="178" width="279" x="1068" y="387" as="geometry" />
+        <mxCell id="7" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#d5e8d4,#1e2e1e);strokeColor=light-dark(#82b366,#4a7a4a);fontColor=light-dark(#333333,#cccccc);verticalAlign=top;" value="Hono API Server (localhost:3001)" vertex="1">
+          <mxGeometry height="200" width="650" x="100" y="420" as="geometry" />
         </mxCell>
-        <mxCell id="8" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#4A90D9;strokeColor=#2C5F8A;fontColor=#fff;" value="React SPA&#xa;(App.tsx)" vertex="1">
-          <mxGeometry height="54" width="209" x="1103" y="449" as="geometry" />
+        <mxCell id="8" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#7ED321;strokeColor=#5A9A18;fontColor=#fff;" value="Items Router&#xa;(server/src/routes/items.ts)&#xa;+ SM-2 (server/src/sm2.ts)" vertex="1">
+          <mxGeometry height="100" width="260" x="130" y="480" as="geometry" />
         </mxCell>
-        <mxCell id="9" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#4A90D9;strokeColor=#2C5F8A;fontColor=#fff;" value="Claude" vertex="1">
-          <mxGeometry height="54" width="109" x="416" y="33" as="geometry" />
+        <mxCell id="9" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#7ED321;strokeColor=#5A9A18;fontColor=#fff;" value="Images Proxy&#xa;(server/src/routes/images.ts)" vertex="1">
+          <mxGeometry height="100" width="240" x="490" y="480" as="geometry" />
         </mxCell>
-        <mxCell id="10" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#4A90D9;strokeColor=#2C5F8A;fontColor=#fff;" value="RepeatNote MCP Server&#xa;(mcp/build/index.js)" vertex="1">
-          <mxGeometry height="78" width="272" x="335" y="186" as="geometry" />
+        <mxCell id="10" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#e8d5f5,#2a1e2e);strokeColor=light-dark(#9b59b6,#6c3483);fontColor=light-dark(#333333,#cccccc);verticalAlign=top;" value="Obsidian" vertex="1">
+          <mxGeometry height="280" width="650" x="100" y="700" as="geometry" />
         </mxCell>
-        <mxCell id="11" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#F5A623;strokeColor=#B87D1A;fontColor=#fff;" value="Service Auth&#xa;(Service Token認証)" vertex="1">
-          <mxGeometry height="78" width="260" x="177" y="437" as="geometry" />
+        <mxCell id="11" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#9B59B6;strokeColor=#6C3483;fontColor=#fff;" value="Local REST API Plugin&#xa;(https://127.0.0.1:27123)" vertex="1">
+          <mxGeometry height="70" width="340" x="280" y="760" as="geometry" />
         </mxCell>
-        <mxCell id="12" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#7ED321;strokeColor=#5A9A18;fontColor=#fff;" value="APIルーター&#xa;(worker/index.ts)" vertex="1">
-          <mxGeometry height="78" width="260" x="413" y="688" as="geometry" />
+        <mxCell id="12" parent="1" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=#9B59B6;strokeColor=#6C3483;fontColor=#fff;" value="Obsidian Vault&#xa;(repeatnote/*.md + attachments/)" vertex="1">
+          <mxGeometry height="90" width="360" x="270" y="860" as="geometry" />
         </mxCell>
-        <mxCell id="13" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#7ED321;strokeColor=#5A9A18;fontColor=#fff;" value="DBレイヤー&#xa;(worker/database.ts)&#xa;SM-2アルゴリズム" vertex="1">
-          <mxGeometry height="102" width="267" x="215" y="868" as="geometry" />
-        </mxCell>
-        <mxCell id="14" parent="1" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=#9B59B6;strokeColor=#6C3483;fontColor=#fff;" value="Cloudflare D1&#xa;(SQLite)" vertex="1">
-          <mxGeometry height="84" width="185" x="256" y="1073" as="geometry" />
-        </mxCell>
-        <mxCell id="15" parent="1" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=#9B59B6;strokeColor=#6C3483;fontColor=#fff;" value="Cloudflare R2&#xa;(画像ストレージ)" vertex="1">
-          <mxGeometry height="110" width="215" x="798" y="864" as="geometry" />
-        </mxCell>
-        <mxCell id="16" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#E74C3C;strokeColor=#A93226;fontColor=#fff;" value="curl / 外部サービス" vertex="1">
-          <mxGeometry height="54" width="202" x="43" y="198" as="geometry" />
-        </mxCell>
-        <mxCell id="17" edge="1" parent="1" source="8" style="curved=1;startArrow=none;endArrow=block;exitX=0.4;exitY=1;entryX=0.5;entryY=0;" target="12" value="GET/POST/PUT/DELETE&#xa;/api/*">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="1158" y="540" />
-              <mxPoint x="1158" y="565" />
-              <mxPoint x="543" y="614" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="18" edge="1" parent="1" source="9" style="curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="10" value="add_item ツール呼び出し">
+        <mxCell id="20" edge="1" parent="1" source="3" target="8" style="curved=1;startArrow=none;endArrow=block;" value="GET/POST/PUT/DELETE /api/items">
           <mxGeometry relative="1" as="geometry">
             <Array as="points" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="19" edge="1" parent="1" source="10" style="curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.88;entryY=0;" target="11" value="CF-Access-Client-Id&#xa;CF-Access-Client-Secret">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="470" y="412" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="20" edge="1" parent="1" source="16" style="curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.12;entryY=0;" target="11" value="CF-Access-Client-Id&#xa;CF-Access-Client-Secret">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="144" y="412" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="21" edge="1" parent="1" source="11" style="curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0;entryY=0.05;" target="12" value="認証済みリクエスト&#xa;POST /api/external/items">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="307" y="663" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="22" edge="1" parent="1" source="12" style="curved=1;startArrow=none;endArrow=block;exitX=0.17;exitY=1;entryX=0.5;entryY=0;" target="13" value="CRUD操作">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="349" y="815" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="23" edge="1" parent="1" source="13" style="curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0.01;" target="14" value="SQL">
+        <mxCell id="21" edge="1" parent="1" source="3" target="9" style="curved=1;startArrow=none;endArrow=block;" value="GET /api/images/:filename">
           <mxGeometry relative="1" as="geometry">
             <Array as="points" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="24" edge="1" parent="1" source="12" style="curved=1;startArrow=none;endArrow=block;exitX=0.63;exitY=1;entryX=0;entryY=0.14;" target="15" value="画像アップロード/取得/削除">
+        <mxCell id="22" edge="1" parent="1" source="5" target="6" style="curved=1;startArrow=none;endArrow=block;" value="add_item ツール呼び出し">
           <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="621" y="815" />
-            </Array>
+            <Array as="points" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="25" edge="1" parent="1" source="12" style="curved=1;startArrow=none;endArrow=block;exitX=0.97;exitY=0;entryX=0.62;entryY=1;" target="8" value="静的ファイル配信">
+        <mxCell id="23" edge="1" parent="1" source="6" target="8" style="curved=1;startArrow=none;endArrow=block;" value="POST /api/items">
           <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="743" y="663" />
-              <mxPoint x="743" y="614" />
-              <mxPoint x="1268" y="565" />
-              <mxPoint x="1268" y="540" />
-            </Array>
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="24" edge="1" parent="1" source="8" target="11" style="curved=1;startArrow=none;endArrow=block;" value="HTTP + Bearer 認証">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="25" edge="1" parent="1" source="9" target="11" style="curved=1;startArrow=none;endArrow=block;" value="HTTP + Bearer 認証">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="26" edge="1" parent="1" source="11" target="12" style="curved=1;startArrow=none;endArrow=block;" value="ファイル読み書き">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
           </mxGeometry>
         </mxCell>
       </root>
