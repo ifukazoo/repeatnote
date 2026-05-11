@@ -23,8 +23,8 @@ function App() {
   const [error, setError] = useState<string>('');
   const [showAllItems, setShowAllItems] = useState(false);
   const [searchText, setSearchText] = useState('');
-  const [editingItem, setEditingItem] = useState<number | null>(null);
-  const [copiedItems, setCopiedItems] = useState<Set<number>>(new Set());
+  const [editingItem, setEditingItem] = useState<string | null>(null);
+  const [copiedItems, setCopiedItems] = useState<Set<string>>(new Set());
   const { imageModalOpen, modalImageSrc, openImageModal, closeImageModal } = useImageModal();
   const { dropdownOpen, setDropdownOpen } = useDropdown();
 
@@ -45,7 +45,7 @@ function App() {
     loadItems();
   }, []);
 
-  const handleEditStart = (id: number) => {
+  const handleEditStart = (id: string) => {
     setDropdownOpen(null);
     setEditingItem(id);
   };
@@ -55,7 +55,7 @@ function App() {
   };
 
   const handleEditSave = async (
-    id: number,
+    id: string,
     content: string,
     image: File | null,
     removeImage: boolean,
@@ -73,7 +73,7 @@ function App() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     setDropdownOpen(null);
     const item = items.find((item) => item.id === id);
     const content = item?.content || '';
@@ -91,7 +91,7 @@ function App() {
     }
   };
 
-  const handleReview = async (id: number, quality: number) => {
+  const handleReview = async (id: string, quality: number) => {
     try {
       setError('');
       const updatedItem = await reviewItem(id, quality);
@@ -101,7 +101,7 @@ function App() {
     }
   };
 
-  const handleMaster = async (id: number) => {
+  const handleMaster = async (id: string) => {
     const confirmed = window.confirm('この項目を完全に覚えましたか？\n復習リストから外れます。');
     if (!confirmed) return;
     try {
@@ -113,7 +113,7 @@ function App() {
     }
   };
 
-  const handleUnmaster = async (id: number) => {
+  const handleUnmaster = async (id: string) => {
     try {
       setError('');
       const unmasteredItem = await unmasterItem(id);
@@ -123,7 +123,7 @@ function App() {
     }
   };
 
-  const handleCopy = async (id: number, content: string) => {
+  const handleCopy = async (id: string, content: string) => {
     try {
       await navigator.clipboard.writeText(content);
       setCopiedItems((prev) => new Set(prev).add(id));
@@ -140,7 +140,7 @@ function App() {
     }
   };
 
-  const handleDropdownToggle = (id: number) => {
+  const handleDropdownToggle = (id: string) => {
     setDropdownOpen(dropdownOpen === id ? null : id);
   };
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 export function useDropdown() {
-  const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
 
   useEffect(() => {
     if (dropdownOpen === null) return;

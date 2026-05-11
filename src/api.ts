@@ -1,16 +1,17 @@
-// API通信関数
 import type {
   Item,
   CreateItemData,
   UpdateItemData,
   ItemsResponse,
   ItemResponse,
-  MessageResponse,
 } from './types';
 
-const API_BASE = '/api';
+const API_BASE = 'http://localhost:3001/api';
 
-// APIエラーハンドリング
+export function getImageUrl(filename: string): string {
+  return `${API_BASE}/images/${filename}`;
+}
+
 export class ApiError extends Error {
   status: number;
 
@@ -21,7 +22,6 @@ export class ApiError extends Error {
   }
 }
 
-// 共通のfetch処理
 async function apiRequest<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${url}`, {
     headers: {
@@ -34,17 +34,18 @@ async function apiRequest<T>(url: string, options?: RequestInit): Promise<T> {
   if (!response.ok) {
     const errorData = await response
       .json()
-      .catch(() => ({ error: 'Unknown error' }));
-    throw new ApiError(
-      response.status,
-      errorData.error || `HTTP ${response.status}`,
-    );
+      .catch(() => ({ error: { message: 'Unknown error' } }));
+    const message = errorData.error?.message || `HTTP ${response.status}`;
+    throw new ApiError(response.status, message);
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
   }
 
   return response.json();
 }
 
-// FormData用のfetch処理（Content-Typeヘッダーを自動設定）
 async function apiRequestFormData<T>(
   url: string,
   formData: FormData,
@@ -58,34 +59,27 @@ async function apiRequestFormData<T>(
   if (!response.ok) {
     const errorData = await response
       .json()
-      .catch(() => ({ error: 'Unknown error' }));
-    throw new ApiError(
-      response.status,
-      errorData.error || `HTTP ${response.status}`,
-    );
+      .catch(() => ({ error: { message: 'Unknown error' } }));
+    const message = errorData.error?.message || `HTTP ${response.status}`;
+    throw new ApiError(response.status, message);
   }
 
   return response.json();
 }
 
-// アイテム一覧取得
 export async function getItems(): Promise<Item[]> {
   const response = await apiRequest<ItemsResponse>('/items');
   return response.items;
 }
 
-// 新しいアイテム作成
 export async function createItem(data: CreateItemData): Promise<Item> {
   if (data.image) {
-    // 画像がある場合はFormDataで送信
     const formData = new FormData();
     formData.append('content', data.content);
     formData.append('image', data.image);
-
     const response = await apiRequestFormData<ItemResponse>('/items', formData);
     return response.item;
   } else {
-    // 画像がない場合は従来のJSON形式
     const response = await apiRequest<ItemResponse>('/items', {
       method: 'POST',
       body: JSON.stringify({ content: data.content }),
@@ -94,32 +88,15 @@ export async function createItem(data: CreateItemData): Promise<Item> {
   }
 }
 
-// アイテム更新
-export async function updateItem(
-  id: number,
-  data: UpdateItemData,
-): Promise<Item> {
+export async function updateItem(id: string, data: UpdateItemData): Promise<Item> {
   if (data.image || data.removeImage) {
-    // 画像がある場合、または画像削除の場合はFormDataで送信
     const formData = new FormData();
     formData.append('content', data.content);
-
-    if (data.image) {
-      formData.append('image', data.image);
-    }
-
-    if (data.removeImage) {
-      formData.append('removeImage', 'true');
-    }
-
-    const response = await apiRequestFormData<ItemResponse>(
-      `/items/${id}`,
-      formData,
-      'PUT',
-    );
+    if (data.image) formData.append('image', data.image);
+    if (data.removeImage) formData.append('removeImage', 'true');
+    const response = await apiRequestFormData<ItemResponse>(`/items/${id}`, formData, 'PUT');
     return response.item;
   } else {
-    // 画像なしの場合は従来のJSON形式
     const response = await apiRequest<ItemResponse>(`/items/${id}`, {
       method: 'PUT',
       body: JSON.stringify({ content: data.content }),
@@ -128,8 +105,7 @@ export async function updateItem(
   }
 }
 
-// アイテム復習処理
-export async function reviewItem(id: number, quality: number): Promise<Item> {
+export async function reviewItem(id: string, quality: number): Promise<Item> {
   const response = await apiRequest<ItemResponse>(`/items/${id}/review`, {
     method: 'PUT',
     body: JSON.stringify({ quality }),
@@ -137,25 +113,16 @@ export async function reviewItem(id: number, quality: number): Promise<Item> {
   return response.item;
 }
 
-// アイテム削除
-export async function deleteItem(id: number): Promise<void> {
-  await apiRequest<MessageResponse>(`/items/${id}`, {
-    method: 'DELETE',
-  });
+export async function deleteItem(id: string): Promise<void> {
+  await apiRequest<void>(`/items/${id}`, { method: 'DELETE' });
 }
 
-// アイテムを「覚えた」状態にマーク
-export async function masterItem(id: number): Promise<Item> {
-  const response = await apiRequest<ItemResponse>(`/items/${id}/master`, {
-    method: 'PUT',
-  });
+export async function masterItem(id: string): Promise<Item> {
+  const response = await apiRequest<ItemResponse>(`/items/${id}/master`, { method: 'PUT' });
   return response.item;
 }
 
-// アイテムの「覚えた」状態を解除し、復習スケジュールをリセット
-export async function unmasterItem(id: number): Promise<Item> {
-  const response = await apiRequest<ItemResponse>(`/items/${id}/unmaster`, {
-    method: 'PUT',
-  });
+export async function unmasterItem(id: string): Promise<Item> {
+  const response = await apiRequest<ItemResponse>(`/items/${id}/unmaster`, { method: 'PUT' });
   return response.item;
 }

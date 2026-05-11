@@ -12,6 +12,7 @@ vi.mock('../api', () => ({
   deleteItem: vi.fn(),
   masterItem: vi.fn(),
   unmasterItem: vi.fn(),
+  getImageUrl: vi.fn().mockReturnValue(''),
   ApiError: class ApiError extends Error {
     status: number;
     constructor(status: number, message: string) {
