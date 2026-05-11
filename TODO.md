@@ -25,6 +25,17 @@
 - セキュリティヘッダーの追加
 - レート制限の実装検討
 
+### 3. プロジェクトルートの整理
+
+**ステータス**: pending
+**優先度**: 低
+
+**内容**:
+
+- フロントエンドファイル（`src/`, `package.json`, `vite.config.ts` 等）を `frontend/` フォルダに移動
+- プロジェクトルートに `frontend/`, `server/`, `mcp/`, `scripts/`, `plans/` が並ぶ構成にする
+- API サーバー導入（`feature/local-api-server`）完了後に着手する
+
 ## 完了済み機能
 
 ### 基本機能
