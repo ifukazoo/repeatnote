@@ -208,6 +208,30 @@ Mac ログイン時に Hono サーバーを自動起動:
 
 ---
 
+### Phase 5: フロントエンド静的配信を Hono に統合
+
+**目標**: `localhost:3001` 一本でフロントエンドも API も提供する
+
+#### 変更内容
+
+1. **`server/src/index.ts`** に静的ファイル配信を追加
+   - `serveStatic` from `@hono/node-server/serve-static` で `../dist` を配信
+   - `app.notFound` で SPA フォールバック（`index.html` を返す）
+   - CORS ミドルウェアを削除（同一オリジンになるため不要）
+
+2. **`~/Library/LaunchAgents/com.ifukazoo.repeatnote.plist` を削除**
+   - `launchctl unload` で停止
+   - plist ファイル自体を削除
+
+3. **`CLAUDE.md` 更新**
+   - ポート構成: 3001 一本に変更
+   - launchd セクション: フロントエンド plist の記述を削除
+
+4. **`architecture.drawio` 更新**
+   - ブラウザ → Hono :3001 の構成に更新
+
+---
+
 ## 実装順序
 
 ```
@@ -217,13 +241,16 @@ Phase 0  ブランチ作成・cherry-pick
             └→ Phase 2  フロントエンド修正（TDD）
                  └→ Phase 3  MCP サーバー修正（TDD）
                       └→ Phase 4  ドキュメント整備
+                           └→ Phase 5  Hono に静的配信統合
 ```
 
 ## 完了条件
 
-- [ ] `http://localhost:3001/api/items` でアイテム一覧が返る
-- [ ] フロントエンドが Hono API 経由でアイテムの CRUD・レビュー・マスターができる
-- [ ] MCP サーバーの `add_item` が Hono API 経由でアイテムを追加できる
-- [ ] Mac ログイン時に Hono サーバーが自動起動する
-- [ ] サーバー側テストカバレッジ 80%+ を達成
-- [ ] 既存フロントエンドテスト（69 件）が通る
+- [x] `http://localhost:3001/api/items` でアイテム一覧が返る
+- [x] フロントエンドが Hono API 経由でアイテムの CRUD・レビュー・マスターができる
+- [x] MCP サーバーの `add_item` が Hono API 経由でアイテムを追加できる
+- [x] Mac ログイン時に Hono サーバーが自動起動する
+- [x] サーバー側テストカバレッジ 80%+ を達成
+- [x] 既存フロントエンドテスト（109 件）が通る
+- [ ] `http://localhost:3001` でフロントエンドも配信される（1ポートに統合）
+- [ ] フロントエンド用 launchd サービス（port 4173）を削除
