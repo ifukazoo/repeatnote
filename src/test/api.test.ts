@@ -42,7 +42,7 @@ describe('API関数', () => {
 
       const result = await getItems();
       expect(result).toEqual(mockItems);
-      expect(mockFetch).toHaveBeenCalledWith('http://localhost:3001/api/items', {
+      expect(mockFetch).toHaveBeenCalledWith('/api/items', {
         headers: { 'Content-Type': 'application/json' },
       });
     });
@@ -80,7 +80,7 @@ describe('API関数', () => {
       expect(result).toEqual(mockItem);
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toBe('http://localhost:3001/api/items');
+      expect(call[0]).toBe('/api/items');
       expect(call[1]?.method).toBe('POST');
       expect(call[1]?.body).toBe(JSON.stringify({ content: 'テスト項目' }));
     });
@@ -100,7 +100,7 @@ describe('API関数', () => {
       expect(result).toEqual(mockItem);
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toBe('http://localhost:3001/api/items');
+      expect(call[0]).toBe('/api/items');
       expect(call[1]?.method).toBe('POST');
       expect(call[1]?.body).toBeInstanceOf(FormData);
     });
@@ -121,7 +121,7 @@ describe('API関数', () => {
       expect(result).toEqual(mockItem);
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toBe('http://localhost:3001/api/items/uuid-1');
+      expect(call[0]).toBe('/api/items/uuid-1');
       expect(call[1]?.method).toBe('PUT');
     });
 
@@ -139,7 +139,7 @@ describe('API関数', () => {
       expect(result).toEqual(mockItem);
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toBe('http://localhost:3001/api/items/uuid-1');
+      expect(call[0]).toBe('/api/items/uuid-1');
       expect(call[1]?.method).toBe('PUT');
       expect(call[1]?.body).toBeInstanceOf(FormData);
     });
@@ -164,7 +164,7 @@ describe('API関数', () => {
       expect(result).toEqual(mockItem);
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toBe('http://localhost:3001/api/items/uuid-1/review');
+      expect(call[0]).toBe('/api/items/uuid-1/review');
       expect(call[1]?.method).toBe('PUT');
       expect(call[1]?.body).toBe(JSON.stringify({ quality: 4 }));
     });
@@ -181,7 +181,7 @@ describe('API関数', () => {
       await deleteItem('uuid-1');
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toBe('http://localhost:3001/api/items/uuid-1');
+      expect(call[0]).toBe('/api/items/uuid-1');
       expect(call[1]?.method).toBe('DELETE');
     });
   });
@@ -200,7 +200,7 @@ describe('API関数', () => {
       expect(result).toEqual(mockItem);
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toBe('http://localhost:3001/api/items/uuid-1/master');
+      expect(call[0]).toBe('/api/items/uuid-1/master');
       expect(call[1]?.method).toBe('PUT');
     });
   });
@@ -219,7 +219,7 @@ describe('API関数', () => {
       expect(result).toEqual(mockItem);
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toBe('http://localhost:3001/api/items/uuid-1/unmaster');
+      expect(call[0]).toBe('/api/items/uuid-1/unmaster');
       expect(call[1]?.method).toBe('PUT');
     });
   });
