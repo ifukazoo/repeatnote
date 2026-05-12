@@ -1,9 +1,8 @@
 // repeatnote フロントエンド用の型定義
 
 export interface Item {
-  id: number;
+  id: string;
   content: string;
-  image_url: string | null;
   image_filename: string | null;
   created_at: string;
   next_review: string | null;

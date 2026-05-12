@@ -23,23 +23,23 @@ interface ItemListProps {
   onToggleShowAll: () => void;
   searchText: string;
   onSearchChange: (text: string) => void;
-  editingItem: number | null;
-  copiedItems: Set<number>;
-  dropdownOpen: number | null;
-  onDropdownToggle: (id: number) => void;
-  onEditStart: (id: number) => void;
+  editingItem: string | null;
+  copiedItems: Set<string>;
+  dropdownOpen: string | null;
+  onDropdownToggle: (id: string) => void;
+  onEditStart: (id: string) => void;
   onEditSave: (
-    id: number,
+    id: string,
     content: string,
     image: File | null,
     removeImage: boolean,
   ) => Promise<void>;
   onEditCancel: () => void;
-  onDelete: (id: number) => void;
-  onReview: (id: number, quality: number) => void;
-  onMaster: (id: number) => void;
-  onUnmaster: (id: number) => void;
-  onCopy: (id: number, content: string) => void;
+  onDelete: (id: string) => void;
+  onReview: (id: string, quality: number) => void;
+  onMaster: (id: string) => void;
+  onUnmaster: (id: string) => void;
+  onCopy: (id: string, content: string) => void;
   onImageClick: (src: string) => void;
   onError: (message: string) => void;
 }

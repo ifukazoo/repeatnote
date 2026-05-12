@@ -10,7 +10,6 @@ import {
   ApiError,
 } from '../api';
 
-// fetch のモック
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
@@ -31,12 +30,13 @@ describe('API関数', () => {
   describe('getItems', () => {
     it('アイテム一覧を正しく取得する', async () => {
       const mockItems = [
-        { id: 1, content: 'テスト項目1', mastered: false },
-        { id: 2, content: 'テスト項目2', mastered: true },
+        { id: 'uuid-1', content: 'テスト項目1', mastered: false },
+        { id: 'uuid-2', content: 'テスト項目2', mastered: true },
       ];
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: async () => ({ items: mockItems }),
       });
 
@@ -51,12 +51,12 @@ describe('API関数', () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
-        json: async () => ({ error: 'Internal Server Error' }),
+        json: async () => ({ error: { code: 'internal_error', message: 'Internal Server Error' } }),
       });
 
       try {
         await getItems();
-        expect(true).toBe(false); // ここに到達すべきではない
+        expect(true).toBe(false);
       } catch (error) {
         expect(error).toBeInstanceOf(ApiError);
         expect((error as ApiError).message).toBe('Internal Server Error');
@@ -67,11 +67,12 @@ describe('API関数', () => {
 
   describe('createItem', () => {
     it('テキストのみのアイテムを作成する', async () => {
-      const mockItem = { id: 1, content: 'テスト項目', mastered: false };
+      const mockItem = { id: 'uuid-1', content: 'テスト項目', mastered: false };
       const createData = { content: 'テスト項目' };
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 201,
         json: async () => ({ item: mockItem }),
       });
 
@@ -85,12 +86,13 @@ describe('API関数', () => {
     });
 
     it('画像付きのアイテムを作成する', async () => {
-      const mockItem = { id: 1, content: 'テスト項目', image_url: '/image.jpg' };
+      const mockItem = { id: 'uuid-1', content: 'テスト項目', image_filename: 'test.jpg' };
       const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
       const createData = { content: 'テスト項目', image: mockFile };
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 201,
         json: async () => ({ item: mockItem }),
       });
 
@@ -106,36 +108,38 @@ describe('API関数', () => {
 
   describe('updateItem', () => {
     it('アイテムの内容を更新する', async () => {
-      const mockItem = { id: 1, content: '更新後項目', mastered: false };
+      const mockItem = { id: 'uuid-1', content: '更新後項目', mastered: false };
       const updateData = { content: '更新後項目' };
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: async () => ({ item: mockItem }),
       });
 
-      const result = await updateItem(1, updateData);
+      const result = await updateItem('uuid-1', updateData);
       expect(result).toEqual(mockItem);
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toBe('/api/items/1');
+      expect(call[0]).toBe('/api/items/uuid-1');
       expect(call[1]?.method).toBe('PUT');
     });
 
     it('画像削除フラグ付きで更新する', async () => {
-      const mockItem = { id: 1, content: '項目', image_url: null };
+      const mockItem = { id: 'uuid-1', content: '項目', image_filename: null };
       const updateData = { content: '項目', removeImage: true };
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: async () => ({ item: mockItem }),
       });
 
-      const result = await updateItem(1, updateData);
+      const result = await updateItem('uuid-1', updateData);
       expect(result).toEqual(mockItem);
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toBe('/api/items/1');
+      expect(call[0]).toBe('/api/items/uuid-1');
       expect(call[1]?.method).toBe('PUT');
       expect(call[1]?.body).toBeInstanceOf(FormData);
     });
@@ -144,22 +148,23 @@ describe('API関数', () => {
   describe('reviewItem', () => {
     it('復習処理を正しく実行する', async () => {
       const mockItem = {
-        id: 1,
+        id: 'uuid-1',
         content: 'テスト項目',
         next_review: '2024-01-02',
-        interval_days: 6
+        interval_days: 6,
       };
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: async () => ({ item: mockItem }),
       });
 
-      const result = await reviewItem(1, 4);
+      const result = await reviewItem('uuid-1', 4);
       expect(result).toEqual(mockItem);
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toBe('/api/items/1/review');
+      expect(call[0]).toBe('/api/items/uuid-1/review');
       expect(call[1]?.method).toBe('PUT');
       expect(call[1]?.body).toBe(JSON.stringify({ quality: 4 }));
     });
@@ -169,49 +174,52 @@ describe('API関数', () => {
     it('アイテムを正しく削除する', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ message: 'Item deleted' }),
+        status: 204,
+        json: async () => { throw new Error('No body'); },
       });
 
-      await deleteItem(1);
+      await deleteItem('uuid-1');
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toBe('/api/items/1');
+      expect(call[0]).toBe('/api/items/uuid-1');
       expect(call[1]?.method).toBe('DELETE');
     });
   });
 
   describe('masterItem', () => {
     it('アイテムを「覚えた」状態にする', async () => {
-      const mockItem = { id: 1, content: 'テスト項目', mastered: true };
+      const mockItem = { id: 'uuid-1', content: 'テスト項目', mastered: true };
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: async () => ({ item: mockItem }),
       });
 
-      const result = await masterItem(1);
+      const result = await masterItem('uuid-1');
       expect(result).toEqual(mockItem);
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toBe('/api/items/1/master');
+      expect(call[0]).toBe('/api/items/uuid-1/master');
       expect(call[1]?.method).toBe('PUT');
     });
   });
 
   describe('unmasterItem', () => {
     it('「覚えた」状態を解除する', async () => {
-      const mockItem = { id: 1, content: 'テスト項目', mastered: false };
+      const mockItem = { id: 'uuid-1', content: 'テスト項目', mastered: false };
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: async () => ({ item: mockItem }),
       });
 
-      const result = await unmasterItem(1);
+      const result = await unmasterItem('uuid-1');
       expect(result).toEqual(mockItem);
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toBe('/api/items/1/unmaster');
+      expect(call[0]).toBe('/api/items/uuid-1/unmaster');
       expect(call[1]?.method).toBe('PUT');
     });
   });

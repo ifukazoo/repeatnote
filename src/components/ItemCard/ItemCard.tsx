@@ -1,4 +1,5 @@
 import type { Item } from '../../types';
+import { getImageUrl } from '../../api';
 import { EditForm } from '../EditForm/EditForm';
 import { ItemDisplay } from '../ItemDisplay/ItemDisplay';
 import './ItemCard.css';
@@ -48,7 +49,7 @@ export function ItemCard({
         {isEditing ? (
           <EditForm
             initialContent={item.content}
-            currentImageUrl={item.image_url}
+            currentImageUrl={item.image_filename ? getImageUrl(item.image_filename) : null}
             onSave={onEditSave}
             onCancel={onEditCancel}
             onError={onError}

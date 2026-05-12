@@ -1,6 +1,7 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Item } from '../../types';
+import { getImageUrl } from '../../api';
 import './ItemDisplay.css';
 import '../../shared.css';
 
@@ -25,15 +26,17 @@ export function ItemDisplay({
   onCopy,
   onImageClick,
 }: ItemDisplayProps) {
+  const imageSrc = item.image_filename ? getImageUrl(item.image_filename) : null;
+
   return (
     <>
-      {item.image_url && (
+      {imageSrc && (
         <div className="item-image">
           <img
-            src={item.image_url}
+            src={imageSrc}
             alt="学習項目の画像"
             loading="lazy"
-            onClick={() => onImageClick(item.image_url!)}
+            onClick={() => onImageClick(imageSrc)}
             style={{ cursor: 'pointer' }}
             title="クリックして拡大表示"
           />

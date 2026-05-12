@@ -1,20 +1,10 @@
 #!/usr/bin/env node
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 import { z } from 'zod';
-dotenv.config({ path: '/Users/ki/ifukazoo/repeatnote/.env' });
-const API_URL = 'https://repeatnote.ifukazoo.workers.dev/api/external/items';
-function getCredentials() {
-    const clientId = process.env.CF_ACCESS_CLIENT_ID;
-    const clientSecret = process.env.CF_ACCESS_CLIENT_SECRET;
-    if (!clientId || !clientSecret) {
-        throw new Error('CF_ACCESS_CLIENT_ID または CF_ACCESS_CLIENT_SECRET が .env に設定されていません');
-    }
-    return { clientId, clientSecret };
-}
+const API_URL = 'http://localhost:3001/api/items';
 const server = new McpServer({
     name: 'repeatnote',
     version: '1.0.0',
@@ -24,19 +14,14 @@ server.registerTool('add_item', {
     inputSchema: {
         content: z
             .string()
-            .max(750)
-            .describe('学習アイテムの内容（最大750文字）。Markdown形式（太字、箇条書き、コードブロックなど）もそのまま登録できる。'),
+            .max(1000)
+            .describe('学習アイテムの内容（最大1000文字）。Markdown形式（太字、箇条書き、コードブロックなど）もそのまま登録できる。'),
         image_path: z
             .string()
             .optional()
             .describe('添付画像ファイルの絶対パス（省略可）'),
     },
 }, async ({ content, image_path }) => {
-    const { clientId, clientSecret } = getCredentials();
-    const headers = {
-        'CF-Access-Client-Id': clientId,
-        'CF-Access-Client-Secret': clientSecret,
-    };
     let response;
     if (image_path) {
         const formData = new FormData();
@@ -53,28 +38,27 @@ server.registerTool('add_item', {
         const mimeType = mimeTypes[ext] ?? 'application/octet-stream';
         const filename = path.basename(image_path);
         formData.append('image', new Blob([imageBuffer], { type: mimeType }), filename);
-        response = await fetch(API_URL, { method: 'POST', headers, body: formData });
+        response = await fetch(API_URL, { method: 'POST', body: formData });
     }
     else {
-        headers['Content-Type'] = 'application/json';
         response = await fetch(API_URL, {
             method: 'POST',
-            headers,
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ content }),
         });
     }
     if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: response.statusText }));
+        const error = await response.json().catch(() => ({ error: { message: response.statusText } }));
         return {
             content: [
                 {
                     type: 'text',
-                    text: `エラー: ${JSON.stringify(error)}`,
+                    text: `エラー: ${error.error?.message ?? JSON.stringify(error)}`,
                 },
             ],
         };
     }
-    const result = await response.json();
+    const result = (await response.json());
     return {
         content: [
             {
