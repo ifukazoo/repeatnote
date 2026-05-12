@@ -219,6 +219,11 @@ Mac ログイン時に Hono サーバーを自動起動:
    - `app.notFound` で SPA フォールバック（`index.html` を返す）
    - CORS ミドルウェアを削除（同一オリジンになるため不要）
 
+2. **`src/api.ts`** の API_BASE を相対 URL に変更
+   - `http://localhost:3001/api` → `/api`
+   - `vite.config.ts` に `server.proxy` を追加（dev 時に `/api` → `localhost:3001` へ proxy）
+   - `src/test/api.test.ts` の URL アサーションを相対パスに更新
+
 2. **`~/Library/LaunchAgents/com.ifukazoo.repeatnote.plist` を削除**
    - `launchctl unload` で停止
    - plist ファイル自体を削除
@@ -252,5 +257,6 @@ Phase 0  ブランチ作成・cherry-pick
 - [x] Mac ログイン時に Hono サーバーが自動起動する
 - [x] サーバー側テストカバレッジ 80%+ を達成
 - [x] 既存フロントエンドテスト（109 件）が通る
-- [ ] `http://localhost:3001` でフロントエンドも配信される（1ポートに統合）
-- [ ] フロントエンド用 launchd サービス（port 4173）を削除
+- [x] `http://localhost:3001` でフロントエンドも配信される（1ポートに統合）
+- [x] フロントエンド用 launchd サービス（port 4173）を削除
+- [x] `npm run dev` 時の CORS 問題を Vite proxy + 相対 URL で解消
