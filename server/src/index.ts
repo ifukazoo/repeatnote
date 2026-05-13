@@ -17,10 +17,10 @@ app.onError((err, c) => {
   return c.json({ error: { code: 'internal_error', message: 'Internal server error' } }, 500);
 });
 
-app.use('/*', serveStatic({ root: '../dist' }));
+app.use('/*', serveStatic({ root: '../frontend/dist' }));
 
 app.notFound((c) => {
-  const html = readFileSync(resolve(process.cwd(), '../dist/index.html'), 'utf-8');
+  const html = readFileSync(resolve(process.cwd(), '../frontend/dist/index.html'), 'utf-8');
   return c.html(html);
 });
 
