@@ -2,6 +2,10 @@ import { vi, describe, it, expect, beforeEach, type Mock } from 'vitest';
 
 vi.mock('../obsidian/client');
 
+type ItemResponse = { item: Record<string, unknown> };
+type ItemsResponse = { items: Record<string, unknown>[] };
+type ErrorResponse = { error: { code: string } };
+
 import { Hono } from 'hono';
 import { itemsApp } from '../routes/items';
 import * as client from '../obsidian/client';
@@ -32,7 +36,7 @@ describe('GET /api/items', () => {
     const res = await testApp.request('/api/items');
 
     expect(res.status).toBe(200);
-    const data = await res.json();
+    const data = await res.json() as ItemsResponse;
     expect(data.items).toHaveLength(1);
     expect(data.items[0].id).toBe('test-uuid');
   });
@@ -43,7 +47,7 @@ describe('GET /api/items', () => {
     const res = await testApp.request('/api/items');
 
     expect(res.status).toBe(500);
-    const data = await res.json();
+    const data = await res.json() as ErrorResponse;
     expect(data.error.code).toBe('internal_error');
   });
 });
@@ -59,7 +63,7 @@ describe('POST /api/items', () => {
     });
 
     expect(res.status).toBe(201);
-    const data = await res.json();
+    const data = await res.json() as ItemResponse;
     expect(data.item.id).toBe('test-uuid');
     expect(res.headers.get('Location')).toBe('/api/items/test-uuid');
   });
@@ -85,7 +89,7 @@ describe('POST /api/items', () => {
     });
 
     expect(res.status).toBe(400);
-    const data = await res.json();
+    const data = await res.json() as ErrorResponse;
     expect(data.error.code).toBe('validation_error');
   });
 
@@ -97,7 +101,7 @@ describe('POST /api/items', () => {
     });
 
     expect(res.status).toBe(400);
-    const data = await res.json();
+    const data = await res.json() as ErrorResponse;
     expect(data.error.code).toBe('validation_error');
   });
 });
@@ -114,7 +118,7 @@ describe('PUT /api/items/:id', () => {
     });
 
     expect(res.status).toBe(200);
-    const data = await res.json();
+    const data = await res.json() as ItemResponse;
     expect(data.item.content).toBe('更新後のコンテンツ');
   });
 
@@ -128,7 +132,7 @@ describe('PUT /api/items/:id', () => {
     });
 
     expect(res.status).toBe(404);
-    const data = await res.json();
+    const data = await res.json() as ErrorResponse;
     expect(data.error.code).toBe('not_found');
   });
 });
@@ -167,7 +171,7 @@ describe('PUT /api/items/:id/review', () => {
     });
 
     expect(res.status).toBe(200);
-    const data = await res.json();
+    const data = await res.json() as ItemResponse;
     expect(data.item.review_count).toBe(1);
     expect(client.reviewItem).toHaveBeenCalledWith('test-uuid', 4);
   });
@@ -203,7 +207,7 @@ describe('PUT /api/items/:id/master', () => {
     });
 
     expect(res.status).toBe(200);
-    const data = await res.json();
+    const data = await res.json() as ItemResponse;
     expect(data.item.mastered).toBe(true);
   });
 });
@@ -218,7 +222,7 @@ describe('PUT /api/items/:id/unmaster', () => {
     });
 
     expect(res.status).toBe(200);
-    const data = await res.json();
+    const data = await res.json() as ItemResponse;
     expect(data.item.mastered).toBe(false);
   });
 });

@@ -6,7 +6,7 @@
     "start": "tsx src/index.ts",
     "dev": "tsx watch src/index.ts",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "tsc --noEmit && vitest run"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",

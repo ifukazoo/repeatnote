@@ -23,7 +23,7 @@ async function vaultGet(path: string): Promise<Response> {
   });
 }
 
-async function vaultPut(path: string, body: BodyInit, contentType: string): Promise<Response> {
+async function vaultPut(path: string, body: string | File, contentType: string): Promise<Response> {
   return fetch(`${getBaseUrl()}/vault/${getVaultFolder()}/${path}`, {
     method: 'PUT',
     headers: { ...authHeaders(), 'Content-Type': contentType },

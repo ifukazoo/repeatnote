@@ -2,6 +2,8 @@ import { vi, describe, it, expect, beforeEach, type Mock } from 'vitest';
 
 vi.mock('../obsidian/client');
 
+type ErrorResponse = { error: { code: string } };
+
 import { Hono } from 'hono';
 import { imagesApp } from '../routes/images';
 import * as client from '../obsidian/client';
@@ -34,7 +36,7 @@ describe('GET /api/images/:filename', () => {
     const res = await testApp.request('/api/images/missing.jpg');
 
     expect(res.status).toBe(404);
-    const data = await res.json();
+    const data = await res.json() as ErrorResponse;
     expect(data.error.code).toBe('not_found');
   });
 
