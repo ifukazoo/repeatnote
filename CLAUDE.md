@@ -154,6 +154,8 @@ node scripts/migrate-from-cloudflare.mjs
 
 ```markdown
 ---
+aliases:
+  - "アイテムの本文テキスト（"
 created_at: 2026-01-01T00:00:00.000Z
 interval_days: 7
 ease_factor: 2.5
@@ -167,6 +169,7 @@ image_filename: abc123.jpg
 ```
 
 - `id` はファイル名（UUID 文字列）から取得
+- `aliases` はコンテンツ先頭15文字（改行→スペース、`"` と `\` をエスケープ）。Obsidian 検索・クイックスイッチャーで表示される
 - `image_filename` が空文字の場合は画像なし
 - `next_review` は `YYYY-MM-DD` 形式
 
@@ -290,7 +293,7 @@ Application fully functional with Hono API Server + Obsidian Local REST API as s
 **サーバー側 (`server/src/test/`)**:
 - **`sm2.test.ts`**: SM-2 スペースドリピティションアルゴリズムテスト (11 tests)
   - 間隔計算、ease factor 更新・境界値、初期値
-- **`parser.test.ts`**: Obsidian Frontmatter パーサーテスト (11 tests)
+- **`parser.test.ts`**: Obsidian Frontmatter パーサーテスト (15 tests)
   - .md ↔ ObsidianItem 変換、null フィールド処理、ラウンドトリップ
 - **`items.test.ts`**: アイテム CRUD ルートテスト (15 tests)
   - 全エンドポイント（一覧・作成・更新・削除・review・master・unmaster）
@@ -314,7 +317,7 @@ Application fully functional with Hono API Server + Obsidian Local REST API as s
 - `cd server && npm run test:run` - サーバー側テストのみ
 - `cd frontend && npx vitest run src/test/<filename>.test.ts` - 単一テストファイルを実行
 
-**Total: 92 tests** covering SM-2 algorithm, Obsidian parser, API routes, API client layer, validation, and UI components.
+**Total: 96 tests** covering SM-2 algorithm, Obsidian parser, API routes, API client layer, validation, and UI components.
 
 ### テスト環境の方針
 

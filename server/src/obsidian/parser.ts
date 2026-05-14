@@ -44,10 +44,18 @@ export function parseMarkdownToItem(id: string, markdown: string): ObsidianItem 
   };
 }
 
+function buildAlias(content: string): string {
+  const raw = content.replace(/\n/g, ' ').trim().slice(0, 15);
+  return raw.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
 export function itemToMarkdown(item: ObsidianItem): string {
   const easeFactor = Math.round(item.ease_factor * 100) / 100;
+  const alias = buildAlias(item.content);
   const lines = [
     '---',
+    'aliases:',
+    `  - "${alias}"`,
     `created_at: ${item.created_at}`,
     `interval_days: ${item.interval_days}`,
     `ease_factor: ${easeFactor}`,
