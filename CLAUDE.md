@@ -138,7 +138,21 @@ node scripts/migrate-from-cloudflare.mjs
 ```
 [ブラウザ: React App]          ─┐
 [MCP サーバー (Claude Desktop)] ─┤→ [Hono API Server :3001] → [Obsidian Local REST API :27123] → [Vault *.md]
+                                                                                                       ↕ R2バックアッププラグイン
+                                                                                              [Cloudflare R2]
+                                                                                                       ↕ R2バックアッププラグイン
+                                                                                              [Android Obsidian]
+                                                                                               Vault clone
+                                                                                               (/storage/emulated/0/Documents/AndroidVault)
+                                                                                                       ↑ File System Access API
+                                                                                              [PWA Viewer]
+                                                                                               (Cloudflare Pages)
 ```
+
+**Vault 同期（Mac mini ↔ Android）**:
+- Mac mini と Android の Obsidian は、それぞれ Obsidian コミュニティプラグイン（R2 バックアップ）を使って Cloudflare R2 の同じバケットに同期
+- Android の Vault クローンは `/storage/emulated/0/Documents/AndroidVault`（共有ストレージ、他アプリからアクセス可能）
+- 同期対象は `.md` ファイルと `attachments/` フォルダの両方
 
 **Obsidian Local REST API エンドポイント（server 側が使用）**:
 - `GET /vault/repeatnote/` — ファイル一覧取得
@@ -172,6 +186,39 @@ image_filename: abc123.jpg
 - `aliases` はコンテンツ先頭15文字（改行→スペース、`"` と `\` をエスケープ）。Obsidian 検索・クイックスイッチャーで表示される
 - `image_filename` が空文字の場合は画像なし
 - `next_review` は `YYYY-MM-DD` 形式
+
+### PWA Viewer (`viewer/`)
+
+Android 端末から RepeatNote アイテムを**閲覧専用**で参照できる PWA。Cloudflare Pages でホスティング。
+
+**設計方針**:
+- Mac mini・Hono API サーバーへの依存なし
+- File System Access API（`showDirectoryPicker()`）で Android ローカルの Vault フォルダを直接読む
+- Vault データはブラウザキャッシュに保存しない（セキュリティ上の理由）
+- フォルダアクセス許可はセッションをまたいで保持されないため、毎回選択が必要
+
+**技術スタック**: React + TypeScript + Vite + vite-plugin-pwa + react-markdown
+
+**主要ファイル**:
+- `viewer/src/parser.ts` — `server/src/obsidian/parser.ts` のロジックを移植（サーバー依存なし）
+- `viewer/src/types.ts` — Item 型定義
+- `viewer/src/utils/filter.ts` — フィルタリング・ソートロジック
+- `viewer/src/components/VaultPicker.tsx` — フォルダ選択 UI
+- `viewer/src/components/ItemList.tsx` — 一覧・フィルター・検索
+- `viewer/src/components/ItemCard.tsx` — Markdown + 画像表示
+
+**機能**:
+- ステータスフィルター（デフォルト: 復習が必要なアイテムのみ / 全件 / マスター済み）
+- テキスト検索（case-insensitive）
+- Markdown レンダリング（react-markdown）
+- 画像表示（`attachments/` フォルダから FileSystemFileHandle で読み取り ObjectURL を生成）
+
+**デプロイ**: Cloudflare Pages（HTTPS 必須のため。File System Access API は HTTPS でのみ動作）
+
+**開発コマンド**（実装後に追記予定）:
+- `cd viewer && npm run dev` - 開発サーバー起動
+- `cd viewer && npm run build` - ビルド
+- `cd viewer && npm run test:run` - テスト実行
 
 ### Claude Desktop MCP Integration (`mcp/`)
 
