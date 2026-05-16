@@ -142,16 +142,10 @@ node scripts/migrate-from-cloudflare.mjs
                                                                                               [Cloudflare R2]
                                                                                                        ↕ R2バックアッププラグイン
                                                                                               [Android Obsidian]
-                                                                                               Vault clone
-                                                                                               (/storage/emulated/0/Documents/AndroidVault)
-                                                                                                       ↑ File System Access API
-                                                                                              [PWA Viewer]
-                                                                                               (Cloudflare Pages)
 ```
 
 **Vault 同期（Mac mini ↔ Android）**:
 - Mac mini と Android の Obsidian は、それぞれ Obsidian コミュニティプラグイン（R2 バックアップ）を使って Cloudflare R2 の同じバケットに同期
-- Android の Vault クローンは `/storage/emulated/0/Documents/AndroidVault`（共有ストレージ、他アプリからアクセス可能）
 - 同期対象は `.md` ファイルと `attachments/` フォルダの両方
 
 **Obsidian Local REST API エンドポイント（server 側が使用）**:
@@ -176,49 +170,18 @@ ease_factor: 2.5
 review_count: 3
 next_review: 2026-05-16
 mastered: false
-image_filename: abc123.jpg
 ---
 
 アイテムの本文テキスト（Markdown対応）
+
+![[abc123.jpg]]
 ```
 
 - `id` はファイル名（UUID 文字列）から取得
 - `aliases` はコンテンツ先頭15文字（改行→スペース、`"` と `\` をエスケープ）。Obsidian 検索・クイックスイッチャーで表示される
-- `image_filename` が空文字の場合は画像なし
+- 画像がある場合は本文末尾に `![[filename]]` 形式で記述。Obsidian で直接画像を表示できる
+- 画像がない場合は `![[...]]` なし
 - `next_review` は `YYYY-MM-DD` 形式
-
-### PWA Viewer (`viewer/`)
-
-Android 端末から RepeatNote アイテムを**閲覧専用**で参照できる PWA。Cloudflare Pages でホスティング。
-
-**設計方針**:
-- Mac mini・Hono API サーバーへの依存なし
-- File System Access API（`showDirectoryPicker()`）で Android ローカルの Vault フォルダを直接読む
-- Vault データはブラウザキャッシュに保存しない（セキュリティ上の理由）
-- フォルダアクセス許可はセッションをまたいで保持されないため、毎回選択が必要
-
-**技術スタック**: React + TypeScript + Vite + vite-plugin-pwa + react-markdown
-
-**主要ファイル**:
-- `viewer/src/parser.ts` — `server/src/obsidian/parser.ts` のロジックを移植（サーバー依存なし）
-- `viewer/src/types.ts` — Item 型定義
-- `viewer/src/utils/filter.ts` — フィルタリング・ソートロジック
-- `viewer/src/components/VaultPicker.tsx` — フォルダ選択 UI
-- `viewer/src/components/ItemList.tsx` — 一覧・フィルター・検索
-- `viewer/src/components/ItemCard.tsx` — Markdown + 画像表示
-
-**機能**:
-- ステータスフィルター（デフォルト: 復習が必要なアイテムのみ / 全件 / マスター済み）
-- テキスト検索（case-insensitive）
-- Markdown レンダリング（react-markdown）
-- 画像表示（`attachments/` フォルダから FileSystemFileHandle で読み取り ObjectURL を生成）
-
-**デプロイ**: Cloudflare Pages（HTTPS 必須のため。File System Access API は HTTPS でのみ動作）
-
-**開発コマンド**（実装後に追記予定）:
-- `cd viewer && npm run dev` - 開発サーバー起動
-- `cd viewer && npm run build` - ビルド
-- `cd viewer && npm run test:run` - テスト実行
 
 ### Claude Desktop MCP Integration (`mcp/`)
 
@@ -324,6 +287,7 @@ Application fully functional with Hono API Server + Obsidian Local REST API as s
 - ✅ データ移行スクリプト（scripts/migrate-from-cloudflare.mjs）
 - ✅ MCP サーバー更新（Hono API 経由）
 - ✅ プロジェクトルート整理（frontend/, server/, mcp/, scripts/, plans/ の構成に統一）
+- ✅ 画像リンクを本文末尾（`![[filename]]`）に移動し、Obsidian（Mac/Android）で画像を直接表示可能に
 
 ## Testing Framework
 
@@ -340,8 +304,8 @@ Application fully functional with Hono API Server + Obsidian Local REST API as s
 **サーバー側 (`server/src/test/`)**:
 - **`sm2.test.ts`**: SM-2 スペースドリピティションアルゴリズムテスト (11 tests)
   - 間隔計算、ease factor 更新・境界値、初期値
-- **`parser.test.ts`**: Obsidian Frontmatter パーサーテスト (15 tests)
-  - .md ↔ ObsidianItem 変換、null フィールド処理、ラウンドトリップ
+- **`parser.test.ts`**: Obsidian Frontmatter パーサーテスト (17 tests)
+  - .md ↔ ObsidianItem 変換、本文末尾画像リンクの抽出、null フィールド処理、ラウンドトリップ
 - **`items.test.ts`**: アイテム CRUD ルートテスト (15 tests)
   - 全エンドポイント（一覧・作成・更新・削除・review・master・unmaster）
   - バリデーション、404・500 エラーハンドリング
@@ -364,7 +328,7 @@ Application fully functional with Hono API Server + Obsidian Local REST API as s
 - `cd server && npm run test:run` - サーバー側テストのみ
 - `cd frontend && npx vitest run src/test/<filename>.test.ts` - 単一テストファイルを実行
 
-**Total: 96 tests** covering SM-2 algorithm, Obsidian parser, API routes, API client layer, validation, and UI components.
+**Total: 98 tests** covering SM-2 algorithm, Obsidian parser, API routes, API client layer, validation, and UI components.
 
 ### テスト環境の方針
 

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { parseMarkdownToItem, itemToMarkdown } from '../obsidian/parser';
 import type { ObsidianItem } from '../obsidian/parser';
 
+// 新形式: 画像リンクはfrontmatterではなく本文末尾に記述
 const SAMPLE_MARKDOWN = `---
 created_at: 2026-01-01T00:00:00.000Z
 interval_days: 7
@@ -9,7 +10,19 @@ ease_factor: 2.5
 review_count: 3
 next_review: 2026-05-16
 mastered: false
-image_filename: photo.jpg
+---
+
+テストアイテムの内容
+
+![[photo.jpg]]`;
+
+const SAMPLE_MARKDOWN_NO_IMAGE = `---
+created_at: 2026-01-01T00:00:00.000Z
+interval_days: 7
+ease_factor: 2.5
+review_count: 3
+next_review: 2026-05-16
+mastered: false
 ---
 
 テストアイテムの内容`;
@@ -33,20 +46,36 @@ describe('Obsidianパーサー', () => {
       expect(item).toEqual(SAMPLE_ITEM);
     });
 
-    it('image_filenameが空の場合nullを返す', () => {
-      const md = SAMPLE_MARKDOWN.replace('image_filename: photo.jpg', 'image_filename: ');
-      const item = parseMarkdownToItem('abc-123', md);
+    it('本文に画像リンクがない場合image_filenameはnull', () => {
+      const item = parseMarkdownToItem('abc-123', SAMPLE_MARKDOWN_NO_IMAGE);
       expect(item.image_filename).toBeNull();
+      expect(item.content).toBe('テストアイテムの内容');
+    });
+
+    it('本文が画像リンクのみの場合contentは空文字', () => {
+      const md = `---
+created_at: 2026-01-01T00:00:00.000Z
+interval_days: 7
+ease_factor: 2.5
+review_count: 3
+next_review: 2026-05-16
+mastered: false
+---
+
+![[photo.jpg]]`;
+      const item = parseMarkdownToItem('abc-123', md);
+      expect(item.image_filename).toBe('photo.jpg');
+      expect(item.content).toBe('');
     });
 
     it('mastered: trueを正しくパースできる', () => {
-      const md = SAMPLE_MARKDOWN.replace('mastered: false', 'mastered: true');
+      const md = SAMPLE_MARKDOWN_NO_IMAGE.replace('mastered: false', 'mastered: true');
       const item = parseMarkdownToItem('abc-123', md);
       expect(item.mastered).toBe(true);
     });
 
     it('next_reviewが空の場合nullを返す', () => {
-      const md = SAMPLE_MARKDOWN.replace('next_review: 2026-05-16', 'next_review: ');
+      const md = SAMPLE_MARKDOWN_NO_IMAGE.replace('next_review: 2026-05-16', 'next_review: ');
       const item = parseMarkdownToItem('abc-123', md);
       expect(item.next_review).toBeNull();
     });
@@ -73,8 +102,9 @@ describe('Obsidianパーサー', () => {
       expect(markdown).toContain('review_count: 3');
       expect(markdown).toContain('next_review: 2026-05-16');
       expect(markdown).toContain('mastered: false');
-      expect(markdown).toContain('image_filename: photo.jpg');
+      expect(markdown).toContain('![[photo.jpg]]');
       expect(markdown).toContain('テストアイテムの内容');
+      expect(markdown).not.toContain('image_filename');
     });
 
     it('aliasesにコンテンツ先頭15文字が設定される', () => {
@@ -100,10 +130,11 @@ describe('Obsidianパーサー', () => {
       expect(markdown).toContain('  - "一行目 二行目 三行目"');
     });
 
-    it('image_filenameがnullの場合、空文字として出力する', () => {
+    it('image_filenameがnullの場合、本文に画像リンクを含まない', () => {
       const item = { ...SAMPLE_ITEM, image_filename: null };
       const markdown = itemToMarkdown(item);
-      expect(markdown).toContain('image_filename: ');
+      expect(markdown).not.toContain('![[');
+      expect(markdown).not.toContain('image_filename');
     });
 
     it('next_reviewがnullの場合、空文字として出力する', () => {
@@ -125,6 +156,13 @@ describe('Obsidianパーサー', () => {
       const markdown = itemToMarkdown(item);
       const parsed = parseMarkdownToItem(item.id, markdown);
       expect(parsed.ease_factor).toBe(2.36);
+    });
+
+    it('画像なしのItemもラウンドトリップできる', () => {
+      const item = { ...SAMPLE_ITEM, image_filename: null };
+      const markdown = itemToMarkdown(item);
+      const parsed = parseMarkdownToItem(item.id, markdown);
+      expect(parsed).toEqual(item);
     });
   });
 });

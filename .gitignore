@@ -26,6 +26,9 @@ dist-ssr
 # Playwright MCP artifacts
 .playwright-mcp/
 
+# Vault backups
+backups/
+
 # wrangler files
 .wrangler
 .dev.vars*

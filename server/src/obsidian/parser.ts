@@ -22,6 +22,19 @@ function parseFrontmatter(text: string): Record<string, string> {
   return result;
 }
 
+function extractImageFromContent(content: string): {
+  content: string;
+  image_filename: string | null;
+} {
+  const m1 = content.match(/^([\s\S]*?)\n\n!\[\[([^\]]+)\]\]$/);
+  if (m1) return { content: m1[1], image_filename: m1[2] };
+
+  const m2 = content.match(/^!\[\[([^\]]+)\]\]$/);
+  if (m2) return { content: '', image_filename: m2[1] };
+
+  return { content, image_filename: null };
+}
+
 export function parseMarkdownToItem(id: string, markdown: string): ObsidianItem {
   const match = markdown.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
   if (!match) {
@@ -29,12 +42,12 @@ export function parseMarkdownToItem(id: string, markdown: string): ObsidianItem 
   }
 
   const fm = parseFrontmatter(match[1]);
-  const content = match[2].trim();
+  const { content, image_filename } = extractImageFromContent(match[2].trim());
 
   return {
     id,
     content,
-    image_filename: fm['image_filename'] || null,
+    image_filename,
     created_at: fm['created_at'],
     next_review: fm['next_review'] || null,
     interval_days: Number(fm['interval_days']),
@@ -62,10 +75,12 @@ export function itemToMarkdown(item: ObsidianItem): string {
     `review_count: ${item.review_count}`,
     `next_review: ${item.next_review ?? ''}`,
     `mastered: ${item.mastered}`,
-    `image_filename: ${item.image_filename ?? ''}`,
     '---',
     '',
     item.content,
   ];
+  if (item.image_filename) {
+    lines.push('', `![[${item.image_filename}]]`);
+  }
   return lines.join('\n');
 }
