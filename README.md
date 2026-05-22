@@ -88,23 +88,8 @@ cd frontend && npm run dev  # port 5173
 
 ## 自動起動（Mac）
 
-launchd でログイン時に自動起動するよう設定済み:
+Mac では launchd を使ってログイン時に API サーバーを自動起動できます。`~/Library/LaunchAgents/` に plist ファイルを配置し、`launchctl load` で登録してください。
 
-```bash
-# サービス停止
-launchctl unload ~/Library/LaunchAgents/com.ifukazoo.repeatnote-api.plist
+## ライセンス
 
-# サービス開始
-launchctl load ~/Library/LaunchAgents/com.ifukazoo.repeatnote-api.plist
-
-# ログ確認
-tail -f ~/Library/Logs/repeatnote-api.log
-```
-
-フロントエンドのビルドを更新した場合:
-
-```bash
-cd frontend && npm run build
-launchctl unload ~/Library/LaunchAgents/com.ifukazoo.repeatnote-api.plist
-launchctl load ~/Library/LaunchAgents/com.ifukazoo.repeatnote-api.plist
-```
+[MIT License](LICENSE)
