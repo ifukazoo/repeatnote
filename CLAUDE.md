@@ -51,7 +51,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **`constants.ts`**: Shared configuration for image validation and error messages
 - **`shared.css`**: Shared styles used by multiple components (input-wrapper/char-counter, image upload, Markdown rendering)
 - **`App.css`**: App-level styles only (.app, header, .error)
-- **`index.css`**: Global styles (body, *, #root)
+- **`index.css`**: Global styles (body, *, #root) + CSS カスタムプロパティ（デザイントークン）定義
 
 **Custom Hooks (`frontend/src/hooks/`)**:
 - **`useImageUpload.ts`**: Image state, file validation, change/paste handlers, preview URL cleanup on unmount
@@ -74,6 +74,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Collapsible add form for review-first workflow
   - Dropdown menus with outside-click handling
   - Keyword search box with clear button (status filter → text search applied in sequence)
+
+**Design System（`index.css` `:root` で定義）**:
+  - CSS カスタムプロパティでデザイントークンを一元管理（色、radius、shadow、ボタンサイズ、transition）
+  - 色: `--color-primary`, `--color-text`, `--color-bg`, `--color-border`, `--color-success/warning/danger/master` 系
+  - Border radius: `--radius-sm: 6px`（小要素）, `--radius-md: 12px`（カード・フォーム）
+  - ボタン: `--btn-height: 40px`, `--btn-height-sm: 32px`, `--btn-font-size: 0.875rem`
+  - Transition: `--transition-duration: 150ms`, `--transition-easing: ease-out`（`transition: all` は使用禁止）
+  - ボタンの `:active` 状態に `transform: scale(0.96)` の tactile feedback
+  - 画像に `outline: 1px solid rgba(0,0,0,0.1)` の subtle outline
+  - メタ情報の数値に `font-variant-numeric: tabular-nums`
 
 ### API Server Architecture (`server/`)
 

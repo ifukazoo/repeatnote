@@ -6,7 +6,7 @@
 .edit-tabs {
   display: flex;
   gap: 0;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid var(--color-border);
   margin-bottom: 0.5rem;
 }
 
@@ -15,7 +15,7 @@
   border: none;
   padding: 0.4rem 1rem;
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--color-text-tertiary);
   cursor: pointer;
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
@@ -23,8 +23,8 @@
 }
 
 .edit-tab.active {
-  color: #2563eb;
-  border-bottom-color: #2563eb;
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
   font-weight: 500;
 }
 
@@ -32,9 +32,9 @@
 .markdown-preview-panel {
   min-height: 9em;
   padding: 0.5rem 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 6px;
-  background: #fafafa;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-preview);
   margin-bottom: 0.75rem;
 }
 
@@ -52,11 +52,11 @@
 .edit-textarea {
   width: 100%;
   padding: 0.5rem;
-  border: 2px solid #3b82f6;
-  border-radius: 6px;
+  border: 2px solid var(--color-primary-light);
+  border-radius: var(--radius-sm);
   font-size: 1rem;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px var(--color-primary-ring);
   box-sizing: border-box;
   font-family: inherit;
 }
@@ -73,47 +73,63 @@
 }
 
 .save-button {
-  background: #10b981;
+  background: var(--color-success);
   color: white;
   border: none;
   padding: 0.5rem 1rem;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: var(--btn-font-size);
+  height: var(--btn-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background-color 0.2s;
 }
 
 .save-button:hover:not(:disabled) {
-  background: #059669;
+  background: var(--color-success-hover);
 }
 
 .save-button:disabled {
-  background: #9ca3af;
+  background: var(--color-disabled);
   cursor: not-allowed;
 }
 
+.save-button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
 .cancel-button {
-  background: #6b7280;
+  background: var(--color-gray-500);
   color: white;
   border: none;
   padding: 0.5rem 1rem;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: var(--btn-font-size);
+  height: var(--btn-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background-color 0.2s;
 }
 
 .cancel-button:hover {
-  background: #4b5563;
+  background: var(--color-gray-600);
+}
+
+.cancel-button:active {
+  transform: scale(0.96);
 }
 
 /* 編集時の画像操作 */
 .edit-image-container {
   margin-bottom: 1.5rem;
   padding: 1rem;
-  background: #f8fafc;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
 }
 
 .current-image {
@@ -124,53 +140,53 @@
   width: 100%;
   max-width: 300px;
   height: auto;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
   margin-bottom: 0.5rem;
   display: block;
 }
 
 .remove-current-image-btn {
-  background: #ef4444;
+  background: var(--color-danger);
   color: white;
   border: none;
   padding: 0.5rem 0.75rem;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 0.875rem;
   transition: background 0.2s ease;
 }
 
 .remove-current-image-btn:hover {
-  background: #dc2626;
+  background: var(--color-danger-hover);
 }
 
 .image-removed {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: #fef2f2;
+  background: var(--color-danger-bg);
   padding: 0.75rem;
-  border-radius: 6px;
-  border: 1px solid #fecaca;
-  color: #991b1b;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-danger-border);
+  color: var(--color-danger-dark);
   font-size: 0.875rem;
   margin-bottom: 1rem;
 }
 
 .undo-remove-btn {
-  background: #059669;
+  background: var(--color-success-hover);
   color: white;
   border: none;
   padding: 0.375rem 0.625rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 0.75rem;
   transition: background 0.2s ease;
 }
 
 .undo-remove-btn:hover {
-  background: #047857;
+  background: var(--color-success-dark);
 }
 
 .edit-image-upload {

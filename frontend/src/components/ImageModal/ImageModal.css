@@ -17,10 +17,10 @@
   position: relative;
   max-width: 95vw;
   max-height: 95vh;
-  background: white;
-  border-radius: 8px;
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-sm);
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .image-modal-close {

@@ -1,14 +1,14 @@
 .add-item {
-  background: #f8fafc;
+  background: var(--color-bg);
   padding: 1.5rem;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   margin-bottom: 2rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
 }
 
 .add-item h2 {
   margin-top: 0;
-  color: #1e293b;
+  color: var(--color-text);
   font-size: 1.25rem;
 }
 
@@ -21,8 +21,8 @@
 .add-textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-sm);
   font-size: 1rem;
   box-sizing: border-box;
   font-family: inherit;
@@ -33,20 +33,20 @@
 
 .add-textarea:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-ring);
 }
 
 .add-item button {
   padding: 0.75rem 1.5rem;
-  background: #2563eb;
+  background: var(--color-primary);
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--btn-font-size);
   cursor: pointer;
   transition: background-color 0.2s;
-  height: 48px;
+  height: var(--btn-height);
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -54,24 +54,30 @@
 }
 
 .add-item button:hover:not(:disabled) {
-  background: #1d4ed8;
+  background: var(--color-primary-hover);
+}
+
+.add-item button:active:not(:disabled) {
+  transform: scale(0.96);
 }
 
 .add-item button:disabled {
-  background: #9ca3af;
+  background: var(--color-disabled);
   cursor: not-allowed;
 }
 
 .add-form-toggle {
   width: 100%;
   padding: 0.5rem 1rem;
-  background: #f8fafc;
-  color: #475569;
-  border: 2px dashed #cbd5e1;
-  border-radius: 8px;
-  font-size: 1rem;
+  background: var(--color-bg);
+  color: var(--color-text-body);
+  border: 2px dashed var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  font-size: var(--btn-font-size);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color var(--transition-duration) var(--transition-easing),
+    border-color var(--transition-duration) var(--transition-easing),
+    color var(--transition-duration) var(--transition-easing);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -79,9 +85,9 @@
 }
 
 .add-form-toggle:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
-  color: #334155;
+  background: var(--color-bg-muted);
+  border-color: var(--color-border-muted);
+  color: var(--color-gray-700);
 }
 
 .add-form-expanded {
@@ -105,15 +111,15 @@
 }
 
 .form-actions .cancel-btn {
-  background: #64748b;
+  background: var(--color-text-tertiary);
   padding: 0.75rem 1.5rem;
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--btn-font-size);
   cursor: pointer;
   transition: background-color 0.2s;
-  height: 48px;
+  height: var(--btn-height);
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -121,7 +127,11 @@
 }
 
 .form-actions .cancel-btn:hover {
-  background: #475569;
+  background: var(--color-text-body);
+}
+
+.form-actions .cancel-btn:active {
+  transform: scale(0.96);
 }
 
 @media (max-width: 640px) {
