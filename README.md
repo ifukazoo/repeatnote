@@ -1,5 +1,7 @@
 # RepeatNote
 
+[![CI](https://github.com/ifukazoo/repeatnote/actions/workflows/ci.yml/badge.svg)](https://github.com/ifukazoo/repeatnote/actions/workflows/ci.yml)
+
 SM-2アルゴリズムを実装した間隔反復学習アプリ。学習項目をObsidian vaultにMarkdownファイルとして保存し、最適な復習タイミングを自動計算する。
 
 ![全アイテム表示](docs/screenshot-all-items.png)
