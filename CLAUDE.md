@@ -22,6 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `cd server && npm start` - サーバー起動（tsx で `src/index.ts` を実行）
 - `cd server && npm run dev` - 開発用（tsx watch モード）
+- `cd server && npm run lint` - Run ESLint on the codebase
 - `cd server && npm run test:run` - 型チェック（tsc --noEmit）＋サーバー側テストを実行
 
 ## Application Architecture

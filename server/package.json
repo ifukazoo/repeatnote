@@ -5,6 +5,7 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "dev": "tsx watch src/index.ts",
+    "lint": "eslint .",
     "test": "vitest",
     "test:run": "tsc --noEmit && vitest run"
   },
@@ -16,9 +17,13 @@
     "zod": "^3.24.4"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^22.15.18",
+    "eslint": "^10.5.0",
+    "globals": "^17.6.0",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.61.1",
     "vitest": "^3.1.3"
   }
 }
