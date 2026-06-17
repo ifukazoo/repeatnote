@@ -22,7 +22,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npm run lint
-      - run: npm run test:run
+      - run: tsc --noEmit
+      - run: npx vitest run --coverage
 
   server:
     name: Server
@@ -39,4 +40,5 @@ jobs:
           cache-dependency-path: server/package-lock.json
       - run: npm ci
       - run: npm run lint
-      - run: npm run test:run
+      - run: tsc --noEmit
+      - run: npx vitest run --coverage
