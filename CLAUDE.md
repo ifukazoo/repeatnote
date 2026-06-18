@@ -25,6 +25,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `cd server && npm run lint` - Run ESLint on the codebase
 - `cd server && npm run test:run` - 型チェック（tsc --noEmit）＋サーバー側テストを実行
 
+### E2E テスト（`e2e/` ディレクトリ）
+
+- `cd e2e && npm test` - Playwright E2E テストを実行（モック Obsidian API サーバーを自動起動）
+- `cd e2e && npm run test:ui` - Playwright UI モードでテスト実行
+
 ## Application Architecture
 
 **RepeatNote** is a spaced repetition learning application implementing the SM-2 algorithm for optimal memory retention. Built with React + TypeScript + Vite frontend and a local Hono API server, using Obsidian Local REST API as the backend storage layer.
@@ -296,17 +301,19 @@ This project uses Prettier for consistent code formatting. All code output shoul
 - `cd frontend && npm run test:run` - Single run for CI/automation（フロントエンドテスト）
 - `cd frontend && npm run test:ui` - Interactive UI mode
 - `cd server && npm run test:run` - サーバー側テストのみ
+- `cd e2e && npm test` - Playwright E2E テスト実行
 - `cd frontend && npx vitest run src/test/<filename>.test.ts` - 単一テストファイルを実行
 
-**Total: 98 tests** covering SM-2 algorithm, Obsidian parser, API routes, API client layer, validation, and UI components.
+**Total: 98 unit tests + 4 E2E tests** covering SM-2 algorithm, Obsidian parser, API routes, API client layer, validation, UI components, and end-to-end user flows.
 
 ### テスト環境の方針
 
-テスト環境は jsdom（ブラウザシミュレーション）とNode.js の 2 環境を使い分け。
+テスト環境は jsdom（ブラウザシミュレーション）、Node.js、Playwright の 3 環境を使い分け。
 - フロントエンドテスト: jsdom（`frontend/vitest.config.ts`）
 - サーバーテスト: Node.js（`server/vitest.config.ts`）
+- E2E テスト: Playwright + モック Obsidian API サーバー（`e2e/`）
 
-Obsidian クライアント（`server/src/obsidian/client.ts`）は `vi.mock` でモックし、実際の HTTP 通信は行わない。
+Obsidian クライアント（`server/src/obsidian/client.ts`）はユニットテストでは `vi.mock` でモック。E2E テストでは `OBSIDIAN_BASE_URL` をモックサーバーに向けて実際の HTTP 通信を行う。
 
 **Obsidian REST API の実動作確認方法**: Obsidian と API サーバーを起動した状態で `cd frontend && npm run dev` を実行し、ブラウザで手動確認する。
 

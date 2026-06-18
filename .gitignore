@@ -24,8 +24,9 @@ coverage
 *.sln
 *.sw?
 
-# Playwright MCP artifacts
+# Playwright
 .playwright-mcp/
+e2e/test-results/
 
 # Vault backups
 backups/
