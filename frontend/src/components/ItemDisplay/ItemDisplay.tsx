@@ -1,7 +1,7 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Item } from '../../types';
-import { getImageUrl } from '../../api';
+import { getAttachmentUrl } from '../../api';
 import './ItemDisplay.css';
 import '../../shared.css';
 
@@ -26,7 +26,7 @@ export function ItemDisplay({
   onCopy,
   onImageClick,
 }: ItemDisplayProps) {
-  const imageSrc = item.image_filename ? getImageUrl(item.image_filename) : null;
+  const imageSrc = item.attachments.image ? getAttachmentUrl(item.attachments.image) : null;
 
   return (
     <>

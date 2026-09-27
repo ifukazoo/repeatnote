@@ -1,4 +1,6 @@
 import type {
+  AttachmentChanges,
+  AttachmentKind,
   Item,
   CreateItemData,
   UpdateItemData,
@@ -8,8 +10,27 @@ import type {
 
 const API_BASE = '/api';
 
-export function getImageUrl(filename: string): string {
-  return `${API_BASE}/images/${filename}`;
+export function getAttachmentUrl(filename: string): string {
+  return `${API_BASE}/attachments/${encodeURIComponent(filename)}`;
+}
+
+// サーバーの規約: 添付のフィールド名は種別名（image）、削除は removeImage のように指定する
+function removeFieldName(kind: AttachmentKind): string {
+  return `remove${kind[0].toUpperCase()}${kind.slice(1)}`;
+}
+
+// 添付の変更が1件でもあれば multipart、なければ null（JSON で送る）
+function buildItemFormData(content: string, changes: AttachmentChanges): FormData | null {
+  const entries = Object.entries(changes) as [AttachmentKind, AttachmentChanges[AttachmentKind]][];
+  if (!entries.some(([, change]) => change?.file || change?.remove)) return null;
+
+  const formData = new FormData();
+  formData.append('content', content);
+  for (const [kind, change] of entries) {
+    if (change?.file) formData.append(kind, change.file);
+    if (change?.remove) formData.append(removeFieldName(kind), 'true');
+  }
+  return formData;
 }
 
 export class ApiError extends Error {
@@ -73,36 +94,33 @@ export async function getItems(): Promise<Item[]> {
 }
 
 export async function createItem(data: CreateItemData): Promise<Item> {
-  if (data.image) {
-    const formData = new FormData();
-    formData.append('content', data.content);
-    formData.append('image', data.image);
+  const changes: AttachmentChanges = {};
+  for (const [kind, file] of Object.entries(data.files ?? {}) as [AttachmentKind, File][]) {
+    changes[kind] = { file };
+  }
+  const formData = buildItemFormData(data.content, changes);
+  if (formData) {
     const response = await apiRequestFormData<ItemResponse>('/items', formData);
     return response.item;
-  } else {
-    const response = await apiRequest<ItemResponse>('/items', {
-      method: 'POST',
-      body: JSON.stringify({ content: data.content }),
-    });
-    return response.item;
   }
+  const response = await apiRequest<ItemResponse>('/items', {
+    method: 'POST',
+    body: JSON.stringify({ content: data.content }),
+  });
+  return response.item;
 }
 
 export async function updateItem(id: string, data: UpdateItemData): Promise<Item> {
-  if (data.image || data.removeImage) {
-    const formData = new FormData();
-    formData.append('content', data.content);
-    if (data.image) formData.append('image', data.image);
-    if (data.removeImage) formData.append('removeImage', 'true');
+  const formData = buildItemFormData(data.content, data.changes ?? {});
+  if (formData) {
     const response = await apiRequestFormData<ItemResponse>(`/items/${id}`, formData, 'PUT');
     return response.item;
-  } else {
-    const response = await apiRequest<ItemResponse>(`/items/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({ content: data.content }),
-    });
-    return response.item;
   }
+  const response = await apiRequest<ItemResponse>(`/items/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ content: data.content }),
+  });
+  return response.item;
 }
 
 export async function reviewItem(id: string, quality: number): Promise<Item> {

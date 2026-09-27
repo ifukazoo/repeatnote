@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { createItem, ApiError } from '../../api';
 import type { Item } from '../../types';
-import { useImageUpload } from '../../hooks/useImageUpload';
+import { useFileAttachment } from '../../hooks/useFileAttachment';
+import { ATTACHMENT_KINDS } from '../../constants';
 import './AddItemForm.css';
 import '../../shared.css';
 
@@ -13,8 +14,14 @@ interface AddItemFormProps {
 export function AddItemForm({ onItemCreated, onError }: AddItemFormProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newItemContent, setNewItemContent] = useState('');
-  const { image, imagePreview, fileInputRef, handleImageChange, handleClipboardPaste, clearImage } =
-    useImageUpload(onError);
+  const {
+    file: image,
+    previewUrl: imagePreview,
+    fileInputRef,
+    handleFileChange: handleImageChange,
+    handleClipboardPaste,
+    clearFile: clearImage,
+  } = useFileAttachment('image', onError, { preview: true });
 
   const handleCreateItem = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +30,7 @@ export function AddItemForm({ onItemCreated, onError }: AddItemFormProps) {
     try {
       const newItem = await createItem({
         content: newItemContent.trim(),
-        image: image || undefined,
+        files: image ? { image } : {},
       });
       onItemCreated(newItem);
       setNewItemContent('');
@@ -74,7 +81,7 @@ export function AddItemForm({ onItemCreated, onError }: AddItemFormProps) {
                 type="file"
                 id="image-upload"
                 ref={fileInputRef}
-                accept="image/jpeg,image/png,image/webp,image/gif"
+                accept={ATTACHMENT_KINDS.image.accept}
                 onChange={handleImageChange}
                 className="image-upload-input"
               />

@@ -1,21 +1,24 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useImageUpload } from '../../hooks/useImageUpload';
+import { useFileAttachment } from '../../hooks/useFileAttachment';
+import { getAttachmentUrl } from '../../api';
+import { ATTACHMENT_KINDS } from '../../constants';
+import type { AttachmentChanges, Attachments } from '../../types';
 import './EditForm.css';
 import '../../shared.css';
 
 interface EditFormProps {
   initialContent: string;
-  currentImageUrl: string | null;
-  onSave: (content: string, image: File | null, removeImage: boolean) => Promise<void>;
+  currentAttachments: Attachments;
+  onSave: (content: string, changes: AttachmentChanges) => Promise<void>;
   onCancel: () => void;
   onError: (message: string) => void;
 }
 
 export function EditForm({
   initialContent,
-  currentImageUrl,
+  currentAttachments,
   onSave,
   onCancel,
   onError,
@@ -24,18 +27,25 @@ export function EditForm({
   const [removeEditImage, setRemoveEditImage] = useState(false);
   const [previewMode, setPreviewMode] = useState<'write' | 'preview'>('write');
   const {
-    image: editImage,
-    imagePreview: editImagePreview,
+    file: editImage,
+    previewUrl: editImagePreview,
     fileInputRef: editFileInputRef,
-    handleImageChange: handleEditImageChange,
+    handleFileChange: handleEditImageChange,
     handleClipboardPaste,
-    clearImage: clearEditImage,
-  } = useImageUpload(onError);
+    clearFile: clearEditImage,
+  } = useFileAttachment('image', onError, { preview: true });
+  const currentImageUrl = currentAttachments.image
+    ? getAttachmentUrl(currentAttachments.image)
+    : null;
 
   const handleSave = async () => {
     if (!editContent.trim()) return;
     if (editContent.length > 1000) return;
-    await onSave(editContent.trim(), editImage, removeEditImage);
+    const changes: AttachmentChanges = {};
+    if (removeEditImage || editImage) {
+      changes.image = { file: editImage ?? undefined, remove: removeEditImage };
+    }
+    await onSave(editContent.trim(), changes);
   };
 
   const handleClearNewImage = () => {
@@ -119,7 +129,7 @@ export function EditForm({
             type="file"
             id="edit-image-upload"
             ref={editFileInputRef}
-            accept="image/jpeg,image/png,image/webp,image/gif"
+            accept={ATTACHMENT_KINDS.image.accept}
             onChange={handleEditImageChange}
             className="image-upload-input"
           />

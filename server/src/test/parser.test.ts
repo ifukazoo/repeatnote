@@ -30,7 +30,7 @@ mastered: false
 const SAMPLE_ITEM: ObsidianItem = {
   id: 'abc-123',
   content: 'テストアイテムの内容',
-  image_filename: 'photo.jpg',
+  attachments: { image: 'photo.jpg' },
   created_at: '2026-01-01T00:00:00.000Z',
   next_review: '2026-05-16',
   interval_days: 7,
@@ -46,9 +46,9 @@ describe('Obsidianパーサー', () => {
       expect(item).toEqual(SAMPLE_ITEM);
     });
 
-    it('本文に画像リンクがない場合image_filenameはnull', () => {
+    it('本文に画像リンクがない場合attachmentsは空', () => {
       const item = parseMarkdownToItem('abc-123', SAMPLE_MARKDOWN_NO_IMAGE);
-      expect(item.image_filename).toBeNull();
+      expect(item.attachments).toEqual({});
       expect(item.content).toBe('テストアイテムの内容');
     });
 
@@ -64,7 +64,7 @@ mastered: false
 
 ![[photo.jpg]]`;
       const item = parseMarkdownToItem('abc-123', md);
-      expect(item.image_filename).toBe('photo.jpg');
+      expect(item.attachments).toEqual({ image: 'photo.jpg' });
       expect(item.content).toBe('');
     });
 
@@ -130,8 +130,8 @@ mastered: false
       expect(markdown).toContain('  - "一行目 二行目 三行目"');
     });
 
-    it('image_filenameがnullの場合、本文に画像リンクを含まない', () => {
-      const item = { ...SAMPLE_ITEM, image_filename: null };
+    it('添付がない場合、本文に埋め込みリンクを含まない', () => {
+      const item = { ...SAMPLE_ITEM, attachments: {} };
       const markdown = itemToMarkdown(item);
       expect(markdown).not.toContain('![[');
       expect(markdown).not.toContain('image_filename');
@@ -159,10 +159,61 @@ mastered: false
     });
 
     it('画像なしのItemもラウンドトリップできる', () => {
-      const item = { ...SAMPLE_ITEM, image_filename: null };
+      const item = { ...SAMPLE_ITEM, attachments: {} };
       const markdown = itemToMarkdown(item);
       const parsed = parseMarkdownToItem(item.id, markdown);
       expect(parsed).toEqual(item);
+    });
+
+    it('本文末尾に残した埋め込みがあってもラウンドトリップできる', () => {
+      const item = { ...SAMPLE_ITEM, content: '本文\n\n![[old.png]]' };
+      const markdown = itemToMarkdown(item);
+      const parsed = parseMarkdownToItem(item.id, markdown);
+      expect(parsed).toEqual(item);
+    });
+  });
+
+  describe('本文末尾の埋め込みの解釈', () => {
+    const FRONTMATTER = `---
+created_at: 2026-01-01T00:00:00.000Z
+interval_days: 7
+ease_factor: 2.5
+review_count: 3
+next_review: 2026-05-16
+mastered: false
+---
+`;
+
+    it('拡張子が添付種別に該当しない埋め込みは本文に残す', () => {
+      const item = parseMarkdownToItem('abc-123', `${FRONTMATTER}\n本文\n\n![[memo]]`);
+      expect(item.attachments).toEqual({});
+      expect(item.content).toBe('本文\n\n![[memo]]');
+    });
+
+    it('拡張子の大文字小文字を区別せずに種別を判別する', () => {
+      const item = parseMarkdownToItem('abc-123', `${FRONTMATTER}\n本文\n\n![[photo.JPG]]`);
+      expect(item.attachments).toEqual({ image: 'photo.JPG' });
+    });
+
+    it('同じ種別が複数ある場合は最後の1つを添付とし、残りは本文に残す', () => {
+      const item = parseMarkdownToItem(
+        'abc-123',
+        `${FRONTMATTER}\n本文\n\n![[first.png]]\n![[second.jpg]]`,
+      );
+      expect(item.attachments).toEqual({ image: 'second.jpg' });
+      expect(item.content).toBe('本文\n\n![[first.png]]');
+    });
+
+    it('埋め込みの間に空行があっても解釈できる', () => {
+      const item = parseMarkdownToItem('abc-123', `${FRONTMATTER}\n本文\n\n![[memo]]\n\n![[photo.jpg]]`);
+      expect(item.attachments).toEqual({ image: 'photo.jpg' });
+      expect(item.content).toBe('本文\n\n![[memo]]');
+    });
+
+    it('CRLF の改行でも解釈できる', () => {
+      const item = parseMarkdownToItem('abc-123', `${FRONTMATTER}\r\n本文\r\n\r\n![[photo.jpg]]\r\n`);
+      expect(item.attachments).toEqual({ image: 'photo.jpg' });
+      expect(item.content).toBe('本文');
     });
   });
 });

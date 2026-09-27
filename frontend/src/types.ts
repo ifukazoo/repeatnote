@@ -1,9 +1,21 @@
 // repeatnote フロントエンド用の型定義
 
+export type AttachmentKind = 'image';
+
+// 種別ごとに1ファイルまで
+export type Attachments = Partial<Record<AttachmentKind, string>>;
+
+export interface AttachmentChange {
+  file?: File;
+  remove?: boolean;
+}
+
+export type AttachmentChanges = Partial<Record<AttachmentKind, AttachmentChange>>;
+
 export interface Item {
   id: string;
   content: string;
-  image_filename: string | null;
+  attachments: Attachments;
   created_at: string;
   next_review: string | null;
   interval_days: number;
@@ -14,13 +26,12 @@ export interface Item {
 
 export interface CreateItemData {
   content: string;
-  image?: File;
+  files?: Partial<Record<AttachmentKind, File>>;
 }
 
 export interface UpdateItemData {
   content: string;
-  image?: File;
-  removeImage?: boolean;
+  changes?: AttachmentChanges;
 }
 
 export interface ReviewResult {

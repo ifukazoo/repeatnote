@@ -16,7 +16,7 @@ testApp.route('/api/items', itemsApp);
 const mockItem = {
   id: 'test-uuid',
   content: 'テストコンテンツ',
-  image_filename: null,
+  attachments: {},
   created_at: '2026-01-01T00:00:00.000Z',
   next_review: '2026-05-16',
   interval_days: 1,
@@ -134,6 +134,61 @@ describe('PUT /api/items/:id', () => {
     expect(res.status).toBe(404);
     const data = await res.json() as ErrorResponse;
     expect(data.error.code).toBe('not_found');
+  });
+});
+
+describe('添付の受け渡し', () => {
+  it('POST の multipart の image を createItem に渡す', async () => {
+    (client.createItem as Mock).mockResolvedValue(mockItem);
+    const form = new FormData();
+    form.append('content', '本文');
+    form.append('image', new File(['x'], 'photo.jpg', { type: 'image/jpeg' }));
+
+    const res = await testApp.request('/api/items', { method: 'POST', body: form });
+
+    expect(res.status).toBe(201);
+    const [, files] = (client.createItem as Mock).mock.calls[0];
+    expect(files.image).toBeInstanceOf(File);
+    expect(files.image.name).toBe('photo.jpg');
+  });
+
+  it('PUT の multipart の removeImage を削除の指示として渡す', async () => {
+    (client.updateItem as Mock).mockResolvedValue(mockItem);
+    const form = new FormData();
+    form.append('content', '本文');
+    form.append('removeImage', 'true');
+
+    await testApp.request('/api/items/test-uuid', { method: 'PUT', body: form });
+
+    expect(client.updateItem).toHaveBeenCalledWith('test-uuid', '本文', {
+      image: { file: undefined, remove: true },
+    });
+  });
+
+  it('PUT の JSON の removeImage を削除の指示として渡す', async () => {
+    (client.updateItem as Mock).mockResolvedValue(mockItem);
+
+    await testApp.request('/api/items/test-uuid', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: '本文', removeImage: true }),
+    });
+
+    expect(client.updateItem).toHaveBeenCalledWith('test-uuid', '本文', {
+      image: { remove: true },
+    });
+  });
+
+  it('PUT の JSON で添付の指定がなければ変更なしとして渡す', async () => {
+    (client.updateItem as Mock).mockResolvedValue(mockItem);
+
+    await testApp.request('/api/items/test-uuid', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: '本文' }),
+    });
+
+    expect(client.updateItem).toHaveBeenCalledWith('test-uuid', '本文', {});
   });
 });
 

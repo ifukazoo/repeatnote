@@ -1,5 +1,10 @@
 import { parseMarkdownToItem, itemToMarkdown, type ObsidianItem } from './parser';
 import { calculateNextReview, getInitialSM2Values } from '../sm2';
+import {
+  ATTACHMENT_KIND_ORDER,
+  type AttachmentChanges,
+  type AttachmentKind,
+} from '../attachments';
 
 function getBaseUrl(): string {
   return process.env.OBSIDIAN_BASE_URL ?? 'http://127.0.0.1:27123';
@@ -62,19 +67,69 @@ export async function listItems(): Promise<ObsidianItem[]> {
   return items.filter((item): item is ObsidianItem => item !== null);
 }
 
-export async function createItem(content: string, imageFile?: File): Promise<ObsidianItem> {
-  const id = crypto.randomUUID();
-  const initial = getInitialSM2Values();
+async function uploadAttachment(file: File): Promise<string> {
+  const ext = file.name.split('.').pop() ?? 'jpg';
+  const filename = `${crypto.randomUUID()}.${ext}`;
 
-  let imageFilename: string | null = null;
-  if (imageFile) {
-    imageFilename = await uploadImage(imageFile);
+  const res = await vaultPut(`attachments/${filename}`, file, file.type);
+  if (!res.ok) throw new Error(`Failed to upload attachment: ${res.status}`);
+
+  return filename;
+}
+
+// 後始末なので失敗しても処理を止めない
+async function deleteAttachmentFiles(filenames: string[]): Promise<void> {
+  await Promise.all(
+    filenames.map((filename) => vaultDelete(`attachments/${filename}`).catch(() => undefined)),
+  );
+}
+
+// 添付の変更を反映して md を書き込む。
+// 順序は「新ファイル PUT → md PUT → 旧ファイル削除」。途中で失敗したら新ファイルを削除し、旧ファイルは残す
+async function saveItemWithAttachments(
+  item: ObsidianItem,
+  changes: AttachmentChanges,
+): Promise<ObsidianItem> {
+  const attachments = { ...item.attachments };
+  const uploaded: string[] = [];
+  const obsolete: string[] = [];
+
+  try {
+    for (const kind of ATTACHMENT_KIND_ORDER) {
+      const change = changes[kind];
+      const current = attachments[kind];
+      if (change?.remove) {
+        if (current) obsolete.push(current);
+        delete attachments[kind];
+      } else if (change?.file) {
+        const filename = await uploadAttachment(change.file);
+        uploaded.push(filename);
+        if (current) obsolete.push(current);
+        attachments[kind] = filename;
+      }
+    }
+
+    const saved: ObsidianItem = { ...item, attachments };
+    const res = await vaultPut(`${item.id}.md`, itemToMarkdown(saved), 'text/markdown');
+    if (!res.ok) throw new Error(`Failed to save item: ${res.status}`);
+
+    await deleteAttachmentFiles(obsolete);
+    return saved;
+  } catch (err) {
+    await deleteAttachmentFiles(uploaded);
+    throw err;
   }
+}
 
+export async function createItem(
+  content: string,
+  files: Partial<Record<AttachmentKind, File>> = {},
+): Promise<ObsidianItem> {
+  const initial = getInitialSM2Values();
   const item: ObsidianItem = {
-    id,
+    id: crypto.randomUUID(),
     content,
-    image_filename: imageFilename,
+    attachments: {},
     created_at: new Date().toISOString(),
     next_review: initial.next_review,
     interval_days: initial.interval_days,
@@ -83,54 +138,34 @@ export async function createItem(content: string, imageFile?: File): Promise<Obs
     mastered: initial.mastered,
   };
 
-  const res = await vaultPut(`${id}.md`, itemToMarkdown(item), 'text/markdown');
-  if (!res.ok) throw new Error(`Failed to create item: ${res.status}`);
-
-  return item;
+  const changes: AttachmentChanges = {};
+  for (const kind of ATTACHMENT_KIND_ORDER) {
+    const file = files[kind];
+    if (file) changes[kind] = { file };
+  }
+  return saveItemWithAttachments(item, changes);
 }
 
 export async function updateItem(
   id: string,
   content: string,
-  imageFile?: File,
-  removeImage?: boolean,
+  changes: AttachmentChanges = {},
 ): Promise<ObsidianItem> {
   const fileRes = await vaultGet(`${id}.md`);
   if (!fileRes.ok) throw new Error(`Item not found: ${id}`);
 
   const current = parseMarkdownToItem(id, await fileRes.text());
-  let imageFilename = current.image_filename;
-
-  if (removeImage) {
-    if (current.image_filename) {
-      await vaultDelete(`attachments/${current.image_filename}`);
-    }
-    imageFilename = null;
-  } else if (imageFile) {
-    if (current.image_filename) {
-      await vaultDelete(`attachments/${current.image_filename}`);
-    }
-    imageFilename = await uploadImage(imageFile);
-  }
-
-  const updated: ObsidianItem = { ...current, content, image_filename: imageFilename };
-  const res = await vaultPut(`${id}.md`, itemToMarkdown(updated), 'text/markdown');
-  if (!res.ok) throw new Error(`Failed to update item: ${res.status}`);
-
-  return updated;
+  return saveItemWithAttachments({ ...current, content }, changes);
 }
 
 export async function deleteItem(id: string): Promise<void> {
   const fileRes = await vaultGet(`${id}.md`);
-  if (fileRes.ok) {
-    const item = parseMarkdownToItem(id, await fileRes.text());
-    if (item.image_filename) {
-      await vaultDelete(`attachments/${item.image_filename}`);
-    }
-  }
+  const attachments = fileRes.ok ? parseMarkdownToItem(id, await fileRes.text()).attachments : {};
 
   const res = await vaultDelete(`${id}.md`);
   if (!res.ok) throw new Error(`Item not found: ${id}`);
+
+  await deleteAttachmentFiles(Object.values(attachments));
 }
 
 export async function reviewItem(id: string, quality: number): Promise<ObsidianItem> {
@@ -189,21 +224,11 @@ export async function unmasterItem(id: string): Promise<ObsidianItem> {
   return updated;
 }
 
-export async function uploadImage(file: File): Promise<string> {
-  const ext = file.name.split('.').pop() ?? 'jpg';
-  const filename = `${crypto.randomUUID()}.${ext}`;
-
-  const res = await vaultPut(`attachments/${filename}`, file, file.type);
-  if (!res.ok) throw new Error(`Failed to upload image: ${res.status}`);
-
-  return filename;
-}
-
-export async function getImageBuffer(
+export async function getAttachment(
   filename: string,
 ): Promise<{ buffer: ArrayBuffer; contentType: string }> {
   const res = await vaultGet(`attachments/${filename}`);
-  if (!res.ok) throw new Error(`Image not found: ${filename}`);
+  if (!res.ok) throw new Error(`Attachment not found: ${filename}`);
 
   const buffer = await res.arrayBuffer();
   const contentType = res.headers.get('content-type') ?? 'application/octet-stream';

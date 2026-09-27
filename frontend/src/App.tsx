@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Item, UpdateItemData } from './types';
+import type { AttachmentChanges, Item } from './types';
 import {
   getItems,
   updateItem,
@@ -57,15 +57,11 @@ function App() {
   const handleEditSave = async (
     id: string,
     content: string,
-    image: File | null,
-    removeImage: boolean,
+    changes: AttachmentChanges,
   ) => {
     try {
       setError('');
-      const updateData: UpdateItemData = { content };
-      if (image) updateData.image = image;
-      if (removeImage) updateData.removeImage = true;
-      const updatedItem = await updateItem(id, updateData);
+      const updatedItem = await updateItem(id, { content, changes });
       setItems((prev) => prev.map((item) => (item.id === id ? updatedItem : item)));
       setEditingItem(null);
     } catch (err) {

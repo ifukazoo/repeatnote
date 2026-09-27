@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 import * as client from '../obsidian/client';
 
-export const imagesApp = new Hono();
+export const attachmentsApp = new Hono();
 
-imagesApp.get('/:filename', async (c) => {
+attachmentsApp.get('/:filename', async (c) => {
   const filename = c.req.param('filename');
   try {
-    const { buffer, contentType } = await client.getImageBuffer(filename);
+    const { buffer, contentType } = await client.getAttachment(filename);
     return new Response(buffer, {
       headers: { 'Content-Type': contentType },
     });

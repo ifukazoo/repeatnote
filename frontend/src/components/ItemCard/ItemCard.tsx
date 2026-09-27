@@ -1,5 +1,4 @@
-import type { Item } from '../../types';
-import { getImageUrl } from '../../api';
+import type { AttachmentChanges, Item } from '../../types';
 import { EditForm } from '../EditForm/EditForm';
 import { ItemDisplay } from '../ItemDisplay/ItemDisplay';
 import './ItemCard.css';
@@ -12,7 +11,7 @@ interface ItemCardProps {
   needsReview: boolean;
   onDropdownToggle: () => void;
   onEditStart: () => void;
-  onEditSave: (content: string, image: File | null, removeImage: boolean) => Promise<void>;
+  onEditSave: (content: string, changes: AttachmentChanges) => Promise<void>;
   onEditCancel: () => void;
   onDelete: () => void;
   onReview: (quality: number) => void;
@@ -49,7 +48,7 @@ export function ItemCard({
         {isEditing ? (
           <EditForm
             initialContent={item.content}
-            currentImageUrl={item.image_filename ? getImageUrl(item.image_filename) : null}
+            currentAttachments={item.attachments}
             onSave={onEditSave}
             onCancel={onEditCancel}
             onError={onError}

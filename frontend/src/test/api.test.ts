@@ -7,6 +7,7 @@ import {
   deleteItem,
   masterItem,
   unmasterItem,
+  getAttachmentUrl,
   ApiError,
 } from '../api';
 
@@ -86,9 +87,9 @@ describe('API関数', () => {
     });
 
     it('画像付きのアイテムを作成する', async () => {
-      const mockItem = { id: 'uuid-1', content: 'テスト項目', image_filename: 'test.jpg' };
+      const mockItem = { id: 'uuid-1', content: 'テスト項目', attachments: { image: 'test.jpg' } };
       const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
-      const createData = { content: 'テスト項目', image: mockFile };
+      const createData = { content: 'テスト項目', files: { image: mockFile } };
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -103,6 +104,15 @@ describe('API関数', () => {
       expect(call[0]).toBe('/api/items');
       expect(call[1]?.method).toBe('POST');
       expect(call[1]?.body).toBeInstanceOf(FormData);
+      const body = call[1]?.body as FormData;
+      expect(body.get('content')).toBe('テスト項目');
+      expect(body.get('image')).toBeInstanceOf(File);
+    });
+  });
+
+  describe('getAttachmentUrl', () => {
+    it('添付の配信 URL を返す', () => {
+      expect(getAttachmentUrl('abc.jpg')).toBe('/api/attachments/abc.jpg');
     });
   });
 
@@ -126,8 +136,8 @@ describe('API関数', () => {
     });
 
     it('画像削除フラグ付きで更新する', async () => {
-      const mockItem = { id: 'uuid-1', content: '項目', image_filename: null };
-      const updateData = { content: '項目', removeImage: true };
+      const mockItem = { id: 'uuid-1', content: '項目', attachments: {} };
+      const updateData = { content: '項目', changes: { image: { remove: true } } };
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -142,6 +152,20 @@ describe('API関数', () => {
       expect(call[0]).toBe('/api/items/uuid-1');
       expect(call[1]?.method).toBe('PUT');
       expect(call[1]?.body).toBeInstanceOf(FormData);
+      expect((call[1]?.body as FormData).get('removeImage')).toBe('true');
+    });
+
+    it('添付の変更がなければ JSON で送る', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ item: { id: 'uuid-1' } }),
+      });
+
+      await updateItem('uuid-1', { content: '項目', changes: {} });
+
+      const call = mockFetch.mock.calls[0];
+      expect(call[1]?.body).toBe(JSON.stringify({ content: '項目' }));
     });
   });
 

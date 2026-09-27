@@ -5,12 +5,14 @@ import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 import { itemsApp } from './routes/items';
-import { imagesApp } from './routes/images';
+import { attachmentsApp } from './routes/attachments';
 
 const app = new Hono();
 
 app.route('/api/items', itemsApp);
-app.route('/api/images', imagesApp);
+app.route('/api/attachments', attachmentsApp);
+// 旧 URL の互換用エイリアス
+app.route('/api/images', attachmentsApp);
 
 app.onError((err, c) => {
   console.error(err);

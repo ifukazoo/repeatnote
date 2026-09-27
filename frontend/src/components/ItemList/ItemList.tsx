@@ -1,4 +1,4 @@
-import type { Item } from '../../types';
+import type { AttachmentChanges, Item } from '../../types';
 import { ItemCard } from '../ItemCard/ItemCard';
 import './ItemList.css';
 
@@ -28,12 +28,7 @@ interface ItemListProps {
   dropdownOpen: string | null;
   onDropdownToggle: (id: string) => void;
   onEditStart: (id: string) => void;
-  onEditSave: (
-    id: string,
-    content: string,
-    image: File | null,
-    removeImage: boolean,
-  ) => Promise<void>;
+  onEditSave: (id: string, content: string, changes: AttachmentChanges) => Promise<void>;
   onEditCancel: () => void;
   onDelete: (id: string) => void;
   onReview: (id: string, quality: number) => void;
@@ -135,8 +130,8 @@ export function ItemList({
               needsReview={needsReview(item)}
               onDropdownToggle={() => onDropdownToggle(item.id)}
               onEditStart={() => onEditStart(item.id)}
-              onEditSave={(content, image, removeImage) =>
-                onEditSave(item.id, content, image, removeImage)
+              onEditSave={(content, changes) =>
+                onEditSave(item.id, content, changes)
               }
               onEditCancel={onEditCancel}
               onDelete={() => onDelete(item.id)}
