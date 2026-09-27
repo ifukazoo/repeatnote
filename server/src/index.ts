@@ -6,10 +6,11 @@ import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 import { itemsApp } from './routes/items';
 import { attachmentsApp } from './routes/attachments';
-import { rejectCrossOriginWrites } from './middleware/origin';
+import { rejectCrossOriginWrites, rejectForeignHost } from './middleware/origin';
 
 const app = new Hono();
 
+app.use('/api/*', rejectForeignHost);
 app.use('/api/*', rejectCrossOriginWrites);
 app.route('/api/items', itemsApp);
 app.route('/api/attachments', attachmentsApp);
