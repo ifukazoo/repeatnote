@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useFileAttachment } from '../../hooks/useFileAttachment';
-import { getAttachmentUrl } from '../../api';
-import { ATTACHMENT_KINDS } from '../../constants';
+import { useAttachmentsEditor } from '../../hooks/useAttachmentsEditor';
+import { ATTACHMENT_KIND_ORDER } from '../../constants';
+import { AttachmentField } from '../AttachmentField/AttachmentField';
 import type { AttachmentChanges, Attachments } from '../../types';
 import './EditForm.css';
 import '../../shared.css';
@@ -24,49 +24,13 @@ export function EditForm({
   onError,
 }: EditFormProps) {
   const [editContent, setEditContent] = useState(initialContent);
-  const [removeEditImage, setRemoveEditImage] = useState(false);
   const [previewMode, setPreviewMode] = useState<'write' | 'preview'>('write');
-  const {
-    file: editImage,
-    previewUrl: editImagePreview,
-    fileInputRef: editFileInputRef,
-    handleFileChange: handleEditImageChange,
-    handleClipboardPaste,
-    clearFile: clearEditImage,
-  } = useFileAttachment('image', onError, { preview: true });
-  const currentImageUrl = currentAttachments.image
-    ? getAttachmentUrl(currentAttachments.image)
-    : null;
-  const [removeArtifact, setRemoveArtifact] = useState(false);
-  const {
-    file: newArtifact,
-    fileInputRef: artifactInputRef,
-    handleFileChange: handleArtifactChange,
-    clearFile: clearNewArtifact,
-  } = useFileAttachment('html', onError);
-  const hasArtifact = Boolean(currentAttachments.html);
+  const attachments = useAttachmentsEditor(onError);
 
   const handleSave = async () => {
     if (!editContent.trim()) return;
     if (editContent.length > 1000) return;
-    const changes: AttachmentChanges = {};
-    if (removeEditImage || editImage) {
-      changes.image = { file: editImage ?? undefined, remove: removeEditImage };
-    }
-    if (removeArtifact || newArtifact) {
-      changes.html = { file: newArtifact ?? undefined, remove: removeArtifact };
-    }
-    await onSave(editContent.trim(), changes);
-  };
-
-  const handleRemoveArtifact = () => {
-    clearNewArtifact();
-    setRemoveArtifact(true);
-  };
-
-  const handleClearNewImage = () => {
-    clearEditImage();
-    setRemoveEditImage(false);
+    await onSave(editContent.trim(), attachments.changes());
   };
 
   return (
@@ -93,7 +57,7 @@ export function EditForm({
           <textarea
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
-            onPaste={handleClipboardPaste}
+            onPaste={attachments.handleClipboardPaste}
             className="edit-textarea"
             autoFocus
             rows={6}
@@ -110,116 +74,16 @@ export function EditForm({
         </div>
       )}
 
-      <div className="edit-image-container">
-        {currentImageUrl && !removeEditImage && (
-          <div className="current-image">
-            <img src={currentImageUrl} alt="現在の画像" className="edit-current-image" />
-            <button
-              type="button"
-              onClick={() => setRemoveEditImage(true)}
-              className="remove-current-image-btn"
-            >
-              🗑️ 画像を削除
-            </button>
-          </div>
-        )}
-
-        {removeEditImage && (
-          <div className="image-removed">
-            <span>画像が削除されます</span>
-            <button
-              type="button"
-              onClick={() => setRemoveEditImage(false)}
-              className="undo-remove-btn"
-            >
-              ↶ 削除を取り消し
-            </button>
-          </div>
-        )}
-
-        <div className="edit-image-upload">
-          <label htmlFor="edit-image-upload" className="image-upload-label">
-            📷 {currentImageUrl ? '画像を変更' : '画像を追加'} (任意・クリップボードからペースト可能)
-          </label>
-          <input
-            type="file"
-            id="edit-image-upload"
-            ref={editFileInputRef}
-            accept={ATTACHMENT_KINDS.image.accept}
-            onChange={handleEditImageChange}
-            className="image-upload-input"
+      {ATTACHMENT_KIND_ORDER.map((kind) => (
+        <div key={kind} className="edit-image-container">
+          <AttachmentField
+            kind={kind}
+            editor={attachments}
+            mode="edit"
+            currentFilename={currentAttachments[kind]}
           />
-          {editImage && (
-            <div className="image-preview">
-              <img
-                src={editImagePreview!}
-                alt="選択した新しい画像"
-                className="preview-thumbnail"
-              />
-              <span>新しい画像: {editImage.name}</span>
-              <button type="button" onClick={handleClearNewImage} className="remove-image-btn">
-                ❌
-              </button>
-            </div>
-          )}
         </div>
-      </div>
-
-      <div className="edit-image-container">
-        {removeArtifact ? (
-          <div className="image-removed">
-            <span>artifact が削除されます</span>
-            <button
-              type="button"
-              onClick={() => setRemoveArtifact(false)}
-              className="undo-remove-btn"
-            >
-              ↶ 削除を取り消し
-            </button>
-          </div>
-        ) : (
-          <>
-            {hasArtifact && (
-              <div className="current-artifact">
-                <span>🧩 artifact 添付済み</span>
-                <button
-                  type="button"
-                  onClick={handleRemoveArtifact}
-                  className="remove-current-image-btn"
-                >
-                  🗑️ artifact を削除
-                </button>
-              </div>
-            )}
-            <div className="edit-image-upload">
-              <label htmlFor="edit-artifact-upload" className="image-upload-label">
-                🧩 {hasArtifact ? 'HTML を差し替え' : 'HTML を添付'} (任意・artifact として表示)
-              </label>
-              <input
-                type="file"
-                id="edit-artifact-upload"
-                ref={artifactInputRef}
-                accept={ATTACHMENT_KINDS.html.accept}
-                onChange={handleArtifactChange}
-                className="image-upload-input"
-              />
-              {newArtifact && (
-                <div className="image-preview">
-                  <span>新しい HTML: {newArtifact.name}</span>
-                  <button
-                    type="button"
-                    onClick={clearNewArtifact}
-                    className="remove-image-btn"
-                    aria-label="HTML の選択を取り消す"
-                  >
-                    ❌
-                  </button>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
+      ))}
 
       <div className="edit-actions">
         <button onClick={handleSave} className="save-button" disabled={!editContent.trim() || editContent.length > 1000}>

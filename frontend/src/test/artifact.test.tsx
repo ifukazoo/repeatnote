@@ -157,7 +157,25 @@ describe('EditForm の artifact 操作', () => {
     expect(screen.getByText('artifact が削除されます')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /保存/ }));
 
-    expect(onSave).toHaveBeenCalledWith('本文', { html: { file: undefined, remove: true } });
+    expect(onSave).toHaveBeenCalledWith('本文', { html: { remove: true } });
+  });
+
+  it('削除を取り消すと何も送らない', async () => {
+    const onSave = renderEdit();
+
+    await userEvent.click(screen.getByRole('button', { name: /artifact を削除/ }));
+    await userEvent.click(screen.getByRole('button', { name: /削除を取り消し/ }));
+    await userEvent.click(screen.getByRole('button', { name: /保存/ }));
+
+    expect(onSave).toHaveBeenCalledWith('本文', {});
+  });
+
+  it('削除を指示している間はファイル選択欄を出さない', async () => {
+    renderEdit();
+
+    await userEvent.click(screen.getByRole('button', { name: /artifact を削除/ }));
+
+    expect(screen.queryByLabelText(/HTML を/)).not.toBeInTheDocument();
   });
 
   it('差し替えると新しい HTML を送る', async () => {
@@ -165,8 +183,16 @@ describe('EditForm の artifact 操作', () => {
     const file = new File(['<p>new</p>'], 'new.htm', { type: '' });
 
     await userEvent.upload(screen.getByLabelText(/HTML を差し替え/), file);
+    expect(screen.getByText('新しい HTML: new.htm')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /保存/ }));
 
-    expect(onSave).toHaveBeenCalledWith('本文', { html: { file, remove: false } });
+    expect(onSave).toHaveBeenCalledWith('本文', { html: { file } });
+  });
+
+  it('添付がない種別は「追加」の文言で表示する', () => {
+    renderEdit();
+
+    expect(screen.getByLabelText(/画像を追加/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /画像を削除/ })).not.toBeInTheDocument();
   });
 });
