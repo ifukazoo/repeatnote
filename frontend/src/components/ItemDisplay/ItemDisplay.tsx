@@ -14,6 +14,7 @@ interface ItemDisplayProps {
   onDelete: () => void;
   onCopy: () => void;
   onImageClick: (src: string) => void;
+  onArtifactOpen: (filename: string) => void;
 }
 
 export function ItemDisplay({
@@ -25,8 +26,10 @@ export function ItemDisplay({
   onDelete,
   onCopy,
   onImageClick,
+  onArtifactOpen,
 }: ItemDisplayProps) {
   const imageSrc = item.attachments.image ? getAttachmentUrl(item.attachments.image) : null;
+  const artifactFilename = item.attachments.html ?? null;
 
   return (
     <>
@@ -46,6 +49,16 @@ export function ItemDisplay({
       <div className="item-text item-text--markdown">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.content}</ReactMarkdown>
       </div>
+
+      {artifactFilename && (
+        <button
+          type="button"
+          className="artifact-open-button"
+          onClick={() => onArtifactOpen(artifactFilename)}
+        >
+          🧩 artifact を開く
+        </button>
+      )}
 
       <div className="content-actions-bar">
         <button

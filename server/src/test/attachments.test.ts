@@ -28,6 +28,28 @@ describe('GET /api/attachments/:filename', () => {
     expect(client.getAttachment).toHaveBeenCalledWith('test-image.jpg');
   });
 
+  it('html は CSP sandbox・charset・nosniff を付けて返す', async () => {
+    (client.getAttachment as Mock).mockResolvedValue(new TextEncoder().encode('<p>x</p>').buffer);
+
+    const res = await testApp.request('/api/attachments/page.html');
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('text/html; charset=utf-8');
+    expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+    const csp = res.headers.get('content-security-policy') ?? '';
+    expect(csp).toMatch(/^sandbox /);
+    expect(csp).toContain('allow-scripts');
+    expect(csp).not.toContain('allow-same-origin');
+  });
+
+  it('画像には CSP sandbox を付けない', async () => {
+    (client.getAttachment as Mock).mockResolvedValue(new ArrayBuffer(8));
+
+    const res = await testApp.request('/api/attachments/photo.png');
+
+    expect(res.headers.get('content-security-policy')).toBeNull();
+  });
+
   it('大文字の拡張子でも取得できる', async () => {
     (client.getAttachment as Mock).mockResolvedValue(new ArrayBuffer(8));
 

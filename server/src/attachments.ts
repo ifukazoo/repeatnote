@@ -1,6 +1,6 @@
 // 添付ファイルの種別レジストリ。種別の判別・アップロード時の検証・保存名・配信ヘッダーはすべてここを参照する
 
-export type AttachmentKind = 'image';
+export type AttachmentKind = 'image' | 'html';
 
 // 種別ごとに1ファイルまで
 export type Attachments = Partial<Record<AttachmentKind, string>>;
@@ -15,6 +15,8 @@ export type AttachmentChanges = Partial<Record<AttachmentKind, AttachmentChange>
 interface AttachmentKindSpec {
   // 拡張子（小文字）→ Content-Type。アップロードと配信の許可リストを兼ねる
   contentTypes: Record<string, string>;
+  // 保存時の拡張子を1つに揃える場合に指定（.htm → .html）
+  storedExtension?: string;
   maxSize: number;
   // 配信時に追加するヘッダー
   headers: Record<string, string>;
@@ -33,6 +35,19 @@ export const ATTACHMENT_KINDS: Record<AttachmentKind, AttachmentKindSpec> = {
     },
     maxSize: MAX_SIZE,
     headers: {},
+  },
+  html: {
+    contentTypes: {
+      html: 'text/html; charset=utf-8',
+      htm: 'text/html; charset=utf-8',
+    },
+    storedExtension: 'html',
+    maxSize: MAX_SIZE,
+    // URL を直接開いた場合も同一オリジンの権限を持たせない（フロントの iframe sandbox と同じ設定）
+    headers: {
+      'Content-Security-Policy':
+        'sandbox allow-scripts allow-modals allow-forms allow-popups allow-popups-to-escape-sandbox',
+    },
   },
 };
 
@@ -65,8 +80,9 @@ export function validateAttachmentFile(kind: AttachmentKind, file: File): string
 
 // 保存名はクライアントのファイル名を使わず、{uuid}.{小文字の拡張子} で決める。
 // validateAttachmentFile を通ったファイルにのみ使う
-export function storedFilename(originalName: string): string {
-  return `${crypto.randomUUID()}.${getExtension(originalName)}`;
+export function storedFilename(kind: AttachmentKind, originalName: string): string {
+  const ext = ATTACHMENT_KINDS[kind].storedExtension ?? getExtension(originalName);
+  return `${crypto.randomUUID()}.${ext}`;
 }
 
 // 英数字・ハイフン・アンダースコア・ドットのみ（パス区切りや先頭ドットを含まない）で、

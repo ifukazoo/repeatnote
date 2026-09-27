@@ -229,6 +229,53 @@ describe('添付の検証', () => {
     expect(client.updateItem).not.toHaveBeenCalled();
   });
 
+  it.each(['page.html', 'page.htm', 'PAGE.HTML'])('html フィールドに %s を送ると受け付ける', async (name) => {
+    (client.createItem as Mock).mockResolvedValue(mockItem);
+
+    const res = await testApp.request('/api/items', {
+      method: 'POST',
+      body: formWith('html', new File(['<p>x</p>'], name)),
+    });
+
+    expect(res.status).toBe(201);
+    const [, files] = (client.createItem as Mock).mock.calls[0];
+    expect(files.html.name).toBe(name);
+  });
+
+  it('html フィールドに画像を送ると 400', async () => {
+    const res = await testApp.request('/api/items', {
+      method: 'POST',
+      body: formWith('html', new File(['x'], 'photo.jpg')),
+    });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('5MB を超える html は 400', async () => {
+    const big = new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'big.html');
+
+    const res = await testApp.request('/api/items', {
+      method: 'POST',
+      body: formWith('html', big),
+    });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('PUT の removeHtml を html の削除の指示として渡す', async () => {
+    (client.updateItem as Mock).mockResolvedValue(mockItem);
+
+    await testApp.request('/api/items/test-uuid', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: '本文', removeHtml: true }),
+    });
+
+    expect(client.updateItem).toHaveBeenCalledWith('test-uuid', '本文', {
+      html: { remove: true },
+    });
+  });
+
   it('大文字の拡張子の画像は受け付ける', async () => {
     (client.createItem as Mock).mockResolvedValue(mockItem);
 

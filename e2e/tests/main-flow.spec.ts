@@ -90,6 +90,47 @@ test.describe('メインフロー', () => {
     await expect(page.getByText('覚えた項目')).toBeVisible();
   });
 
+  test('HTML を添付して artifact を開ける（artifact の JS から API に書き込めない）', async ({
+    page,
+  }) => {
+    // JS が動けば本文を書き換え、API への書き込みを試みて結果のステータスを表示する
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>E2Eクイズ</title></head>
+<body><p id="msg">初期表示</p><p id="api">未実行</p><script>
+document.getElementById('msg').textContent = 'JS 実行OK';
+fetch('/api/items', { method: 'POST', headers: { 'Content-Type': 'text/plain' },
+  body: JSON.stringify({ content: '侵入テスト' }) })
+  .then((r) => { document.getElementById('api').textContent = 'status:' + r.status; })
+  .catch(() => { document.getElementById('api').textContent = 'blocked'; });
+</script></body></html>`;
+
+    await page.goto('/');
+    await page.getByRole('button', { name: '新しいアイテムを追加' }).click();
+    await page.getByPlaceholder('学習内容を入力').fill('artifact テスト項目');
+    await page.getByLabel(/HTML を添付/).setInputFiles({
+      name: 'quiz.html',
+      mimeType: 'text/html',
+      buffer: Buffer.from(html),
+    });
+    await page.getByRole('button', { name: '追加' }).click();
+    await expect(page.getByText('artifact テスト項目')).toBeVisible();
+
+    await page.getByRole('button', { name: /artifact を開く/ }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByText('🧩 E2Eクイズ')).toBeVisible();
+
+    const frame = page.frameLocator('iframe');
+    await expect(frame.locator('#msg')).toHaveText('JS 実行OK');
+    await expect(frame.locator('#api')).toHaveText(/status:403|blocked/);
+
+    await dialog.getByRole('button', { name: '閉じる' }).click();
+    await expect(dialog).not.toBeVisible();
+
+    await page.reload();
+    await page.getByRole('button', { name: 'すべて表示' }).click();
+    await expect(page.getByText('artifact テスト項目')).toBeVisible();
+    await expect(page.getByText('侵入テスト')).not.toBeVisible();
+  });
+
   test('アイテムを削除できる', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: '新しいアイテムを追加' }).click();

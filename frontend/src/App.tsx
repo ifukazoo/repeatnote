@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { AttachmentChanges, Item } from './types';
 import {
   getItems,
@@ -14,6 +14,7 @@ import { useDropdown } from './hooks/useDropdown';
 import { AddItemForm } from './components/AddItemForm/AddItemForm';
 import { ItemList } from './components/ItemList/ItemList';
 import { ImageModal } from './components/ImageModal/ImageModal';
+import { ArtifactModal } from './components/ArtifactModal/ArtifactModal';
 import './App.css';
 import './shared.css';
 
@@ -26,6 +27,8 @@ function App() {
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [copiedItems, setCopiedItems] = useState<Set<string>>(new Set());
   const { imageModalOpen, modalImageSrc, openImageModal, closeImageModal } = useImageModal();
+  const [openArtifact, setOpenArtifact] = useState<string | null>(null);
+  const closeArtifact = useCallback(() => setOpenArtifact(null), []);
   const { dropdownOpen, setDropdownOpen } = useDropdown();
 
   const loadItems = async () => {
@@ -173,10 +176,12 @@ function App() {
         onUnmaster={handleUnmaster}
         onCopy={handleCopy}
         onImageClick={openImageModal}
+        onArtifactOpen={setOpenArtifact}
         onError={setError}
       />
 
       <ImageModal isOpen={imageModalOpen} imageSrc={modalImageSrc} onClose={closeImageModal} />
+      <ArtifactModal filename={openArtifact} onClose={closeArtifact} />
     </div>
   );
 }

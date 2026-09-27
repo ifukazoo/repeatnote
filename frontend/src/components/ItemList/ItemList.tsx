@@ -36,6 +36,7 @@ interface ItemListProps {
   onUnmaster: (id: string) => void;
   onCopy: (id: string, content: string) => void;
   onImageClick: (src: string) => void;
+  onArtifactOpen: (filename: string) => void;
   onError: (message: string) => void;
 }
 
@@ -59,6 +60,7 @@ export function ItemList({
   onUnmaster,
   onCopy,
   onImageClick,
+  onArtifactOpen,
   onError,
 }: ItemListProps) {
   const sortedItems = sortByNextReview(items);
@@ -140,6 +142,7 @@ export function ItemList({
               onUnmaster={() => onUnmaster(item.id)}
               onCopy={() => onCopy(item.id, item.content)}
               onImageClick={onImageClick}
+              onArtifactOpen={onArtifactOpen}
               onError={onError}
             />
           ))}

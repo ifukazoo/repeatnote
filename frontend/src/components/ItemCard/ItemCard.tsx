@@ -19,6 +19,7 @@ interface ItemCardProps {
   onUnmaster: () => void;
   onCopy: () => void;
   onImageClick: (src: string) => void;
+  onArtifactOpen: (filename: string) => void;
   onError: (message: string) => void;
 }
 
@@ -38,6 +39,7 @@ export function ItemCard({
   onUnmaster,
   onCopy,
   onImageClick,
+  onArtifactOpen,
   onError,
 }: ItemCardProps) {
   const statusClass = item.mastered ? 'mastered' : needsReview ? 'needs-review' : 'waiting';
@@ -63,6 +65,7 @@ export function ItemCard({
             onDelete={onDelete}
             onCopy={onCopy}
             onImageClick={onImageClick}
+            onArtifactOpen={onArtifactOpen}
           />
         )}
       </div>

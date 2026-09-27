@@ -55,6 +55,14 @@ describe('validateAttachmentFile', () => {
     );
   });
 
+  it('html は .html / .htm を大文字小文字を区別せずに受け付け、画像は拒否する', () => {
+    expect(validateAttachmentFile('html', new File(['x'], 'page.html', { type: '' }))).toBeNull();
+    expect(validateAttachmentFile('html', new File(['x'], 'PAGE.HTM'))).toBeNull();
+    expect(validateAttachmentFile('html', new File(['x'], 'photo.jpg'))).toBe(
+      ATTACHMENT_KINDS.html.errorMessages.invalidType,
+    );
+  });
+
   it('上限ちょうどのサイズは受け付け、超えると拒否する', () => {
     expect(validateAttachmentFile('image', new File(['x'.repeat(maxSize)], 'max.jpg'))).toBeNull();
     expect(validateAttachmentFile('image', new File(['x'.repeat(maxSize + 1)], 'big.jpg'))).toBe(

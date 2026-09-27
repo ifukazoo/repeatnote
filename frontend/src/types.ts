@@ -1,6 +1,6 @@
 // repeatnote フロントエンド用の型定義
 
-export type AttachmentKind = 'image';
+export type AttachmentKind = 'image' | 'html';
 
 // 種別ごとに1ファイルまで
 export type Attachments = Partial<Record<AttachmentKind, string>>;

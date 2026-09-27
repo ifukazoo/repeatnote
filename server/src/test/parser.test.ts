@@ -165,6 +165,13 @@ mastered: false
       expect(parsed).toEqual(item);
     });
 
+    it('画像と html を「画像 → html」の順に書き出し、ラウンドトリップできる', () => {
+      const item = { ...SAMPLE_ITEM, attachments: { html: 'page.html', image: 'photo.jpg' } };
+      const markdown = itemToMarkdown(item);
+      expect(markdown.endsWith('テストアイテムの内容\n\n![[photo.jpg]]\n![[page.html]]')).toBe(true);
+      expect(parseMarkdownToItem(item.id, markdown)).toEqual(item);
+    });
+
     it('本文末尾に残した埋め込みがあってもラウンドトリップできる', () => {
       const item = { ...SAMPLE_ITEM, content: '本文\n\n![[old.png]]' };
       const markdown = itemToMarkdown(item);
@@ -208,6 +215,21 @@ mastered: false
       const item = parseMarkdownToItem('abc-123', `${FRONTMATTER}\n本文\n\n![[memo]]\n\n![[photo.jpg]]`);
       expect(item.attachments).toEqual({ image: 'photo.jpg' });
       expect(item.content).toBe('本文\n\n![[memo]]');
+    });
+
+    it('html の埋め込みを artifact として取り出す', () => {
+      const item = parseMarkdownToItem('abc-123', `${FRONTMATTER}\n本文\n\n![[page.html]]`);
+      expect(item.attachments).toEqual({ html: 'page.html' });
+      expect(item.content).toBe('本文');
+    });
+
+    it('画像と html を両方取り出す（順序は問わない）', () => {
+      const item = parseMarkdownToItem(
+        'abc-123',
+        `${FRONTMATTER}\n本文\n\n![[page.html]]\n![[photo.jpg]]`,
+      );
+      expect(item.attachments).toEqual({ image: 'photo.jpg', html: 'page.html' });
+      expect(item.content).toBe('本文');
     });
 
     it('CRLF の改行でも解釈できる', () => {

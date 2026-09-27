@@ -155,6 +155,41 @@ describe('API関数', () => {
       expect((call[1]?.body as FormData).get('removeImage')).toBe('true');
     });
 
+    it('html だけ変更しても multipart で送る', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ item: { id: 'uuid-1' } }),
+      });
+      const html = new File(['<p>x</p>'], 'page.html');
+
+      await updateItem('uuid-1', { content: '項目', changes: { html: { file: html } } });
+
+      const body = mockFetch.mock.calls[0][1]?.body as FormData;
+      expect(body).toBeInstanceOf(FormData);
+      expect(body.get('html')).toBeInstanceOf(File);
+      expect(body.get('image')).toBeNull();
+    });
+
+    it('画像の差し替えと html の削除を同時に送る', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ item: { id: 'uuid-1' } }),
+      });
+      const image = new File(['x'], 'photo.jpg');
+
+      await updateItem('uuid-1', {
+        content: '項目',
+        changes: { image: { file: image }, html: { remove: true } },
+      });
+
+      const body = mockFetch.mock.calls[0][1]?.body as FormData;
+      expect(body.get('image')).toBeInstanceOf(File);
+      expect(body.get('removeHtml')).toBe('true');
+      expect(body.get('removeImage')).toBeNull();
+    });
+
     it('添付の変更がなければ JSON で送る', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,

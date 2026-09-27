@@ -22,6 +22,12 @@ export function AddItemForm({ onItemCreated, onError }: AddItemFormProps) {
     handleClipboardPaste,
     clearFile: clearImage,
   } = useFileAttachment('image', onError, { preview: true });
+  const {
+    file: artifact,
+    fileInputRef: artifactInputRef,
+    handleFileChange: handleArtifactChange,
+    clearFile: clearArtifact,
+  } = useFileAttachment('html', onError);
 
   const handleCreateItem = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,11 +36,15 @@ export function AddItemForm({ onItemCreated, onError }: AddItemFormProps) {
     try {
       const newItem = await createItem({
         content: newItemContent.trim(),
-        files: image ? { image } : {},
+        files: {
+          ...(image ? { image } : {}),
+          ...(artifact ? { html: artifact } : {}),
+        },
       });
       onItemCreated(newItem);
       setNewItemContent('');
       clearImage();
+      clearArtifact();
       setShowAddForm(false);
     } catch (err) {
       onError(err instanceof ApiError ? err.message : '作成に失敗しました');
@@ -44,6 +54,7 @@ export function AddItemForm({ onItemCreated, onError }: AddItemFormProps) {
   const handleCancel = () => {
     setNewItemContent('');
     clearImage();
+    clearArtifact();
     setShowAddForm(false);
   };
 
@@ -90,6 +101,33 @@ export function AddItemForm({ onItemCreated, onError }: AddItemFormProps) {
                   <img src={imagePreview!} alt="選択した画像" className="preview-thumbnail" />
                   <span>選択済み: {image.name}</span>
                   <button type="button" onClick={clearImage} className="remove-image-btn">
+                    ❌
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="image-upload-container">
+              <label htmlFor="artifact-upload" className="image-upload-label">
+                🧩 HTML を添付 (任意・artifact として表示)
+              </label>
+              <input
+                type="file"
+                id="artifact-upload"
+                ref={artifactInputRef}
+                accept={ATTACHMENT_KINDS.html.accept}
+                onChange={handleArtifactChange}
+                className="image-upload-input"
+              />
+              {artifact && (
+                <div className="image-preview">
+                  <span>選択済み: {artifact.name}</span>
+                  <button
+                    type="button"
+                    onClick={clearArtifact}
+                    className="remove-image-btn"
+                    aria-label="HTML の選択を取り消す"
+                  >
                     ❌
                   </button>
                 </div>

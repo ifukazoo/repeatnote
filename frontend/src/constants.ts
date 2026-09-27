@@ -25,7 +25,22 @@ export const ATTACHMENT_KINDS: Record<AttachmentKind, AttachmentKindConfig> = {
       fileTooLarge: '画像サイズは5MB以下にしてください',
     },
   },
+  html: {
+    extensions: ['html', 'htm'],
+    accept: '.html,.htm,text/html',
+    maxSize: 5 * 1024 * 1024, // 5MB
+    errorMessages: {
+      invalidType: 'HTML ファイル（.html / .htm）のみ添付できます',
+      fileTooLarge: 'HTML ファイルは5MB以下にしてください',
+    },
+  },
 };
+
+// artifact を表示する iframe の sandbox 設定。allow-same-origin は付けない
+// （付けると artifact の JS が RepeatNote の API や親ページに触れられる）。
+// サーバーが配信時に付ける CSP sandbox と揃えること
+export const ARTIFACT_SANDBOX =
+  'allow-scripts allow-modals allow-forms allow-popups allow-popups-to-escape-sandbox';
 
 export function validateAttachmentFile(kind: AttachmentKind, file: File): string | null {
   const config = ATTACHMENT_KINDS[kind];

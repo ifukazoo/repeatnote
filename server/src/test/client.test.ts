@@ -80,6 +80,25 @@ describe('createItem', () => {
     expect((put![1].headers as Record<string, string>)['Content-Type']).toBe('image/jpeg');
   });
 
+  it.each(['page.htm', 'PAGE.HTML'])('html は %s でも .html で保存する', async (name) => {
+    const item = await client.createItem('本文', {
+      html: new File(['<p>x</p>'], name, { type: '' }),
+    });
+
+    expect(item.attachments.html).toMatch(/^[0-9a-f-]{36}\.html$/);
+  });
+
+  it('画像と html を同時に添付できる', async () => {
+    const item = await client.createItem('本文', {
+      image: jpeg(),
+      html: new File(['<p>x</p>'], 'page.html'),
+    });
+
+    expect(Object.keys(item.attachments).sort()).toEqual(['html', 'image']);
+    const md = files.get(`${item.id}.md`)!;
+    expect(md.endsWith(`![[${item.attachments.image}]]\n![[${item.attachments.html}]]`)).toBe(true);
+  });
+
   it('md の書き込みに失敗したら、アップロード済みの添付を削除する', async () => {
     failPut = (path) => path.endsWith('.md');
 
@@ -121,6 +140,18 @@ describe('updateItem', () => {
     expect(item.attachments).toEqual({});
     expect(files.has('attachments/old.png')).toBe(false);
     expect(files.get('item-1.md')).not.toContain('![[');
+  });
+
+  it('html だけ追加しても画像には触れない（逆も同様）', async () => {
+    const withHtml = await client.updateItem('item-1', '本文', {
+      html: { file: new File(['<p>x</p>'], 'page.html') },
+    });
+    expect(withHtml.attachments.image).toBe('old.png');
+    expect(files.has('attachments/old.png')).toBe(true);
+
+    const withoutImage = await client.updateItem('item-1', '本文', { image: { remove: true } });
+    expect(withoutImage.attachments).toEqual({ html: withHtml.attachments.html });
+    expect(files.has(`attachments/${withHtml.attachments.html}`)).toBe(true);
   });
 
   it('添付の変更がなければ既存の添付を保持する', async () => {

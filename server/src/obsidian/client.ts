@@ -69,8 +69,8 @@ export async function listItems(): Promise<ObsidianItem[]> {
   return items.filter((item): item is ObsidianItem => item !== null);
 }
 
-async function uploadAttachment(file: File): Promise<string> {
-  const filename = storedFilename(file.name);
+async function uploadAttachment(kind: AttachmentKind, file: File): Promise<string> {
+  const filename = storedFilename(kind, file.name);
 
   const res = await vaultPut(`attachments/${filename}`, file, contentTypeFor(filename));
   if (!res.ok) throw new Error(`Failed to upload attachment: ${res.status}`);
@@ -103,7 +103,7 @@ async function saveItemWithAttachments(
         if (current) obsolete.push(current);
         delete attachments[kind];
       } else if (change?.file) {
-        const filename = await uploadAttachment(change.file);
+        const filename = await uploadAttachment(kind, change.file);
         uploaded.push(filename);
         if (current) obsolete.push(current);
         attachments[kind] = filename;
