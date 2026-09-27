@@ -90,7 +90,8 @@ async function deleteAttachmentFiles(filenames: string[]): Promise<void> {
 }
 
 // 添付の変更を反映して md を書き込む。
-// 順序は「新ファイル PUT → md PUT → 旧ファイル削除」。途中で失敗したら新ファイルを削除し、旧ファイルは残す
+// 順序は「新ファイル PUT → md PUT → 旧ファイル削除」。途中で失敗したら新ファイルを削除し、旧ファイルは残す。
+// 新しいファイルと削除が両方指示された場合は差し替えを優先する
 async function saveItemWithAttachments(
   item: ObsidianItem,
   changes: AttachmentChanges,
@@ -103,14 +104,14 @@ async function saveItemWithAttachments(
     for (const kind of ATTACHMENT_KIND_ORDER) {
       const change = changes[kind];
       const current = attachments[kind];
-      if (change?.remove) {
-        if (current) obsolete.push(current);
-        delete attachments[kind];
-      } else if (change?.file) {
+      if (change?.file) {
         const filename = await uploadAttachment(kind, change.file);
         uploaded.push(filename);
         if (current) obsolete.push(current);
         attachments[kind] = filename;
+      } else if (change?.remove) {
+        if (current) obsolete.push(current);
+        delete attachments[kind];
       }
     }
 

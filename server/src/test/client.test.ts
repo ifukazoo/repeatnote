@@ -154,6 +154,16 @@ describe('updateItem', () => {
     expect(files.has(`attachments/${withHtml.attachments.html}`)).toBe(true);
   });
 
+  it('削除と新しいファイルを両方指示したら、差し替えを優先する', async () => {
+    const item = await client.updateItem('item-1', '本文', {
+      image: { file: jpeg(), remove: true },
+    });
+
+    expect(item.attachments.image).toMatch(/\.jpg$/);
+    expect(files.has(`attachments/${item.attachments.image}`)).toBe(true);
+    expect(files.has('attachments/old.png')).toBe(false);
+  });
+
   it('添付の変更がなければ既存の添付を保持する', async () => {
     const item = await client.updateItem('item-1', '更新後', {});
 
