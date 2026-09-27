@@ -232,6 +232,15 @@ mastered: false
       expect(item.content).toBe('本文');
     });
 
+    it.each(['../../Diary/2026.png', 'sub/x.png', '.hidden.png'])(
+      'パスを含むなど配信できない名前（%s）は添付にせず本文に残す',
+      (name) => {
+        const item = parseMarkdownToItem('abc-123', `${FRONTMATTER}\n本文\n\n![[${name}]]`);
+        expect(item.attachments).toEqual({});
+        expect(item.content).toBe(`本文\n\n![[${name}]]`);
+      },
+    );
+
     it('CRLF の改行でも解釈できる', () => {
       const item = parseMarkdownToItem('abc-123', `${FRONTMATTER}\r\n本文\r\n\r\n![[photo.jpg]]\r\n`);
       expect(item.attachments).toEqual({ image: 'photo.jpg' });

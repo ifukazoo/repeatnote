@@ -1,4 +1,9 @@
-import { ATTACHMENT_KIND_ORDER, kindOfFilename, type Attachments } from '../attachments';
+import {
+  ATTACHMENT_KIND_ORDER,
+  isServableFilename,
+  kindOfFilename,
+  type Attachments,
+} from '../attachments';
 
 export interface ObsidianItem {
   id: string;
@@ -43,7 +48,8 @@ function extractAttachments(body: string): { content: string; attachments: Attac
   for (let i = tail.length - 1; i >= 0; i--) {
     const match = tail[i].trim().match(EMBED_LINE);
     if (!match) continue;
-    const kind = kindOfFilename(match[1]);
+    // パスを含む名前などは添付にしない（削除・差し替え時に attachments 外のファイルを消さないため）
+    const kind = isServableFilename(match[1]) ? kindOfFilename(match[1]) : null;
     if (kind && !attachments[kind]) {
       attachments[kind] = match[1];
       claimed.add(i);

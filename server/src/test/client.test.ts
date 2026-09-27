@@ -177,6 +177,16 @@ describe('deleteItem', () => {
   });
 });
 
+describe('attachments 外のファイルを消さない', () => {
+  it('本文末尾にパスを含む埋め込みがあるアイテムを削除しても、そのファイルは消さない', async () => {
+    files.set('item-1.md', ITEM_MD.replace('![[old.png]]', '![[../../Diary/2026.png]]'));
+
+    await client.deleteItem('item-1');
+
+    expect(calls.filter((c) => c.startsWith('DELETE'))).toEqual(['DELETE item-1.md']);
+  });
+});
+
 describe('review / master / unmaster', () => {
   beforeEach(() => {
     files.set('item-1.md', ITEM_MD);

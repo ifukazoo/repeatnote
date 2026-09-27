@@ -3,6 +3,7 @@ import { calculateNextReview, getInitialSM2Values } from '../sm2';
 import {
   ATTACHMENT_KIND_ORDER,
   contentTypeFor,
+  isServableFilename,
   storedFilename,
   type AttachmentChanges,
   type AttachmentKind,
@@ -79,9 +80,12 @@ async function uploadAttachment(kind: AttachmentKind, file: File): Promise<strin
 }
 
 // 後始末なので失敗しても処理を止めない
+// attachments/ の外を指す名前は消さない（パーサー側の判定に加えた多重防御）
 async function deleteAttachmentFiles(filenames: string[]): Promise<void> {
   await Promise.all(
-    filenames.map((filename) => vaultDelete(`attachments/${filename}`).catch(() => undefined)),
+    filenames
+      .filter(isServableFilename)
+      .map((filename) => vaultDelete(`attachments/${filename}`).catch(() => undefined)),
   );
 }
 
