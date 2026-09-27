@@ -4,6 +4,7 @@ import * as client from '../obsidian/client';
 import {
   ATTACHMENT_KIND_ORDER,
   removeFieldName,
+  validateAttachmentFile,
   type AttachmentChanges,
   type AttachmentKind,
 } from '../attachments';
@@ -53,6 +54,17 @@ async function readItemRequest(
   return { rawContent: json.content, changes };
 }
 
+// 検証はすべて client 呼び出しの前に済ませる（途中で失敗してファイルが孤立しないように）
+function attachmentsError(changes: AttachmentChanges): string | null {
+  for (const kind of ATTACHMENT_KIND_ORDER) {
+    const file = changes[kind]?.file;
+    if (!file) continue;
+    const error = validateAttachmentFile(kind, file);
+    if (error) return error;
+  }
+  return null;
+}
+
 function validationError(c: Context, message: string): Response {
   return c.json({ error: { code: 'validation_error', message } }, 400);
 }
@@ -69,7 +81,7 @@ itemsApp.get('/', async (c) => {
 itemsApp.post('/', async (c) => {
   try {
     const { rawContent, changes } = await readItemRequest(c);
-    const error = contentError(rawContent);
+    const error = contentError(rawContent) ?? attachmentsError(changes);
     if (error) return validationError(c, error);
 
     const files: Partial<Record<AttachmentKind, File>> = {};
@@ -130,7 +142,7 @@ itemsApp.put('/:id', async (c) => {
   const id = c.req.param('id');
   try {
     const { rawContent, changes } = await readItemRequest(c);
-    const error = contentError(rawContent);
+    const error = contentError(rawContent) ?? attachmentsError(changes);
     if (error) return validationError(c, error);
 
     const item = await client.updateItem(id, rawContent as string, changes);

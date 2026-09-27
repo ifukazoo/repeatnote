@@ -192,6 +192,55 @@ describe('添付の受け渡し', () => {
   });
 });
 
+describe('添付の検証', () => {
+  function formWith(field: string, file: File): FormData {
+    const form = new FormData();
+    form.append('content', '本文');
+    form.append(field, file);
+    return form;
+  }
+
+  it.each([
+    ['svg', 'evil.svg'],
+    ['html', 'page.html'],
+    ['拡張子なし', 'noext'],
+    ['パストラバーサルを含む名前', 'x./../../foo'],
+  ])('image フィールドに画像以外（%s）を送ると 400', async (_, name) => {
+    const res = await testApp.request('/api/items', {
+      method: 'POST',
+      body: formWith('image', new File(['x'], name)),
+    });
+
+    expect(res.status).toBe(400);
+    const data = (await res.json()) as ErrorResponse;
+    expect(data.error.code).toBe('validation_error');
+    expect(client.createItem).not.toHaveBeenCalled();
+  });
+
+  it('5MB を超える画像は 400', async () => {
+    const big = new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'big.jpg');
+
+    const res = await testApp.request('/api/items/test-uuid', {
+      method: 'PUT',
+      body: formWith('image', big),
+    });
+
+    expect(res.status).toBe(400);
+    expect(client.updateItem).not.toHaveBeenCalled();
+  });
+
+  it('大文字の拡張子の画像は受け付ける', async () => {
+    (client.createItem as Mock).mockResolvedValue(mockItem);
+
+    const res = await testApp.request('/api/items', {
+      method: 'POST',
+      body: formWith('image', new File(['x'], 'PHOTO.JPG')),
+    });
+
+    expect(res.status).toBe(201);
+  });
+});
+
 describe('DELETE /api/items/:id', () => {
   it('アイテムを削除して204を返す', async () => {
     (client.deleteItem as Mock).mockResolvedValue(undefined);

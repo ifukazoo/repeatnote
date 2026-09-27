@@ -70,6 +70,16 @@ describe('createItem', () => {
     expect(files.get(`${item.id}.md`)).toContain(`![[${item.attachments.image}]]`);
   });
 
+  it('保存名はサーバーが {uuid}.{小文字の拡張子} で決め、Content-Type は拡張子から決める', async () => {
+    const item = await client.createItem('本文', { image: jpeg('PHOTO.JPG') });
+
+    expect(item.attachments.image).toMatch(/^[0-9a-f-]{36}\.jpg$/);
+    const put = (fetch as unknown as { mock: { calls: [string, RequestInit][] } }).mock.calls.find(
+      ([url]) => url.includes('/attachments/'),
+    );
+    expect((put![1].headers as Record<string, string>)['Content-Type']).toBe('image/jpeg');
+  });
+
   it('md の書き込みに失敗したら、アップロード済みの添付を削除する', async () => {
     failPut = (path) => path.endsWith('.md');
 

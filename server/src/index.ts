@@ -6,9 +6,11 @@ import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 import { itemsApp } from './routes/items';
 import { attachmentsApp } from './routes/attachments';
+import { rejectCrossOriginWrites } from './middleware/origin';
 
 const app = new Hono();
 
+app.use('/api/*', rejectCrossOriginWrites);
 app.route('/api/items', itemsApp);
 app.route('/api/attachments', attachmentsApp);
 // 旧 URL の互換用エイリアス
@@ -28,6 +30,7 @@ app.notFound((c) => {
 
 const port = Number(process.env.PORT ?? 3001);
 
-serve({ fetch: app.fetch, port }, () => {
+// localhost のみで待ち受ける（LAN からのアクセスを受け付けない）
+serve({ fetch: app.fetch, port, hostname: '127.0.0.1' }, () => {
   console.log(`RepeatNote server running on http://localhost:${port}`);
 });

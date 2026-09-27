@@ -2,6 +2,8 @@ import { parseMarkdownToItem, itemToMarkdown, type ObsidianItem } from './parser
 import { calculateNextReview, getInitialSM2Values } from '../sm2';
 import {
   ATTACHMENT_KIND_ORDER,
+  contentTypeFor,
+  storedFilename,
   type AttachmentChanges,
   type AttachmentKind,
 } from '../attachments';
@@ -68,10 +70,9 @@ export async function listItems(): Promise<ObsidianItem[]> {
 }
 
 async function uploadAttachment(file: File): Promise<string> {
-  const ext = file.name.split('.').pop() ?? 'jpg';
-  const filename = `${crypto.randomUUID()}.${ext}`;
+  const filename = storedFilename(file.name);
 
-  const res = await vaultPut(`attachments/${filename}`, file, file.type);
+  const res = await vaultPut(`attachments/${filename}`, file, contentTypeFor(filename));
   if (!res.ok) throw new Error(`Failed to upload attachment: ${res.status}`);
 
   return filename;
@@ -224,13 +225,9 @@ export async function unmasterItem(id: string): Promise<ObsidianItem> {
   return updated;
 }
 
-export async function getAttachment(
-  filename: string,
-): Promise<{ buffer: ArrayBuffer; contentType: string }> {
+export async function getAttachment(filename: string): Promise<ArrayBuffer> {
   const res = await vaultGet(`attachments/${filename}`);
   if (!res.ok) throw new Error(`Attachment not found: ${filename}`);
 
-  const buffer = await res.arrayBuffer();
-  const contentType = res.headers.get('content-type') ?? 'application/octet-stream';
-  return { buffer, contentType };
+  return res.arrayBuffer();
 }
