@@ -7,7 +7,7 @@
         <mxCell id="2" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);verticalAlign=top;" value="ブラウザ" vertex="1">
           <mxGeometry height="200" width="320" x="20" y="20" as="geometry" />
         </mxCell>
-        <mxCell id="3" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#4A90D9;strokeColor=#2C5F8A;fontColor=#fff;" value="React SPA&#xa;(src/App.tsx + src/api.ts)" vertex="1">
+        <mxCell id="3" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#4A90D9;strokeColor=#2C5F8A;fontColor=#fff;" value="React SPA&#xa;(src/App.tsx + src/api.ts)&#xa;artifact は sandbox iframe で表示" vertex="1">
           <mxGeometry height="110" width="260" x="50" y="75" as="geometry" />
         </mxCell>
         <mxCell id="4" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);verticalAlign=top;" value="Claude Desktop" vertex="1">
@@ -19,13 +19,13 @@
         <mxCell id="6" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#4A90D9;strokeColor=#2C5F8A;fontColor=#fff;" value="RepeatNote MCP Server&#xa;(mcp/build/index.js)" vertex="1">
           <mxGeometry height="78" width="300" x="495" y="210" as="geometry" />
         </mxCell>
-        <mxCell id="7" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#d5e8d4,#1e2e1e);strokeColor=light-dark(#82b366,#4a7a4a);fontColor=light-dark(#333333,#cccccc);verticalAlign=top;" value="Hono API Server (localhost:3001)" vertex="1">
+        <mxCell id="7" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#d5e8d4,#1e2e1e);strokeColor=light-dark(#82b366,#4a7a4a);fontColor=light-dark(#333333,#cccccc);verticalAlign=top;" value="Hono API Server (127.0.0.1:3001・Host / Origin 検証)" vertex="1">
           <mxGeometry height="200" width="650" x="100" y="420" as="geometry" />
         </mxCell>
         <mxCell id="8" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#7ED321;strokeColor=#5A9A18;fontColor=#fff;" value="Items Router&#xa;(server/src/routes/items.ts)&#xa;+ SM-2 (server/src/sm2.ts)" vertex="1">
           <mxGeometry height="100" width="260" x="130" y="480" as="geometry" />
         </mxCell>
-        <mxCell id="9" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#7ED321;strokeColor=#5A9A18;fontColor=#fff;" value="Images Proxy&#xa;(server/src/routes/images.ts)" vertex="1">
+        <mxCell id="9" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=#7ED321;strokeColor=#5A9A18;fontColor=#fff;" value="Attachments Proxy&#xa;(server/src/routes/attachments.ts)&#xa;画像・HTML（HTML は CSP sandbox）" vertex="1">
           <mxGeometry height="100" width="240" x="490" y="480" as="geometry" />
         </mxCell>
         <mxCell id="10" parent="1" style="whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#e8d5f5,#2a1e2e);strokeColor=light-dark(#9b59b6,#6c3483);fontColor=light-dark(#333333,#cccccc);verticalAlign=top;" value="Obsidian (Mac mini)" vertex="1">
@@ -57,7 +57,7 @@
             <Array as="points" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="21" edge="1" parent="1" source="3" target="9" style="curved=1;startArrow=none;endArrow=block;" value="GET /api/images/:filename">
+        <mxCell id="21" edge="1" parent="1" source="3" target="9" style="curved=1;startArrow=none;endArrow=block;" value="GET /api/attachments/:filename">
           <mxGeometry relative="1" as="geometry">
             <Array as="points" />
           </mxGeometry>
