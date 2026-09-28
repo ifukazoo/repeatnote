@@ -50,6 +50,15 @@ describe('GET /api/attachments/:filename', () => {
     expect(res.headers.get('content-security-policy')).toBeNull();
   });
 
+  it('旧形式のファイル名（タイムスタンプ-ランダム.png）でも取得できる', async () => {
+    (client.getAttachment as Mock).mockResolvedValue(new ArrayBuffer(8));
+
+    const res = await testApp.request('/api/attachments/1760002004563-edc0923ca819.png');
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('image/png');
+  });
+
   it('大文字の拡張子でも取得できる', async () => {
     (client.getAttachment as Mock).mockResolvedValue(new ArrayBuffer(8));
 

@@ -197,6 +197,13 @@ mastered: false
       expect(item.content).toBe('本文\n\n![[memo]]');
     });
 
+    it('旧形式のファイル名（タイムスタンプ-ランダム.png）も画像として取り出す', () => {
+      const name = '1760002004563-edc0923ca819.png';
+      const item = parseMarkdownToItem('abc-123', `${FRONTMATTER}\n本文\n\n![[${name}]]`);
+      expect(item.attachments).toEqual({ image: name });
+      expect(item.content).toBe('本文');
+    });
+
     it('拡張子の大文字小文字を区別せずに種別を判別する', () => {
       const item = parseMarkdownToItem('abc-123', `${FRONTMATTER}\n本文\n\n![[photo.JPG]]`);
       expect(item.attachments).toEqual({ image: 'photo.JPG' });
