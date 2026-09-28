@@ -291,7 +291,8 @@ This project uses Prettier for consistent code formatting. All code output shoul
   - 間隔計算、ease factor 更新・境界値、初期値
 - **`parser.test.ts`**: Obsidian Frontmatter パーサーテスト (29 tests)
   - .md ↔ ObsidianItem 変換、本文末尾の添付（画像・html）の抽出、未知の埋め込み・パスを含む名前を本文に残すこと、CRLF、null フィールド処理、ラウンドトリップ
-- **`client.test.ts`**: Obsidian クライアントテスト (16 tests、fetch をメモリ上の vault で置き換え)
+- **`client.test.ts`**: Obsidian クライアントテスト (17 tests、fetch をメモリ上の vault で置き換え)
+  - `listItems` の同時接続数制限（最大 8 並列。数百並列だと Obsidian が ECONNRESET を返すため）
   - 保存名の正規化、差し替えの順序と失敗時のロールバック、削除と差し替えの優先順位、attachments 外のファイルを消さないこと、review/master 後も添付が残ること
 - **`items.test.ts`**: アイテム CRUD ルートテスト (31 tests)
   - 全エンドポイント（一覧・作成・更新・削除・review・master・unmaster）
@@ -320,7 +321,7 @@ This project uses Prettier for consistent code formatting. All code output shoul
 - `cd e2e && npm test` - Playwright E2E テスト実行
 - `cd frontend && npx vitest run src/test/<filename>.test.ts` - 単一テストファイルを実行
 
-**Total: 197 unit tests（server 110 + frontend 87）+ 5 E2E tests** covering SM-2 algorithm, Obsidian parser, attachments, API routes, API client layer, validation, UI components, and end-to-end user flows（artifact の JS から API に書き込めないことの確認を含む）.
+**Total: 198 unit tests（server 111 + frontend 87）+ 5 E2E tests** covering SM-2 algorithm, Obsidian parser, attachments, API routes, API client layer, validation, UI components, and end-to-end user flows（artifact の JS から API に書き込めないことの確認を含む）.
 
 ### テスト環境の方針
 
