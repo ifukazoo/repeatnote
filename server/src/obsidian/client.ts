@@ -38,6 +38,26 @@ async function vaultDelete(path: string): Promise<Response> {
   });
 }
 
+// Obsidian は数百本の同時接続を受けると ECONNRESET で接続を切るため、並列数を制限する
+const MAX_CONCURRENT_REQUESTS = 8;
+
+async function mapWithConcurrency<T, R>(
+  inputs: T[],
+  limit: number,
+  fn: (input: T) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(inputs.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < inputs.length) {
+      const index = next++;
+      results[index] = await fn(inputs[index]);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, inputs.length) }, worker));
+  return results;
+}
+
 export async function listItems(): Promise<ObsidianItem[]> {
   const res = await vaultGet('');
   if (!res.ok) throw new Error(`Obsidian API error: ${res.status}`);
@@ -45,8 +65,10 @@ export async function listItems(): Promise<ObsidianItem[]> {
   const data = (await res.json()) as { files: string[] };
   const mdFiles = data.files.filter((f: string) => f.endsWith('.md'));
 
-  const items = await Promise.all(
-    mdFiles.map(async (filename: string) => {
+  const items = await mapWithConcurrency(
+    mdFiles,
+    MAX_CONCURRENT_REQUESTS,
+    async (filename: string) => {
       const id = filename.replace(/\.md$/, '');
       const fileRes = await vaultGet(filename);
       if (!fileRes.ok) return null;
@@ -56,7 +78,7 @@ export async function listItems(): Promise<ObsidianItem[]> {
       } catch {
         return null;
       }
-    }),
+    },
   );
 
   return items.filter((item): item is ObsidianItem => item !== null);

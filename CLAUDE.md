@@ -286,6 +286,8 @@ This project uses Prettier for consistent code formatting. All code output shoul
   - バリデーション、404・500 エラーハンドリング
 - **`images.test.ts`**: 画像プロキシルートテスト (3 tests)
   - 画像取得、not_found エラー、internal_error
+- **`client.test.ts`**: Obsidian クライアントテスト (1 test)
+  - `listItems` の同時接続数制限（最大 8 並列。数百並列だと Obsidian が ECONNRESET を返すため）
 
 **フロントエンド側 (`frontend/src/test/`)**:
 - **`sm2-algorithm.test.ts`**: SM-2 アルゴリズムテスト (12 tests)
@@ -304,7 +306,7 @@ This project uses Prettier for consistent code formatting. All code output shoul
 - `cd e2e && npm test` - Playwright E2E テスト実行
 - `cd frontend && npx vitest run src/test/<filename>.test.ts` - 単一テストファイルを実行
 
-**Total: 98 unit tests + 4 E2E tests** covering SM-2 algorithm, Obsidian parser, API routes, API client layer, validation, UI components, and end-to-end user flows.
+**Total: 99 unit tests + 4 E2E tests** covering SM-2 algorithm, Obsidian parser, API routes, API client layer, validation, UI components, and end-to-end user flows.
 
 ### テスト環境の方針
 
