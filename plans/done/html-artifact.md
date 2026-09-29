@@ -1,6 +1,6 @@
 # HTML artifact 添付機能 仕様案
 
-ステータス: 実装完了（K1〜K4 対応済み、V3/K5 は問題なし）。ユーザー検証待ち: V2（R2 同期で .html が Android に届くか）
+ステータス: 完了（全検証済み）。master へのマージは未実施
 
 ## 目的
 
@@ -30,7 +30,9 @@
 ## 事前検証（実装前に確認）
 
 - V1. Obsidian Local REST API で `attachments/*.html` を PUT/GET/DELETE できるか。GET 時の Content-Type を確認する
+  - 結果（2026-09-28）: PUT で `attachments/r2-sync-test.html` を作成できた（204）
 - V2. R2 バックアッププラグインが `.html` を同期するか（Mac mini → Android）。ユーザーが手動で確認し、同期されない場合の扱いは結果を見て決める
+  - 結果（2026-09-29）: 同期プラグインは Remotely Save。Obsidian の設定「ファイルとリンク → Show all file types（すべての拡張子を検出）」を Mac mini・Android の両方でオンにして同期すると、Android に届いた。オフのままだと Obsidian が `.html` を vault のファイルとして扱わず、同期されない
 - V3. vault の `attachments/` にある既存画像のファイル名・拡張子の実態を一覧で確認する（images ルートを許可リスト化しても既存画像が 404 にならないようにするため）
   - 結果（2026-09-28）: 画像付き 112 件（旧形式 `{timestamp}-{random}.png` 102 件、`{uuid}.png` 10 件）、画像なし 412 件。すべて `.png` で配信可能な名前の条件を満たす。旧形式の名前のテストを追加
 

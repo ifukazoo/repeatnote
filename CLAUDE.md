@@ -146,6 +146,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Vault 同期（Mac mini ↔ Android）**:
 - Mac mini と Android の Obsidian は、それぞれ Obsidian コミュニティプラグイン（R2 バックアップ）を使って Cloudflare R2 の同じバケットに同期
 - 同期対象は `.md` ファイルと `attachments/` フォルダの両方
+- 同期プラグインは Remotely Save。HTML artifact（`attachments/*.html`）を同期するには、Mac mini・Android の両方で Obsidian の設定「ファイルとリンク → Show all file types（すべての拡張子を検出）」をオンにする必要がある（オフだと Obsidian が `.html` を vault のファイルとして扱わず、UI にも出ず同期もされない）
 
 **Obsidian Local REST API エンドポイント（server 側が使用）**:
 - `GET /vault/repeatnote/` — ファイル一覧取得
