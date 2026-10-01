@@ -18,6 +18,24 @@ import { ArtifactModal } from './components/ArtifactModal/ArtifactModal';
 import './App.css';
 import './shared.css';
 
+function isEditableTarget(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement &&
+    (target.isContentEditable || target.closest('textarea, input') !== null)
+  );
+}
+
+// 添付欄の外に落としたファイルやリンクで、ブラウザがそれを開いて画面から離れる
+// （入力中の内容が消える）のを防ぐ。添付欄が処理したドロップと、
+// 編集できる要素へのテキストのドロップはそのまま通す
+function preventStrayDrop(e: DragEvent) {
+  if (e.defaultPrevented) return;
+  const isFile = Array.from(e.dataTransfer?.types ?? []).includes('Files');
+  if (!isFile && isEditableTarget(e.target)) return;
+  e.preventDefault();
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'none';
+}
+
 function App() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +64,15 @@ function App() {
 
   useEffect(() => {
     loadItems();
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('dragover', preventStrayDrop);
+    window.addEventListener('drop', preventStrayDrop);
+    return () => {
+      window.removeEventListener('dragover', preventStrayDrop);
+      window.removeEventListener('drop', preventStrayDrop);
+    };
   }, []);
 
   const handleEditStart = (id: string) => {

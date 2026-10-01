@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '../App';
 
@@ -60,6 +60,56 @@ describe('App コンポーネント', () => {
       expect(screen.getByPlaceholderText('学習内容を入力してください')).toBeInTheDocument();
       expect(screen.getByText('➕ 追加')).toBeInTheDocument();
       expect(screen.getByText('キャンセル')).toBeInTheDocument();
+    });
+  });
+
+  describe('添付欄の外へのドロップ', () => {
+    async function openAddForm() {
+      const user = userEvent.setup();
+      render(<App />);
+      await user.click(await screen.findByText('➕ 新しいアイテムを追加'));
+      return screen.getByPlaceholderText('学習内容を入力してください');
+    }
+
+    it('ファイルを添付欄の外に落としても、ブラウザの既定の動作（ファイルを開く）を止める', async () => {
+      await openAddForm();
+      const dataTransfer = { types: ['Files'], files: [new File(['x'], 'a.html')], dropEffect: 'copy' };
+
+      expect(fireEvent.dragOver(document.body, { dataTransfer })).toBe(false);
+      expect(dataTransfer.dropEffect).toBe('none');
+      expect(fireEvent.drop(document.body, { dataTransfer })).toBe(false);
+    });
+
+    it('テキスト欄へのファイルのドロップも止める', async () => {
+      const textarea = await openAddForm();
+      const dataTransfer = { types: ['Files'], files: [new File(['x'], 'a.html')] };
+
+      expect(fireEvent.drop(textarea, { dataTransfer })).toBe(false);
+    });
+
+    it('テキスト欄へのテキストのドロップは止めない', async () => {
+      const textarea = await openAddForm();
+      const dataTransfer = { types: ['text/plain'], files: [] };
+
+      expect(fireEvent.dragOver(textarea, { dataTransfer })).toBe(true);
+      expect(fireEvent.drop(textarea, { dataTransfer })).toBe(true);
+    });
+
+    it('編集できない場所へのリンクのドロップは止める（画面が移動しないように）', async () => {
+      await openAddForm();
+      const dataTransfer = { types: ['text/uri-list', 'text/plain'], files: [] };
+
+      expect(fireEvent.drop(document.body, { dataTransfer })).toBe(false);
+    });
+
+    it('添付欄の上では、ページ全体の処理が dropEffect を上書きしない', async () => {
+      await openAddForm();
+      const field = screen.getByText(/HTML を添付/).closest('.attachment-drop-target')!;
+      const dataTransfer = { types: ['Files'], files: [], dropEffect: 'none' };
+
+      fireEvent.dragOver(field, { dataTransfer });
+
+      expect(dataTransfer.dropEffect).toBe('copy');
     });
   });
 

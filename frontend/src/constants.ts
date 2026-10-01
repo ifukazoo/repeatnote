@@ -45,6 +45,9 @@ export const ATTACHMENT_KINDS: Record<AttachmentKind, AttachmentKindConfig> = {
 export const ARTIFACT_SANDBOX =
   'allow-scripts allow-modals allow-forms allow-popups allow-popups-to-escape-sandbox';
 
+// 添付は種別ごとに1つまでのため、複数のファイルを一度に渡されたときのエラー
+export const MULTIPLE_FILES_ERROR = 'ファイルは1つずつ添付してください';
+
 // フォームに並べる順序（サーバーが本文末尾に書き出す順序と同じ）
 export const ATTACHMENT_KIND_ORDER = Object.keys(ATTACHMENT_KINDS) as AttachmentKind[];
 

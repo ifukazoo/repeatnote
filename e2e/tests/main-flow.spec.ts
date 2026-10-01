@@ -131,6 +131,36 @@ fetch('/api/items', { method: 'POST', headers: { 'Content-Type': 'text/plain' },
     await expect(page.getByText('侵入テスト')).not.toBeVisible();
   });
 
+  test('HTML 欄にファイルをドラッグ&ドロップして添付できる', async ({ page }) => {
+    const html =
+      '<!doctype html><html><head><meta charset="utf-8"><title>D&Dテスト</title></head><body><p>dropped</p></body></html>';
+
+    await page.goto('/');
+    await page.getByRole('button', { name: '新しいアイテムを追加' }).click();
+    await page.getByPlaceholder('学習内容を入力').fill('ドロップ テスト項目');
+
+    // 合成した DataTransfer を持つドラッグイベントを添付欄に送る
+    const dataTransfer = await page.evaluateHandle((content) => {
+      const dt = new DataTransfer();
+      dt.items.add(new File([content], 'dropped.html', { type: 'text/html' }));
+      return dt;
+    }, html);
+    const dropTarget = page.locator('.attachment-drop-target', { hasText: 'HTML を添付' });
+    await dropTarget.dispatchEvent('dragenter', { dataTransfer });
+    await expect(dropTarget).toHaveClass(/is-dragging/);
+    await dropTarget.dispatchEvent('dragover', { dataTransfer });
+    await dropTarget.dispatchEvent('drop', { dataTransfer });
+    await expect(dropTarget).not.toHaveClass(/is-dragging/);
+    await expect(page.getByText('選択済み: dropped.html')).toBeVisible();
+
+    await page.getByRole('button', { name: '追加' }).click();
+    await expect(page.getByText('ドロップ テスト項目')).toBeVisible();
+
+    await page.getByRole('button', { name: /artifact を開く/ }).click();
+    await expect(page.getByRole('dialog').getByText('🧩 D&Dテスト')).toBeVisible();
+    await expect(page.frameLocator('iframe').getByText('dropped')).toBeVisible();
+  });
+
   test('アイテムを削除できる', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: '新しいアイテムを追加' }).click();

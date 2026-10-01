@@ -56,6 +56,45 @@
   border-color: var(--color-border-muted);
 }
 
+/* 添付欄のドラッグ&ドロップ */
+.attachment-drop-target {
+  position: relative;
+  border: 2px dashed transparent;
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition-duration) var(--transition-easing),
+    background-color var(--transition-duration) var(--transition-easing);
+}
+
+.attachment-drop-target.is-dragging {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-ring);
+}
+
+/* 強調中は子要素への出入りでイベントが揺れないようにする */
+.attachment-drop-target.is-dragging * {
+  pointer-events: none;
+}
+
+/* 要素を差し替えると dragleave が狂うため、案内は CSS で重ねる */
+.attachment-drop-target.is-dragging::after {
+  content: 'ここにドロップ';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background-color: rgba(255, 255, 255, 0.85);
+  color: var(--color-primary);
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.drop-hint {
+  margin-left: 0.25rem;
+  color: var(--color-text-tertiary);
+}
+
 .image-upload-input {
   display: none;
 }

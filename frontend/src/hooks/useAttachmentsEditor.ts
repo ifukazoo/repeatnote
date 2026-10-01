@@ -1,5 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { ATTACHMENT_KINDS, ATTACHMENT_KIND_ORDER, validateAttachmentFile } from '../constants';
+import {
+  ATTACHMENT_KINDS,
+  ATTACHMENT_KIND_ORDER,
+  MULTIPLE_FILES_ERROR,
+  validateAttachmentFile,
+} from '../constants';
 import type { AttachmentChanges, AttachmentKind } from '../types';
 
 // フォーム上の添付1種別分の編集状態
@@ -48,7 +53,8 @@ export function useAttachmentsEditor(onError: (message: string) => void) {
     if (input) input.value = '';
   };
 
-  // 新しいファイルを選ぶと削除の指示は取り消す
+  // 新しいファイルを選ぶと削除の指示は取り消す。
+  // input の値はリセットする（ドロップや貼り付けで選び直した後も、同じファイルをファイル選択で選び直せるように）
   const selectFile = (kind: AttachmentKind, file: File) => {
     const error = validateAttachmentFile(kind, file);
     if (error) {
@@ -57,6 +63,17 @@ export function useAttachmentsEditor(onError: (message: string) => void) {
     }
     const previewUrl = ATTACHMENT_KINDS[kind].preview ? URL.createObjectURL(file) : null;
     setDraft(kind, { file, previewUrl, removed: false });
+    resetInput(kind);
+  };
+
+  // ファイル選択とドロップの共通の入口。0個なら何もせず、2つ以上は受け付けない
+  const selectFiles = (kind: AttachmentKind, files: ArrayLike<File> | null | undefined) => {
+    if (!files || files.length === 0) return;
+    if (files.length > 1) {
+      onError(MULTIPLE_FILES_ERROR);
+      return;
+    }
+    selectFile(kind, files[0]);
   };
 
   const clearFile = (kind: AttachmentKind) => {
@@ -77,8 +94,7 @@ export function useAttachmentsEditor(onError: (message: string) => void) {
   };
 
   const handleFileChange = (kind: AttachmentKind) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) selectFile(kind, file);
+    selectFiles(kind, e.target.files);
   };
 
   // 貼り付けられたファイルを、pasteMimePrefix が一致する種別に振り分ける
@@ -127,6 +143,7 @@ export function useAttachmentsEditor(onError: (message: string) => void) {
   return {
     drafts,
     selectFile,
+    selectFiles,
     clearFile,
     setRemoved,
     reset,

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAttachmentsEditor } from '../hooks/useAttachmentsEditor';
-import { ATTACHMENT_KINDS } from '../constants';
+import { ATTACHMENT_KINDS, MULTIPLE_FILES_ERROR } from '../constants';
 
 function changeEvent(file: File) {
   return { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
@@ -119,6 +119,70 @@ describe('useAttachmentsEditor', () => {
 
     expect(result.current.files()).toEqual({});
     expect(result.current.changes()).toEqual({});
+  });
+
+  describe('selectFiles（ファイル選択とドロップの共通の入口）', () => {
+    it('1つなら選択する', () => {
+      const { result } = renderHook(() => useAttachmentsEditor(vi.fn()));
+      const file = new File(['x'], 'page.html');
+
+      act(() => result.current.selectFiles('html', [file]));
+
+      expect(result.current.drafts.html.file).toBe(file);
+    });
+
+    it('0個なら何もせず、エラーも出さない', () => {
+      const onError = vi.fn();
+      const { result } = renderHook(() => useAttachmentsEditor(onError));
+
+      act(() => result.current.selectFiles('html', []));
+
+      expect(result.current.drafts.html.file).toBeNull();
+      expect(onError).not.toHaveBeenCalled();
+    });
+
+    it('2つ以上ならエラーを出し、何も選択しない', () => {
+      const onError = vi.fn();
+      const { result } = renderHook(() => useAttachmentsEditor(onError));
+
+      act(() =>
+        result.current.selectFiles('html', [new File(['x'], 'a.html'), new File(['x'], 'b.html')]),
+      );
+
+      expect(onError).toHaveBeenCalledWith(MULTIPLE_FILES_ERROR);
+      expect(result.current.drafts.html.file).toBeNull();
+    });
+
+    it('種類が合わなければ既存の検証エラーを出す', () => {
+      const onError = vi.fn();
+      const { result } = renderHook(() => useAttachmentsEditor(onError));
+
+      act(() => result.current.selectFiles('image', [new File(['x'], 'page.html')]));
+
+      expect(onError).toHaveBeenCalledWith(ATTACHMENT_KINDS.image.errorMessages.invalidType);
+      expect(result.current.drafts.image.file).toBeNull();
+    });
+
+    it('削除を指示中の種別に選ぶと、削除の指示を取り消す', () => {
+      const { result } = renderHook(() => useAttachmentsEditor(vi.fn()));
+      act(() => result.current.setRemoved('html', true));
+
+      act(() => result.current.selectFiles('html', [new File(['x'], 'page.html')]));
+
+      expect(result.current.drafts.html.removed).toBe(false);
+      expect(result.current.drafts.html.file).not.toBeNull();
+    });
+
+    it('選択に成功したら input をリセットする（同じファイルを選び直せるように）', () => {
+      const { result } = renderHook(() => useAttachmentsEditor(vi.fn()));
+      const input = document.createElement('input');
+      Object.defineProperty(input, 'value', { value: 'C:\\fakepath\\a.html', writable: true });
+      result.current.inputRef('html')(input);
+
+      act(() => result.current.selectFiles('html', [new File(['x'], 'b.html')]));
+
+      expect(input.value).toBe('');
+    });
   });
 
   it('アンマウント時にプレビュー URL を解放する', () => {
