@@ -84,7 +84,7 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color: color-mix(in srgb, var(--color-bg-surface) 85%, transparent);
   color: var(--color-primary);
   font-weight: 600;
   pointer-events: none;

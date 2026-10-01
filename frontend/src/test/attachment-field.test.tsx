@@ -57,6 +57,10 @@ describe('AttachmentField のドラッグ&ドロップ', () => {
     fireEvent.dragLeave(label, { dataTransfer: fileTransfer([]) });
 
     expect(target).toHaveClass('is-dragging');
+
+    // 枠から出たら、子要素をまたいだ後でも強調が消える（数え方がずれて残らない）
+    fireEvent.dragLeave(target, { dataTransfer: fileTransfer([]) });
+    expect(target).not.toHaveClass('is-dragging');
   });
 
   it('ファイルの dragover では既定の動作を止め、dropEffect を copy にする', () => {
