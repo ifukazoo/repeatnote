@@ -44,7 +44,8 @@
     border-color var(--transition-duration) var(--transition-easing);
   font-size: 1rem;
   margin-bottom: 0.5rem;
-  height: var(--btn-height);
+  /* 狭い画面で文言が折り返しても枠からはみ出さないよう、高さは最低値だけ決める */
+  min-height: var(--btn-height);
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -57,16 +58,18 @@
 }
 
 /* 添付欄のドラッグ&ドロップ */
+/* 枠線ではなく outline で強調する（普段のレイアウトを変えないため） */
 .attachment-drop-target {
   position: relative;
-  border: 2px dashed transparent;
   border-radius: var(--radius-sm);
-  transition: border-color var(--transition-duration) var(--transition-easing),
+  outline: 2px dashed transparent;
+  outline-offset: 2px;
+  transition: outline-color var(--transition-duration) var(--transition-easing),
     background-color var(--transition-duration) var(--transition-easing);
 }
 
 .attachment-drop-target.is-dragging {
-  border-color: var(--color-primary);
+  outline-color: var(--color-primary);
   background-color: var(--color-primary-ring);
 }
 
