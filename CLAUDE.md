@@ -40,6 +40,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Learning Items**: Create, edit, and delete study items with 1000-character limit
 - **Image Support**: Upload, edit, and delete images (JPEG/PNG/WebP/GIF, 5MB limit) stored in Obsidian vault `attachments/`
 - **HTML Artifact**: 外部の `.html` / `.htm` ファイル（Claude.ai の artifact など、5MB まで）を1アイテムに1つ添付できる（画像と併用可）。カードの「🧩 artifact を開く」から、ほぼ全画面のモーダル内の sandbox iframe で JS 込みで表示する（`allow-same-origin` なし。ノートのデータには触れられない）。外部 CDN の読み込みは可。artifact 内の localStorage は使えない。検索対象は本文のみ
+- **Attachment Drag & Drop**: 追加・編集フォームの各添付欄（画像・HTML）にファイルを1つずつドラッグ&ドロップで添付できる。落とした欄と種類が合わないファイル、複数ファイルの同時ドロップはエラー。添付欄の外に落としたファイル・リンクでブラウザが画面を離れないよう、ページ全体で既定の動作を止める（編集できる要素へのテキストのドロップは通す）
 - **Review System**: Quality-based evaluation with visual feedback (😵 忘れた, 🤔 曖昧, 💡 思い出した, ✨ 完璧)
 - **Master/Unmaster**: Mark items as "mastered" to exclude from review cycle, or unmaster to resume reviews
 - **Smart Filtering**: Default view shows only items needing review; toggle to show all items
@@ -52,7 +53,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Frontend Architecture (`frontend/src/`)
 
-- **`App.tsx`**: Orchestrator — state management (items, error, editing, copy, modal, dropdown) and CRUD handlers
+- **`App.tsx`**: Orchestrator — state management (items, error, editing, copy, modal, dropdown) and CRUD handlers。window の `dragover` / `drop` で、添付欄が処理しなかったファイル・リンクのドロップを止める（`preventStrayDrop`）
 - **`api.ts`**: Hono API サーバーをラップする API レイヤー。`getAttachmentUrl()` ヘルパーと ApiError クラス。添付の変更が1件でもあれば multipart で送る
 - **`types.ts`**: Item（`attachments: { image?, html? }`）、AttachmentKind / AttachmentChanges、CreateItemData、UpdateItemData、API レスポンス型
 - **`constants.ts`**: 添付種別の設定 `ATTACHMENT_KINDS`（拡張子・accept・上限・プレビュー・貼り付け・エラーメッセージ）、`ATTACHMENT_KIND_ORDER`、`validateAttachmentFile()`（拡張子で判定）、artifact の iframe 用 `ARTIFACT_SANDBOX`
@@ -61,14 +62,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **`index.css`**: Global styles (body, *, #root) + CSS カスタムプロパティ（デザイントークン）定義
 
 **Custom Hooks (`frontend/src/hooks/`)**:
-- **`useAttachmentsEditor.ts`**: 全添付種別の選択・取り消し・削除指示をまとめて管理（検証、プレビュー URL の作成と解放、貼り付けの種別振り分け、`files()` / `changes()` で送信用に変換）
+- **`useAttachmentsEditor.ts`**: 全添付種別の選択・取り消し・削除指示をまとめて管理（検証、プレビュー URL の作成と解放、貼り付けの種別振り分け、`files()` / `changes()` で送信用に変換）。ファイル選択とドロップの共通の入口は `selectFiles(kind, files)`（0個は無視、2つ以上はエラー）。選択に成功したら input をリセットする
 - **`useImageModal.ts`**: Modal open/close state and ESC key listener
 - **`useDropdown.ts`**: Dropdown open state (string | null) and click-outside listener
 
 **Components (`frontend/src/components/`)**:
 - **`AddItemForm/`**: Collapsible form with attachments (image / HTML); manages its own content/attachment state
 - **`EditForm/`**: Edit textarea with Edit/Preview tab toggle (Markdown preview) + 添付の差し替え・削除; manages its own state
-- **`AttachmentField/`**: 添付1種別分の入力欄（現在の添付・削除と取り消し・ファイル選択）。フォームは `ATTACHMENT_KIND_ORDER` で回して並べる。種別ごとの文言と現在の添付の表示は `ATTACHMENT_UI` に定義
+- **`AttachmentField/`**: 添付1種別分の入力欄（現在の添付・削除と取り消し・ファイル選択・ドラッグ&ドロップ）。フォームは `ATTACHMENT_KIND_ORDER` で回して並べる。種別ごとの文言と現在の添付の表示は `ATTACHMENT_UI` に定義。ファイル選択の枠（`.attachment-drop-target`）がドロップを受け付け、ドラッグ中は `.is-dragging` で強調する（入れ子の出入りを数え、drop で必ず解除）
 - **`ItemDisplay/`**: Read-only card view with Markdown rendering (react-markdown), copy button, dropdown menu, 「🧩 artifact を開く」ボタン
 - **`ItemCard/`**: Card wrapper rendering either EditForm or ItemDisplay + action buttons (review/master)
 - **`ItemList/`**: Items header, search bar, filtering/sorting logic, maps items to ItemCards
@@ -80,7 +81,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Markdown rendering for item content (bold, italic, code, lists, blockquotes, headings)
   - Edit/Preview tab toggle in edit form for live Markdown preview
   - Image upload with preview thumbnails and validation
-  - HTML artifact の添付（ファイル選択のみ）と、モーダルでの表示（一覧では iframe を起動しない）
+  - HTML artifact の添付（ファイル選択・ドラッグ&ドロップ）と、モーダルでの表示（一覧では iframe を起動しない）
+  - 添付欄へのドラッグ&ドロップ（ドラッグ中は枠を強調し「ここにドロップ」を表示）
   - Collapsible add form for review-first workflow
   - Dropdown menus with outside-click handling
   - Keyword search box with clear button (status filter → text search applied in sequence)
@@ -309,10 +311,11 @@ This project uses Prettier for consistent code formatting. All code output shoul
   - エラーハンドリング（新レスポンス形式対応）
 - **`constants.test.ts`**: 添付種別の設定・バリデーションテスト (10 tests)
 - **`attachment-kinds-sync.test.ts`**: 添付種別の定義（種別・拡張子・上限・sandbox）がサーバーと一致しているかのテスト (4 tests)
-- **`useAttachmentsEditor.test.ts`**: 添付編集フックのテスト (10 tests)
+- **`useAttachmentsEditor.test.ts`**: 添付編集フックのテスト (16 tests、`selectFiles` の0個・1つ・複数・種類違いを含む)
+- **`attachment-field.test.tsx`**: 添付欄のドラッグ&ドロップのテスト (10 tests、jsdom に DataTransfer がないため `fireEvent` にプロパティとして渡す)
 - **`artifact.test.tsx`**: ArtifactModal・artifact ボタン・EditForm の添付操作のテスト (17 tests)
 - **`sorting.test.ts`**: アイテムソート・フィルタリングテスト (6 tests)
-- **`app.test.tsx`**: React コンポーネント統合テスト (11 tests)
+- **`app.test.tsx`**: React コンポーネント統合テスト (16 tests、添付欄の外へのドロップの扱いを含む)
 
 ### Test Commands
 - `cd frontend && npm test` - Watch mode for development
@@ -322,7 +325,7 @@ This project uses Prettier for consistent code formatting. All code output shoul
 - `cd e2e && npm test` - Playwright E2E テスト実行
 - `cd frontend && npx vitest run src/test/<filename>.test.ts` - 単一テストファイルを実行
 
-**Total: 200 unit tests（server 113 + frontend 87）+ 5 E2E tests** covering SM-2 algorithm, Obsidian parser, attachments, API routes, API client layer, validation, UI components, and end-to-end user flows（artifact の JS から API に書き込めないことの確認を含む）.
+**Total: 221 unit tests（server 113 + frontend 108）+ 6 E2E tests** covering SM-2 algorithm, Obsidian parser, attachments, API routes, API client layer, validation, UI components, and end-to-end user flows（artifact の JS から API に書き込めないことの確認を含む）.
 
 ### テスト環境の方針
 
