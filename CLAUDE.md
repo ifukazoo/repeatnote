@@ -45,7 +45,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Master/Unmaster**: Mark items as "mastered" to exclude from review cycle, or unmaster to resume reviews
 - **Smart Filtering**: Default view shows only items needing review; toggle to show all items
 - **Text Search**: Keyword filter to narrow down the item list; case-insensitive, applied after status filter
-- **Smart Sorting**: Items sorted by next_review date (ascending) for optimal study order
+- **Smart Sorting**: 一度も復習していないカード（`review_count === 0`、登録の古い順）を先頭に、その後ろは next_review の昇順（null は先頭）。登録したてのカードを早めに一度復習するため
 - **Review-First UI**: Collapsible add form prioritizes daily review workflow
 - **Markdown Viewer**: Item content rendered as Markdown (bold, code, lists, blockquotes, etc.) using react-markdown
 - **Markdown Preview**: Edit form includes Edit/Preview tab toggle for live markdown preview before saving
@@ -72,7 +72,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **`AttachmentField/`**: 添付1種別分の入力欄（現在の添付・削除と取り消し・ファイル選択・ドラッグ&ドロップ）。フォームは `ATTACHMENT_KIND_ORDER` で回して並べる。種別ごとの文言と現在の添付の表示は `ATTACHMENT_UI` に定義。ファイル選択の枠（`.attachment-drop-target`）がドロップを受け付け、ドラッグ中は `.is-dragging` で強調する（入れ子の出入りを数え、drop で必ず解除）
 - **`ItemDisplay/`**: Read-only card view with Markdown rendering (react-markdown), copy button, dropdown menu, 「🧩 artifact を開く」ボタン
 - **`ItemCard/`**: Card wrapper rendering either EditForm or ItemDisplay + action buttons (review/master)
-- **`ItemList/`**: Items header, search bar, filtering/sorting logic, maps items to ItemCards
+- **`ItemList/`**: Items header, search bar, filtering logic, maps items to ItemCards。並び順は `sortItems.ts` の純粋関数 `sortForReview`
 - **`ImageModal/`**: Full-screen image overlay modal
 - **`ArtifactModal/`**: artifact（HTML）をほぼ全画面の sandbox iframe で表示。ヘッダーに `<title>`（別途 fetch して DOMParser で取得、閉じたら中断）と ×。ESC は枠外にフォーカスがあるときだけ効く。背景クリックでは閉じない
 
@@ -314,7 +314,7 @@ This project uses Prettier for consistent code formatting. All code output shoul
 - **`useAttachmentsEditor.test.ts`**: 添付編集フックのテスト (16 tests、`selectFiles` の0個・1つ・複数・種類違いを含む)
 - **`attachment-field.test.tsx`**: 添付欄のドラッグ&ドロップのテスト (10 tests、jsdom に DataTransfer がないため `fireEvent` にプロパティとして渡す)
 - **`artifact.test.tsx`**: ArtifactModal・artifact ボタン・EditForm の添付操作のテスト (17 tests)
-- **`sorting.test.ts`**: アイテムソート・フィルタリングテスト (6 tests)
+- **`sorting.test.ts`**: `sortForReview` の並び順テスト (11 tests、未復習カードの先頭化・登録順・復習回数 0 と 1 の境界・安定ソートを含む)
 - **`app.test.tsx`**: React コンポーネント統合テスト (16 tests、添付欄の外へのドロップの扱いを含む)
 
 ### Test Commands
@@ -325,7 +325,7 @@ This project uses Prettier for consistent code formatting. All code output shoul
 - `cd e2e && npm test` - Playwright E2E テスト実行
 - `cd frontend && npx vitest run src/test/<filename>.test.ts` - 単一テストファイルを実行
 
-**Total: 221 unit tests（server 113 + frontend 108）+ 6 E2E tests** covering SM-2 algorithm, Obsidian parser, attachments, API routes, API client layer, validation, UI components, and end-to-end user flows（artifact の JS から API に書き込めないことの確認を含む）.
+**Total: 226 unit tests（server 113 + frontend 113）+ 6 E2E tests** covering SM-2 algorithm, Obsidian parser, attachments, API routes, API client layer, validation, UI components, and end-to-end user flows（artifact の JS から API に書き込めないことの確認を含む）.
 
 ### テスト環境の方針
 
@@ -343,6 +343,6 @@ Obsidian クライアント（`server/src/obsidian/client.ts`）はユニット�
 - **Comprehensive test coverage**: All critical functionality is covered by automated tests, ensuring code quality and preventing regressions.
 - **Test-driven development**: ビジネスロジック（SM-2アルゴリズム、Obsidianパーサー、API ルートなど）はTDDで開発する（テストを先に書いてから実装）。UIコンポーネントはモノリシックな `App.tsx` の制約上テストファーストが難しいため、実装後にテストを追加する。変更後は `cd frontend && npm test` でテストを確認し、`cd frontend && npm run dev` で手動UIテストをする。
 - **Documentation update**: After adding or changing features, always update CLAUDE.md to reflect the changes (Core Functionality, Frontend Architecture, Current Status, test counts, etc.).
-- **Frontend sorting optimization**: Items are sorted by next_review date (ascending) on the frontend for optimal performance and user experience.
+- **Frontend sorting optimization**: 並び順（未復習カード → next_review 昇順）はフロントエンドの `sortForReview` で決める。
 - **Item ID**: UUID 文字列（`crypto.randomUUID()`）
 - **Server dependency**: API サーバー（port 3001）が起動していないとフロントエンドは動作しない。開発時は必ず先に `cd server && npm start` を実行すること。

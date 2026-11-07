@@ -60,9 +60,64 @@ describe('sortForReview', () => {
     });
   });
 
+  describe('一度も復習していないカード', () => {
+    it('次回復習日が過去のカードより先に表示される', () => {
+      const items = [
+        makeItem({ id: 'overdue', next_review: '2024-01-01' }),
+        makeItem({ id: 'new', review_count: 0, next_review: '2024-02-01' }),
+      ];
+      expect(ids(sortForReview(items))).toEqual(['new', 'overdue']);
+    });
+
+    it('未復習どうしは登録の古い順（next_review の順ではない）', () => {
+      const items = [
+        makeItem({
+          id: 'newer',
+          review_count: 0,
+          created_at: '2024-01-02T00:00:00.000Z',
+          next_review: '2024-01-01',
+        }),
+        makeItem({
+          id: 'older',
+          review_count: 0,
+          created_at: '2024-01-01T00:00:00.000Z',
+          next_review: '2024-01-02',
+        }),
+      ];
+      expect(ids(sortForReview(items))).toEqual(['older', 'newer']);
+    });
+
+    it('復習済みで next_review が null のカードよりも先に表示される', () => {
+      const items = [
+        makeItem({ id: 'null', next_review: null }),
+        makeItem({ id: 'new', review_count: 0 }),
+      ];
+      expect(ids(sortForReview(items))).toEqual(['new', 'null']);
+    });
+
+    it('復習回数1のカードは未復習として扱わない（境界値）', () => {
+      const items = [
+        makeItem({ id: 'one', review_count: 1, next_review: '2024-01-01' }),
+        makeItem({ id: 'zero', review_count: 0, next_review: '2024-03-01' }),
+        makeItem({ id: 'two', review_count: 2, next_review: '2024-01-02' }),
+      ];
+      expect(ids(sortForReview(items))).toEqual(['zero', 'one', 'two']);
+    });
+
+    it('登録日時も同じなら入力順が保たれる', () => {
+      const items = [
+        makeItem({ id: 'p', review_count: 0 }),
+        makeItem({ id: 'q', review_count: 0 }),
+        makeItem({ id: 'r', review_count: 0 }),
+      ];
+      expect(ids(sortForReview(items))).toEqual(['p', 'q', 'r']);
+    });
+  });
+
   it('元の配列を変更しない', () => {
     const items = [
       makeItem({ id: 'c', next_review: '2024-01-03' }),
+      makeItem({ id: 'new', review_count: 0 }),
       makeItem({ id: 'a', next_review: '2024-01-01' }),
     ];
     const before = ids(items);
