@@ -1,19 +1,11 @@
 import type { AttachmentChanges, Item } from '../../types';
 import { ItemCard } from '../ItemCard/ItemCard';
+import { sortForReview } from './sortItems';
 import './ItemList.css';
 
 function needsReview(item: Item): boolean {
   if (!item.next_review) return true;
   return new Date(item.next_review) <= new Date();
-}
-
-function sortByNextReview(items: Item[]): Item[] {
-  return [...items].sort((a, b) => {
-    if (a.next_review === null && b.next_review === null) return 0;
-    if (a.next_review === null) return -1;
-    if (b.next_review === null) return 1;
-    return new Date(a.next_review).getTime() - new Date(b.next_review).getTime();
-  });
 }
 
 interface ItemListProps {
@@ -63,7 +55,7 @@ export function ItemList({
   onArtifactOpen,
   onError,
 }: ItemListProps) {
-  const sortedItems = sortByNextReview(items);
+  const sortedItems = sortForReview(items);
   const statusFilteredItems = showAllItems
     ? sortedItems
     : sortedItems.filter((item) => needsReview(item) && !item.mastered);
